@@ -1,10 +1,10 @@
 package com.tujuhsembilan.bookrecipe.dto.response;
 
-import java.util.List;
-
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -12,14 +12,14 @@ import lombok.NoArgsConstructor;
 public class JwtResponse {
     private String token;
     private int id;
-	private String type = "Bearer";
-	private String username;
+    private String type = "Bearer";
+    private String username;
     private List<String> role;
 
     public JwtResponse(String token, int id, String username, List<String> role) {
-	    this.token = token;
-	    this.id = id;
-	    this.username = username;
-	    this.role = role;
-	}
+        this.token = token;
+        this.id = id;
+        this.username = username;
+        this.role = role;
+    }
 }

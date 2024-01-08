@@ -1,11 +1,11 @@
 package com.tujuhsembilan.bookrecipe.dto;
 
-import java.sql.Timestamp;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.sql.Timestamp;
 
 @Data
 @AllArgsConstructor
@@ -14,13 +14,13 @@ import lombok.NoArgsConstructor;
 
 public class UsersDTO {
     private int userId;
-	private String username;
-	private String fullname;
-	private String password;
-	private String role;
-	private Boolean isDeleted;
-	private String createdBy;
-	private Timestamp createdTime;
-	private String modifiedBy;
-	private Timestamp modifiedTime;
+    private String username;
+    private String fullname;
+    private String password;
+    private String role;
+    private Boolean isDeleted;
+    private String createdBy;
+    private Timestamp createdTime;
+    private String modifiedBy;
+    private Timestamp modifiedTime;
 }

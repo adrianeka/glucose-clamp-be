@@ -5,17 +5,21 @@ import java.util.List;
 
 import org.springframework.data.jpa.domain.Specification;
 
-import com.tujuhsembilan.bookrecipe.dto.RecipesDTO;
+import com.tujuhsembilan.bookrecipe.dto.request.MyRecipeRequestDTO;
+import com.tujuhsembilan.bookrecipe.model.Recipes;
 
 import jakarta.persistence.criteria.Predicate;
 
 public class RecipeSpesification {
-	public static Specification<RecipesDTO> recipeFilter(String recipeName){
+	public static Specification<Recipes> recipeFilter(MyRecipeRequestDTO myRecipeDTO){
 		return (root, query, criteriaBuilder) -> {
 			List<Predicate> predicates = new ArrayList<Predicate>();
 			
-			if (recipeName != null) {
-				String recipeNameValue = "%" + recipeName + "%";
+			Predicate idPredicate = criteriaBuilder.equal(root.get("users").get("userId"), myRecipeDTO.getUserId());
+			predicates.add(idPredicate);
+			
+			if (myRecipeDTO.getFoodName() != null) {
+				String recipeNameValue = "%" + myRecipeDTO.getFoodName() + "%";
 				Predicate recipeNamePredicates = criteriaBuilder.like(root.get("recipeName"), recipeNameValue);
 				predicates.add(recipeNamePredicates);
 			}

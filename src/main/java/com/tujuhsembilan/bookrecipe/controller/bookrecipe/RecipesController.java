@@ -5,10 +5,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.tujuhsembilan.bookrecipe.dto.request.MyRecipeRequestDTO;
 import com.tujuhsembilan.bookrecipe.service.RecipesService;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
@@ -20,10 +21,10 @@ public class RecipesController {
 	private RecipesService recipeService;
 	
 	@GetMapping("/my-recipes")
-	public ResponseEntity<Object> getResepSaya(@RequestParam int userId, @RequestParam String foodName) {
+	public ResponseEntity<Object> getResepSaya(@ModelAttribute MyRecipeRequestDTO myRecipesDTO) {
 		
 		try{
-			return recipeService.getResepSaya(userId, foodName);
+			return recipeService.getResepSaya(myRecipesDTO);
 			
 		} catch(NullPointerException e) {
 			e.printStackTrace();

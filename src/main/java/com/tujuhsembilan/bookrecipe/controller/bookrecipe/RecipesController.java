@@ -26,11 +26,8 @@ public class RecipesController {
         if (response instanceof ErrorDTO) {
             return ResponseEntity.status(((ErrorDTO) response).getStatusCode())
                     .body(response);
-        } else if (response instanceof DisplayPaginationRecipeFav) {
-            return ResponseEntity.ok(response);
-        } else {
-            return ResponseEntity.noContent().build();
         }
+        return ResponseEntity.ok(response);
     }
 
 

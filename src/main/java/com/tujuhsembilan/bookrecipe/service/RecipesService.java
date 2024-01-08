@@ -12,8 +12,10 @@ import com.tujuhsembilan.bookrecipe.repository.FavoriteFoodsRepository;
 import com.tujuhsembilan.bookrecipe.security.service.UserDetailsImplement;
 import com.tujuhsembilan.bookrecipe.spesification.filter.RecipeFilter;
 import com.tujuhsembilan.bookrecipe.spesification.spesification.RecipeSpecification;
+import lib.minio.MinioSrvc;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -28,6 +30,12 @@ import java.util.stream.Collectors;
 @Service
 @Log4j2
 public class RecipesService {
+
+    private static final String BUCKET_MINIO = "talent79-dev";
+
+    @Lazy
+    @Autowired
+    private MinioSrvc minioSrvc;
 
 
     @Autowired
@@ -49,8 +57,10 @@ public class RecipesService {
                     PageRequest.of(page, pageSize, specification.getSort())
             );
 
+
             List<UserFav> userFavList = favoriteFoodsPage.getContent().stream()
-                    .filter(fav -> fav.getUsers().getUserId() == 1)
+                    .filter(fav -> fav.getUsers().getUserId() == userDetails.getId() )
+                    .filter(favActive -> favActive.getId().getIsFavorite())
                     .map(this::mapFavoriteFoodsToUserFav)
                     .collect(Collectors.toList());
 
@@ -58,16 +68,18 @@ public class RecipesService {
                 return new ErrorDTO(HttpStatus.NOT_FOUND.value(), "Data Not Found",
                         "User Not Found");
             }
-            response.setTotal((int) favoriteFoodsPage.getTotalElements());
+            response.setTotal(userFavList.size());
             response.setData(userFavList);
-            response.setMessage("Success");
+            response.setMessage("Success"); // todo use message.properties
+            response.setStatus("Success Get Data");
             response.setStatusCode(HttpStatus.OK.value());
 
         } catch (DataAccessException e) {
             return new ErrorDTO(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Data Access Error", e.getMessage());
         } catch (Exception e) {
             e.printStackTrace();
-            return new ErrorDTO(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Unexpected Error", e.getMessage());
+            return new ErrorDTO(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Unexpected Error",
+                    "cause :\n"+ e.getCause() +"\n " + e.getMessage() );
         }
         return response;
     }
@@ -80,7 +92,13 @@ public class RecipesService {
                     UserFav userFav = new UserFav();
                     userFav.setRecipeId(recipe.getRecipeId());
                     userFav.setRecipeName(recipe.getRecipeName());
-                    userFav.setImageUrl(recipe.getImageFilename());
+                    String imageUrl = recipe.getImageFilename();
+                    try {
+                        imageUrl = minioSrvc.getLink(BUCKET_MINIO, recipe.getImageFilename(), MinioSrvc.DEFAULT_EXPIRY);
+                    } catch (Exception e) {
+                        log.error("Error retrieving image URL for recipeId: " + recipe.getRecipeId(), e);
+                    }
+                    userFav.setImageUrl(imageUrl);
                     userFav.setTime(recipe.getTimeCook());
                     userFav.setIs_favorite(favoriteFoods.getId().getIsFavorite());
 

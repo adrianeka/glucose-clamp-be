@@ -37,11 +37,11 @@ public class RecipeSpecification implements Specification<FavoriteFoods> {
         List<Predicate> predicates = new ArrayList<>();
 
         if (filter.getLevel() != null) {
-            predicates.add(criteriaBuilder.equal(root.get("levels").get("levelName"), filter.getLevel()));
+            predicates.add(criteriaBuilder.equal(root.get("recipes").get("levels").get("levelName"), filter.getLevel()));
         }
 
         if (filter.getCategory() != null) {
-            predicates.add(criteriaBuilder.equal(root.get("categories").get("categoryName"), filter.getCategory()));
+            predicates.add(criteriaBuilder.equal(root.get("recipes").get("categories").get("categoryName"), filter.getCategory()));
         }
 
         if (filter.getCookMin() != null && filter.getCookMax() != null) {

@@ -60,10 +60,13 @@ public class UsersService {
             return new MessageResponse(errorMessage, HttpStatus.BAD_REQUEST.value(), "ERROR");
         }
 
-        Users user = new Users();
-        user.setUsername(request.getUsername());
-        user.setFullname(request.getFullname());
-        user.setPassword(BCrypt.hashpw(request.getPassword(), BCrypt.gensalt()));
+        Users user = Users.builder()
+            .username(request.getUsername())
+            .fullname(request.getFullname())
+            .password(BCrypt.hashpw(request.getPassword(), BCrypt.gensalt()))
+            .role("User")
+            .isDeleted(false)
+            .build();
 
         userRepository.save(user);
 

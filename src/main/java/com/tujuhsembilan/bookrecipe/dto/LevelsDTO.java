@@ -15,9 +15,9 @@ import lombok.NoArgsConstructor;
 public class LevelsDTO {
 	private int levelId;
 	private String levelName;
-	private Boolean isDeleted;
-	private String createdBy;
-	private Timestamp createdTime;
-	private String modifiedBy;
-	private Timestamp modifiedTime;
+	// private Boolean isDeleted;
+	// private String createdBy;
+	// private Timestamp createdTime;
+	// private String modifiedBy;
+	// private Timestamp modifiedTime;
 }

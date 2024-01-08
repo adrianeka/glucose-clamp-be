@@ -14,9 +14,9 @@ import lombok.NoArgsConstructor;
 public class CategoriesDTO {
     private int categoryId;
 	private String categoryName;
-	private Boolean isDeleted;
-	private String createdBy;
-	private Timestamp createdTime;
-	private String modifiedBy;
-	private Timestamp modifiedTime;
+	// private Boolean isDeleted;
+	// private String createdBy;
+	// private Timestamp createdTime;
+	// private String modifiedBy;
+	// private Timestamp modifiedTime;
 }

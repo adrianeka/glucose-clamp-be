@@ -33,13 +33,13 @@ public class RecipesService {
 	@Autowired
 	private FavoriteFoodsRepository favoriteRepo;
 	
-	public ResponseEntity<Object> getResepSaya(int page, int limit, MyRecipeRequestDTO myRecipesDTO, String sortBy){
+	public ResponseEntity<Object> getResepSaya(MyRecipeRequestDTO myRecipesDTO, String sortBy, int pageSize, int pageNumber){
 		Sort sortByNameAsc = Sort.by(Sort.Direction.ASC, "recipeName");
 		Sort sortByNameDesc = Sort.by(Sort.Direction.DESC, "recipeName");
 		Sort sortByTimeAsc = Sort.by(Sort.Direction.ASC, "timeCook");
 		Sort sortByTimeDesc = Sort.by(Sort.Direction.DESC, "timeCook");
 		
-		int newPage = page - 1;
+		int newPage = pageSize - 1;
 		
 		Sort choosenSort = null;
 		
@@ -64,7 +64,7 @@ public class RecipesService {
 			choosenSort = sortByNameAsc;
 		}
 		
-		PageRequest pageRequest = PageRequest.of(newPage, limit, choosenSort);
+		PageRequest pageRequest = PageRequest.of(newPage, pageNumber, choosenSort);
 		
 		Specification<Recipes> recipeSpec = RecipeSpesification.recipeFilter(myRecipesDTO);
 		

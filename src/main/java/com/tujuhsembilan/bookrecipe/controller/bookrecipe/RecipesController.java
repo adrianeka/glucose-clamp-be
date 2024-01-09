@@ -24,10 +24,10 @@ public class RecipesController {
 	private RecipesService recipeService;
 	
 	@GetMapping("/my-recipes")
-	public ResponseEntity<Object> getResepSaya(@RequestParam(required = false, defaultValue = "1") int page, @RequestParam(required = false, defaultValue = "8") int limit , @ModelAttribute MyRecipeRequestDTO myRecipesDTO, @RequestParam(required = false) String sortBy) {
+	public ResponseEntity<Object> getResepSaya(@ModelAttribute MyRecipeRequestDTO myRecipesDTO, @RequestParam(required = false) String sortBy, @RequestParam(required = false, defaultValue = "1") int pageSize, @RequestParam(required = false, defaultValue = "8") int pageNumber) {
 		
 		try{
-			return recipeService.getResepSaya(page, limit, myRecipesDTO, sortBy);
+			return recipeService.getResepSaya(myRecipesDTO, sortBy, pageSize, pageNumber);
 			
 		} catch(NullPointerException e) {
 			e.printStackTrace();

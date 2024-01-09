@@ -21,8 +21,8 @@ public class RecipeSpesification {
 			Predicate isDeletedPredicate = criteriaBuilder.equal(root.get("isDeleted"), false);
 			predicates.add(isDeletedPredicate);
 			
-			if (myRecipeDTO.getFoodName() != null) {
-				String recipeNameValue = "%" + myRecipeDTO.getFoodName() + "%";
+			if (myRecipeDTO.getRecipeName() != null) {
+				String recipeNameValue = "%" + myRecipeDTO.getRecipeName() + "%";
 				Predicate recipeNamePredicates = criteriaBuilder.like(root.get("recipeName"), recipeNameValue);
 				predicates.add(recipeNamePredicates);
 			}

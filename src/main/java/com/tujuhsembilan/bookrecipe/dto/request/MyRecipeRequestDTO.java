@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @Builder
 public class MyRecipeRequestDTO {
 	private int userId;
-	private String foodName;
+	private String recipeName;
 	private Integer levelId;
 	private Integer categoryId;
 	private Integer time;

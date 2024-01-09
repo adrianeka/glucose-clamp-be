@@ -77,7 +77,7 @@ public class RecipesService {
 					recipe.getRecipeName(),
 					recipe.getImageFilename(),
 					recipe.getTimeCook(),
-					getFavFood(recipe.getRecipeId(), recipe.getUsers().getUserId()).getId().getIsFavorite()
+					getFavFood(recipe.getRecipeId(), recipe.getUsers().getUserId())
 				))
 			.collect(Collectors.toList());
 		
@@ -90,9 +90,14 @@ public class RecipesService {
 		return new ResponseEntity<>(result, HttpStatus.OK);
 	}
 	
-	public FavoriteFoods getFavFood(Integer recipeId, Integer userId) {
+	public Boolean getFavFood(Integer recipeId, Integer userId) {
 		FavoriteFoods favFood = favoriteRepo.findById_RecipeIdAndId_UserId(recipeId, userId).orElse(null);
+		Boolean isFavorite = false;
 		
-		return favFood;
+		if (favFood != null) {
+			return favFood.getId().getIsFavorite();
+		}
+		
+		return isFavorite;
 	}
 }

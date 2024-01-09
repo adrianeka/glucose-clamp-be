@@ -4,11 +4,9 @@ import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 import com.tujuhsembilan.bookrecipe.dto.request.RegisterRequest;
 import com.tujuhsembilan.bookrecipe.dto.response.MessageResponse;
@@ -16,7 +14,6 @@ import com.tujuhsembilan.bookrecipe.model.Users;
 import com.tujuhsembilan.bookrecipe.repository.UsersRepository;
 
 import jakarta.validation.ConstraintViolation;
-import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Validator;
 import lombok.extern.slf4j.Slf4j;
 
@@ -72,7 +69,7 @@ public class UsersService {
 
         log.info("Received user: {}", user);
         
-        String successMessage = "User " + request.getUsername() + " registered successfully!";
+        String successMessage = "Berhasil menambahkan " + request.getUsername();
         return new MessageResponse(successMessage, HttpStatus.OK.value(), "OK");
 
     }

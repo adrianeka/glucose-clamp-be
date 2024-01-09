@@ -18,7 +18,7 @@ public class RegisterRequest {
 
     @NotBlank(message = "Kolom nama lengkap tidak boleh kosong")
     @Size(max = 255, message = "Format nama lengkap belum sesuai. (Tidak menggunakan special character dan maksimal 255 charackter)")
-    @Pattern(regexp = "^[a-zA-Z\\s]+$", message = "Nama lengkap tidak boleh mengandung karakter khusus, kecuali spasi")
+    @Pattern(regexp = "^[a-zA-Z\\s]+$", message = "Format nama lengkap belum sesuai. (Tidak menggunakan special character dan maksimal 255 charackter)")
     private String fullname;
 
     @NotBlank(message = "Kolom kata sandi tidak boleh kosong")

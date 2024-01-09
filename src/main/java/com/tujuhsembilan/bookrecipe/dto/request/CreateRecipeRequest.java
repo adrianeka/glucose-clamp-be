@@ -1,7 +1,5 @@
 package com.tujuhsembilan.bookrecipe.dto.request;
 
-import org.springframework.web.multipart.MultipartFile;
-
 import com.tujuhsembilan.bookrecipe.dto.CategoriesDTO;
 import com.tujuhsembilan.bookrecipe.dto.LevelsDTO;
 
@@ -15,8 +13,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.io.IOException;
+import java.sql.Timestamp;
 
 @Data
 @NoArgsConstructor
@@ -30,6 +27,8 @@ public class CreateRecipeRequest {
     @NotNull
     private LevelsDTO levels;
 
+    private int UserId;
+
     @NotBlank(message = "Kolom recipeName tidak boleh kosong")
     @Size(min = 1, max = 255, message = "Panjang kolom tidak boleh melebihi 255 karakter")
     @Pattern(regexp = "^[a-zA-Z\\s]*$", message = "Kolom tidak boleh berisi special character/angka")
@@ -37,7 +36,6 @@ public class CreateRecipeRequest {
 
     // @NotBlank(message = "Kolom imageFilename tidak boleh kosong")
     private String imageFilename;
-
 
     @NotNull(message = "Kolom timeCook tidak boleh kosong")
     @Min(value = 1, message = "Kolom hanya boleh berisi angka 1-999")
@@ -51,4 +49,18 @@ public class CreateRecipeRequest {
     @NotBlank(message = "Kolom howToCook tidak boleh kosong")
     @Size(min = 1)
     private String howToCook;
+
+    @Builder.Default
+    private Boolean isDeleted = false;
+
+    private String createdBy;
+
+    @Builder.Default
+    private Timestamp createdTime = new Timestamp(System.currentTimeMillis());
+
+    @Builder.Default
+    private String modifiedBy = "defaultModifiedBy";
+
+    @Builder.Default
+    private Timestamp modifiedTime = new Timestamp(System.currentTimeMillis());
 }

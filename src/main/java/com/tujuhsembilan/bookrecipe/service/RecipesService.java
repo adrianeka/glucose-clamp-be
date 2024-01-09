@@ -13,12 +13,15 @@ import org.springframework.web.multipart.MultipartFile;
 import com.tujuhsembilan.bookrecipe.dto.request.CreateRecipeRequest;
 import com.tujuhsembilan.bookrecipe.dto.response.MessageResponse;
 import com.tujuhsembilan.bookrecipe.model.Recipes;
+import com.tujuhsembilan.bookrecipe.model.Users;
 import com.tujuhsembilan.bookrecipe.model.Categories;
 import com.tujuhsembilan.bookrecipe.model.Levels;
 import com.tujuhsembilan.bookrecipe.repository.CategoriesRepository;
 import com.tujuhsembilan.bookrecipe.repository.LevelsRepository;
 import com.tujuhsembilan.bookrecipe.repository.RecipesRepository;
+import com.tujuhsembilan.bookrecipe.repository.UsersRepository;
 
+import java.sql.Timestamp;
 import io.minio.MinioClient;
 import io.minio.PutObjectArgs;
 import jakarta.persistence.EntityNotFoundException;
@@ -37,6 +40,9 @@ public class RecipesService {
     @Autowired
     private LevelsRepository levelsRepository;
 
+    @Autowired 
+    private UsersRepository usersRepository;
+
     @Autowired
     private ValidationService validationService;
 
@@ -49,6 +55,10 @@ public class RecipesService {
     @Transactional
     public MessageResponse create(CreateRecipeRequest request, MultipartFile imageFile) {
         validationService.validate(request);
+
+        Users createdByUser = usersRepository.findById(1)
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "User not found with id: " + 1));
 
         Categories categories = categoriesRepository.findById(request.getCategories().getCategoryId())
                 .orElseThrow(() -> new EntityNotFoundException(
@@ -73,10 +83,16 @@ public class RecipesService {
         newRecipe.setCategories(categories);
         newRecipe.setLevels(levels);
         newRecipe.setRecipeName(request.getRecipeName());
-        newRecipe.setImageFilename(imageFilename); // Set nama file di model Recipes
+        newRecipe.setImageFilename(imageFilename); 
         newRecipe.setTimeCook(request.getTimeCook());
         newRecipe.setIngridient(request.getIngridient());
         newRecipe.setHowToCook(request.getHowToCook());
+        newRecipe.setCreatedBy(createdByUser.getUsername());
+        newRecipe.setModifiedBy(createdByUser.getUsername());
+        newRecipe.setIsDeleted(false);
+        newRecipe.setCreatedTime(new Timestamp(System.currentTimeMillis()));
+        newRecipe.setModifiedTime(new Timestamp(System.currentTimeMillis()));
+
 
         // Simpan ke repository atau database
         recipesRepository.save(newRecipe);

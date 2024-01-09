@@ -1,6 +1,5 @@
 package com.tujuhsembilan.bookrecipe.dto;
 
-import java.sql.Timestamp;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

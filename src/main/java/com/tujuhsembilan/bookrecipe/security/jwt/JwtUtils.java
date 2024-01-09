@@ -34,10 +34,10 @@ public class JwtUtils {
     UserDetailsImplement userPrincipal = (UserDetailsImplement) authentication.getPrincipal();
 
     return Jwts.builder()
-        .setSubject((userPrincipal.getUsername()))
+        .setSubject(userPrincipal.getUsername())
         .setIssuedAt(new Date())
-        .setExpiration(new Date((new Date()).getTime() + jwtExpirationMs))
-        .signWith(key(), SignatureAlgorithm.HS256)
+        .setExpiration(new Date(System.currentTimeMillis() + jwtExpirationMs))
+        .signWith(Keys.secretKeyFor(SignatureAlgorithm.HS256))
         .compact();
   }
   

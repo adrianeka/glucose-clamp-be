@@ -36,23 +36,31 @@ public class UsersService {
     final HttpStatus statusOK = HttpStatus.OK;
 
     public ApiDataResponseBuilder signIn(LoginRequest loginRequest){
-        Authentication authentication = authenticationManager.authenticate(
-            new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
+        try {
+            Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
 
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-        String jwt = jwtUtils.generateJwtToken(authentication);
-        
-        UserDetailsImplement userDetails = (UserDetailsImplement) authentication.getPrincipal();    
-        Optional<String> roles = userDetails.getAuthorities().stream()
-            .map(item -> item.getAuthority())
-            .findFirst();
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+            String jwt = jwtUtils.generateJwtToken(authentication);
+            
+            UserDetailsImplement userDetails = (UserDetailsImplement) authentication.getPrincipal();    
+            Optional<String> roles = userDetails.getAuthorities().stream()
+                .map(item -> item.getAuthority())
+                .findFirst();
 
 
-        return ApiDataResponseBuilder.builder()
-            .data(new JwtResponse(jwt, userDetails.getId(), userDetails.getUsername(), roles.get()))
-            .message("Auth User Success")
-            .statusCode(statusOK.value())
-            .status(statusOK)
-            .build();
+            return ApiDataResponseBuilder.builder()
+                .data(new JwtResponse(jwt, userDetails.getId(), userDetails.getUsername(), roles.get()))
+                .message("Auth User Success")
+                .statusCode(statusOK.value())
+                .status(statusOK)
+                .build();   
+        } catch (Exception e) {
+            return ApiDataResponseBuilder.builder()
+                .message("Invalid username or password")
+                .statusCode(HttpStatus.UNAUTHORIZED.value())
+                .status(HttpStatus.UNAUTHORIZED)
+                .build();
+        }
     }
 }

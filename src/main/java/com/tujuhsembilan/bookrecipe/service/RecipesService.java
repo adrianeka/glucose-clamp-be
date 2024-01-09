@@ -6,6 +6,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
@@ -31,11 +33,42 @@ public class RecipesService {
 	@Autowired
 	private FavoriteFoodsRepository favoriteRepo;
 	
-	public ResponseEntity<Object> getResepSaya(MyRecipeRequestDTO myRecipesDTO){
+	public ResponseEntity<Object> getResepSaya(int page, int limit, MyRecipeRequestDTO myRecipesDTO, String sortBy){
 		Sort sortByNameAsc = Sort.by(Sort.Direction.ASC, "recipeName");
+		Sort sortByNameDesc = Sort.by(Sort.Direction.DESC, "recipeName");
+		Sort sortByTimeAsc = Sort.by(Sort.Direction.ASC, "timeCook");
+		Sort sortByTimeDesc = Sort.by(Sort.Direction.DESC, "timeCook");
+		
+		int newPage = page - 1;
+		
+		Sort choosenSort = null;
+		
+		boolean isSortByEmpty = (sortBy == null);
+		
+		if(!isSortByEmpty) {
+			switch(sortBy) {
+				case "nameAsc":
+					choosenSort = sortByNameAsc;
+					break;
+				case "nameDesc":
+					choosenSort = sortByNameDesc;
+					break;
+				case "timeAsc":
+					choosenSort = sortByTimeAsc;
+					break;
+				case "timeDesc":
+					choosenSort = sortByTimeDesc;
+					break;
+			}
+		} else {
+			choosenSort = sortByNameAsc;
+		}
+		
+		PageRequest pageRequest = PageRequest.of(newPage, limit, choosenSort);
+		
 		Specification<Recipes> recipeSpec = RecipeSpesification.recipeFilter(myRecipesDTO);
 		
-		List<Recipes> recipes = recipeRepo.findAll(recipeSpec, sortByNameAsc);
+		Page<Recipes> recipes = recipeRepo.findAll(recipeSpec, pageRequest);
 		List<MyRecipeResDTO> response = recipes.stream().map(recipe -> 
 			new MyRecipeResDTO(
 					recipe.getRecipeId(),
@@ -50,7 +83,7 @@ public class RecipesService {
 		
 		Map<String, Object> result = new LinkedHashMap<String, Object>();
 		
-		result.put("total", recipes.size());
+		result.put("total", recipes.getSize());
 		result.put("data", response);
 		result.put("message", "Berhasil memuat Resep Masakan Saya");
 		

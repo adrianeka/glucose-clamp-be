@@ -18,10 +18,33 @@ public class RecipeSpesification {
 			Predicate idPredicate = criteriaBuilder.equal(root.get("users").get("userId"), myRecipeDTO.getUserId());
 			predicates.add(idPredicate);
 			
+			Predicate isDeletedPredicate = criteriaBuilder.equal(root.get("isDeleted"), false);
+			predicates.add(isDeletedPredicate);
+			
 			if (myRecipeDTO.getFoodName() != null) {
 				String recipeNameValue = "%" + myRecipeDTO.getFoodName() + "%";
 				Predicate recipeNamePredicates = criteriaBuilder.like(root.get("recipeName"), recipeNameValue);
 				predicates.add(recipeNamePredicates);
+			}
+			
+			if (myRecipeDTO.getLevelId() != null) {
+				Predicate recipeLevelPredicates = criteriaBuilder.equal(root.get("levels").get("levelId"), myRecipeDTO.getLevelId());
+				predicates.add(recipeLevelPredicates);
+			}
+			
+			if (myRecipeDTO.getCategoryId() != null) {
+				Predicate recipeCategoryPredicates = criteriaBuilder.equal(root.get("categories").get("categoryId"), myRecipeDTO.getCategoryId());
+				predicates.add(recipeCategoryPredicates);
+			}
+			
+			if(myRecipeDTO.getTime() != null) {
+				if(myRecipeDTO.getTime() <= 30) {
+					predicates.add(criteriaBuilder.lessThanOrEqualTo(root.get("timeCook"), 30));
+				} else if(myRecipeDTO.getTime() > 30 && myRecipeDTO.getTime() <= 60) {
+					predicates.add(criteriaBuilder.between(root.get("timeCook"), 31, 60));
+				} else {
+					predicates.add(criteriaBuilder.greaterThan(root.get("timeCook"), 60));
+				}
 			}
 			
 			return criteriaBuilder.and(predicates.toArray(new Predicate[predicates.size()]));

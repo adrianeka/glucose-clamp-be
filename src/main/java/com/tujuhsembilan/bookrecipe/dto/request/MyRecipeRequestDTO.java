@@ -12,4 +12,7 @@ import lombok.NoArgsConstructor;
 public class MyRecipeRequestDTO {
 	private int userId;
 	private String foodName;
+	private Integer levelId;
+	private Integer categoryId;
+	private Integer time;
 }

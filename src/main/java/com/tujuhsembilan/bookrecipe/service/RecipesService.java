@@ -83,14 +83,14 @@ public class RecipesService {
 		
 		Map<String, Object> result = new LinkedHashMap<String, Object>();
 		
-		result.put("total", recipes.getSize());
+		result.put("total", response.size());
 		result.put("data", response);
 		result.put("message", "Berhasil memuat Resep Masakan Saya");
 		
 		return new ResponseEntity<>(result, HttpStatus.OK);
 	}
 	
-	public Boolean getFavFood(Integer recipeId, Integer userId) {
+	private Boolean getFavFood(Integer recipeId, Integer userId) {
 		FavoriteFoods favFood = favoriteRepo.findById_RecipeIdAndId_UserId(recipeId, userId).orElse(null);
 		Boolean isFavorite = false;
 		
@@ -99,5 +99,29 @@ public class RecipesService {
 		}
 		
 		return isFavorite;
+	}
+	
+	public ResponseEntity<Object> deleteResepSaya(int recipeId, int userId){
+		Recipes resepSaya = recipeRepo.findByRecipeIdAndUsers_UserId(recipeId, userId).orElse(null);
+		
+		String message = "";
+		Integer jumlahResepDihapus = 0;
+		
+		if(resepSaya != null) {
+			jumlahResepDihapus = 1;
+			resepSaya.setIsDeleted(true);
+			recipeRepo.save(resepSaya);
+			message = "Resep " + resepSaya.getRecipeName() + " berhasil dihapus";
+		} else {
+			message = "Resep tidak ditemukan!";
+		}
+		
+		Map<String, Object> result = new LinkedHashMap<String, Object>();
+		
+		result.put("total", jumlahResepDihapus);
+		result.put("data", "");
+		result.put("message", message);
+		
+		return new ResponseEntity<>(result, HttpStatus.OK);
 	}
 }

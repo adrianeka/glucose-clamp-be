@@ -39,7 +39,7 @@ public class RecipeSpesification {
 			
 			if(myRecipeDTO.getTime() != null) {
 				if(myRecipeDTO.getTime() <= 30) {
-					predicates.add(criteriaBuilder.lessThanOrEqualTo(root.get("timeCook"), 30));
+					predicates.add(criteriaBuilder.between(root.get("timeCook"), 0, 30));
 				} else if(myRecipeDTO.getTime() > 30 && myRecipeDTO.getTime() <= 60) {
 					predicates.add(criteriaBuilder.between(root.get("timeCook"), 31, 60));
 				} else {

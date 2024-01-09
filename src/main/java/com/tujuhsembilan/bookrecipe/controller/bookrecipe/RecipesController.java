@@ -6,6 +6,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -35,5 +37,9 @@ public class RecipesController {
 		
 	}
 	
-	
+	@PutMapping("/{recipeId}")
+	public ResponseEntity<Object> deleteResepSayaById(@PathVariable int recipeId, @RequestParam int userId){
+		
+		return recipeService.deleteResepSaya(recipeId, userId);
+	}
 }

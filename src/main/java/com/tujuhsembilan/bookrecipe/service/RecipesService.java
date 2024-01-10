@@ -88,7 +88,7 @@ public class RecipesService {
 				))
 			.collect(Collectors.toList());
 		
-		Long totalData = recipeRepo.countByUsers_UserId(myRecipesDTO.getUserId());
+		long totalData = recipeRepo.count(recipeSpec);
 		
 		Map<String, Object> result = new LinkedHashMap<String, Object>();
 		

@@ -44,11 +44,11 @@ public class RecipesService {
     public Object getDataByIdWithFilterAndSort(int page, int pageSize, RecipeFilter filter) {
         DisplayPaginationRecipeFav response = new DisplayPaginationRecipeFav();
         try {
-            UserDetailsImplement userDetails = (UserDetailsImplement) SecurityContextHolder
-                    .getContext()
-                    .getAuthentication()
-                    .getPrincipal();
-            log.info("Read Recipes with User id " + userDetails.getId() + " Success!");
+//            UserDetailsImplement userDetails = (UserDetailsImplement) SecurityContextHolder
+//                    .getContext()
+//                    .getAuthentication()
+//                    .getPrincipal();
+//            log.info("Read Recipes with User id " + userDetails.getId() + " Success!");
 
             RecipeSpecification specification = new RecipeSpecification(filter);
 
@@ -59,8 +59,8 @@ public class RecipesService {
 
 
             List<UserFav> userFavList = favoriteFoodsPage.getContent().stream()
-                    .filter(fav -> fav.getUsers().getUserId() == userDetails.getId() )
-                    .filter(favActive -> favActive.getId().getIsFavorite())
+//                    .filter(fav -> fav.getUsers().getUserId() == userDetails.getId() )
+                    .filter(favActive -> favActive.getIsFavorite())
                     .map(this::mapFavoriteFoodsToUserFav)
                     .collect(Collectors.toList());
 
@@ -100,7 +100,7 @@ public class RecipesService {
                     }
                     userFav.setImageUrl(imageUrl);
                     userFav.setTime(recipe.getTimeCook());
-                    userFav.setIs_favorite(favoriteFoods.getId().getIsFavorite());
+                    userFav.setIs_favorite(favoriteFoods.getIsFavorite());
 
                     Categories categories = recipe.getCategories();
                     Levels levels = recipe.getLevels();

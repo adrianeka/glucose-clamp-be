@@ -24,7 +24,7 @@ public class RecipesController {
 	private RecipesService recipeService;
 	
 	@GetMapping("/my-recipes")
-	public ResponseEntity<Object> getResepSaya(@ModelAttribute MyRecipeRequestDTO myRecipesDTO, @RequestParam(required = false) String sortBy, @RequestParam(required = false) Integer pageSize, @RequestParam(required = false) Integer pageNumber) {
+	public ResponseEntity<Object> getResepSaya(@ModelAttribute MyRecipeRequestDTO myRecipesDTO, @RequestParam(required = false) String sortBy, @RequestParam(required = false, defaultValue = "1") Integer pageSize, @RequestParam(required = false, defaultValue = "8") Integer pageNumber) {
 		
 		try{
 			return recipeService.getResepSaya(myRecipesDTO, sortBy, pageSize, pageNumber);

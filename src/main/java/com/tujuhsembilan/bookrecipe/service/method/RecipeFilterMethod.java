@@ -49,6 +49,8 @@ public class RecipeFilterMethod {
         Specification<Recipes> spec = RecipeListSpecification.recipesFilterAll(recipeFiltersDTO);
         Page<Recipes> recipesFiltered = recipesListRepo.findAll(spec, pageRequest);
 
+        long totalData = recipesListRepo.count(spec);
+
         List<RecipeResponseDTO> response = recipesFiltered.stream().map(recipe -> 
 			new RecipeResponseDTO(
 					recipe.getRecipeId(),
@@ -61,7 +63,7 @@ public class RecipeFilterMethod {
 				))
 			.collect(Collectors.toList());
 		
-        result.put("total", response.size());
+        result.put("total", totalData);
         result.put("data", response);
         result.put("message", "Berhasil memuat Resep Masakan Saya");
 
@@ -71,10 +73,12 @@ public class RecipeFilterMethod {
     private Boolean getIsFavorite(Recipes recipe) {
         Set<FavoriteFoods> favoriteFoodses = recipe.getFavoriteFoodses();
         if (favoriteFoodses != null && !favoriteFoodses.isEmpty()) {
-            return favoriteFoodses.iterator().next().getId().getIsFavorite();
-        } else {
-            return false;
+            FavoriteFoods firstFavorite = favoriteFoodses.iterator().next();
+            if (firstFavorite != null && firstFavorite.getId() != null) {
+                return firstFavorite.getId().getIsFavorite();
+            }
         }
+        return false;
     }
     
 }

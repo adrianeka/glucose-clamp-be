@@ -88,9 +88,11 @@ public class RecipesService {
 				))
 			.collect(Collectors.toList());
 		
+		Long totalData = recipeRepo.countByUsers_UserId(myRecipesDTO.getUserId());
+		
 		Map<String, Object> result = new LinkedHashMap<String, Object>();
 		
-		result.put("total", response.size());
+		result.put("total", totalData);
 		result.put("data", response);
 		result.put("message", "Berhasil memuat Resep Masakan Saya");
 		

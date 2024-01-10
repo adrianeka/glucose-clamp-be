@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 
 import com.tujuhsembilan.bookrecipe.dto.request.RecipeFilterRequestDTO;
 import com.tujuhsembilan.bookrecipe.model.FavoriteFoods;
+import com.tujuhsembilan.bookrecipe.model.FavoriteFoodsId;
 import com.tujuhsembilan.bookrecipe.model.Recipes;
 import com.tujuhsembilan.bookrecipe.model.Users;
 import com.tujuhsembilan.bookrecipe.repository.FavoriteFoodsRepository;
@@ -72,30 +73,39 @@ public class RecipeListService {
                 FavoriteFoods favoriteFoods = favoriteFoodsRepo
                                                 .findById_RecipeIdAndId_UserId(userId, recipesData.getRecipeId())
                                                 .orElse(null);
+                
+                FavoriteFoodsId favId = new FavoriteFoodsId();
 
                 if (favoriteFoods == null) {
                     Users users = userRepo.findById(userId).orElse(null);
                     FavoriteFoods favorite = new FavoriteFoods();
+                    favId.setIsFavorite(true);
+                    favId.setUserId(users.getUserId());
+                    favId.setRecipeId(recipesData.getRecipeId());
+
                     favorite.setUsers(users);
                     favorite.setRecipes(recipesData);
-                    favorite.getId().setIsFavorite(true);
+                    favorite.setId(favId);
                     favorite = favoriteFoodsRepo.save(favorite);
                     message = "Resep " + recipeName + " berhasil ditambahkan ke favorite!";
                 } else {
+                    favId.setUserId(userId);
+                    favId.setRecipeId(recipesData.getRecipeId());
                     boolean isFavorite = favoriteFoods.getId().getIsFavorite();
                     if (isFavorite) {
-                        favoriteFoods.getId().setIsFavorite(false);
+                        favId.setIsFavorite(false);
+                        favoriteFoods.setId(favId);
                         message = "Resep " + recipeName + " berhasil dihapus dari favorite!";
                     } else {
-                        favoriteFoods.getId().setIsFavorite(true);
+                        favId.setIsFavorite(true);
+                        favoriteFoods.setId(favId);
                         message = "Resep " + recipeName + " berhasil ditambahkan ke favorite!";
                     }
                     favoriteFoods = favoriteFoodsRepo.save(favoriteFoods);
                 }
             }
-            Long totalData = recipeRepo.count();
 
-            result.put("total", totalData);
+            result.put("total", recipeRepo.count());
             result.put("data", null);
             result.put("message", message);
             result.put("status", status);
@@ -106,7 +116,6 @@ public class RecipeListService {
             status = HttpStatus.INTERNAL_SERVER_ERROR;
 
             result.put("message", message);
-            result.put("error_message", e.getCause().getCause().getMessage());
             result.put("status", status);
             return ResponseEntity.status(status).body(result);
         }

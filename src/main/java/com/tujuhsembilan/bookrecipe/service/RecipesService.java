@@ -24,6 +24,8 @@ import com.tujuhsembilan.bookrecipe.repository.FavoriteFoodsRepository;
 import com.tujuhsembilan.bookrecipe.repository.RecipesRepository;
 import com.tujuhsembilan.bookrecipe.service.spesification.RecipeSpesification;
 
+import lib.minio.MinioSrvc;
+
 @Service
 public class RecipesService {
 	
@@ -32,6 +34,11 @@ public class RecipesService {
 	
 	@Autowired
 	private FavoriteFoodsRepository favoriteRepo;
+	
+	@Autowired
+	private MinioSrvc minioService;
+	
+	private final String bucket = "talent79-dev";
 	
 	public ResponseEntity<Object> getResepSaya(MyRecipeRequestDTO myRecipesDTO, String sortBy, int pageSize, int pageNumber){
 		Sort sortByNameAsc = Sort.by(Sort.Direction.ASC, "recipeName");
@@ -75,7 +82,7 @@ public class RecipesService {
 					new MyRecipeCategoriesDTO(recipe.getCategories().getCategoryId(), recipe.getCategories().getCategoryName()),
 					new MyRecipesLevelsDTO(recipe.getLevels().getLevelId(), recipe.getLevels().getLevelName()),
 					recipe.getRecipeName(),
-					recipe.getImageFilename(),
+					getImageURL(bucket, recipe.getImageFilename()),
 					recipe.getTimeCook(),
 					getFavFood(recipe.getRecipeId(), recipe.getUsers().getUserId())
 				))
@@ -99,6 +106,16 @@ public class RecipesService {
 		}
 		
 		return isFavorite;
+	}
+	
+	private String getImageURL(String bucket, String filename) {
+		String url = "";
+		
+		if(bucket != null && filename != null) {
+			url = minioService.getPublicLink(bucket, filename);
+		}
+		
+		return url;
 	}
 	
 	public ResponseEntity<Object> deleteResepSaya(int recipeId, int userId){

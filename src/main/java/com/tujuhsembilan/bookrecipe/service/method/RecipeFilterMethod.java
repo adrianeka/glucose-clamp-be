@@ -1,0 +1,80 @@
+package com.tujuhsembilan.bookrecipe.service.method;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+
+import com.tujuhsembilan.bookrecipe.dto.request.RecipeFilterRequestDTO;
+import com.tujuhsembilan.bookrecipe.dto.response.RecipeCategoryDTO;
+import com.tujuhsembilan.bookrecipe.dto.response.RecipeLevelDTO;
+import com.tujuhsembilan.bookrecipe.dto.response.RecipeResponseDTO;
+import com.tujuhsembilan.bookrecipe.model.FavoriteFoods;
+import com.tujuhsembilan.bookrecipe.model.Recipes;
+import com.tujuhsembilan.bookrecipe.repository.RecipeListRepository;
+import com.tujuhsembilan.bookrecipe.service.specification.RecipeListSpecification;
+
+
+public class RecipeFilterMethod {
+
+    public ResponseEntity<Object> filterRecipe(RecipeListRepository recipesListRepo,
+            Map<String, Object> result, HttpStatus status,
+            int pageSize, int pageNumber, RecipeFilterRequestDTO recipeFiltersDTO) {
+
+        Sort sorting = null;
+        Boolean isSortByEmpty = recipeFiltersDTO.getSortBy() == null;
+
+        if (!isSortByEmpty) {
+            if (recipeFiltersDTO.getSortBy().equals("recipeName-ASC")) {
+                sorting = Sort.by(Sort.Order.asc("recipeName"));
+            } else if (recipeFiltersDTO.getSortBy().equals("recipeName-DESC")) {
+                sorting = Sort.by(Sort.Order.desc("recipeName"));
+            } else if (recipeFiltersDTO.getSortBy().equals("time-ASC")) {
+                sorting = Sort.by(Sort.Order.asc("time"));
+            } else if (recipeFiltersDTO.getSortBy().equals("time-DESC")) {
+                sorting = Sort.by(Sort.Order.desc("time"));
+            }
+        } else {
+            sorting = Sort.by(Sort.Order.asc("recipeName"));
+        }
+
+        PageRequest pageRequest = PageRequest.of(pageNumber - 1, pageSize, sorting);
+        Specification<Recipes> spec = RecipeListSpecification.recipesFilterAll(recipeFiltersDTO);
+        Page<Recipes> recipesFiltered = recipesListRepo.findAll(spec, pageRequest);
+
+        List<RecipeResponseDTO> response = recipesFiltered.stream().map(recipe -> 
+			new RecipeResponseDTO(
+					recipe.getRecipeId(),
+					new RecipeCategoryDTO(recipe.getCategories().getCategoryId(), recipe.getCategories().getCategoryName()),
+					new RecipeLevelDTO(recipe.getLevels().getLevelId(), recipe.getLevels().getLevelName()),
+					recipe.getRecipeName(),
+                    recipe.getImageFilename(),
+					recipe.getTimeCook(),
+                    getIsFavorite(recipe)			
+				))
+			.collect(Collectors.toList());
+		
+        result.put("total", response.size());
+        result.put("data", response);
+        result.put("message", "Berhasil memuat Resep Masakan Saya");
+
+        return ResponseEntity.status(status).body(result);
+    }
+
+    private Boolean getIsFavorite(Recipes recipe) {
+        Set<FavoriteFoods> favoriteFoodses = recipe.getFavoriteFoodses();
+        if (favoriteFoodses != null && !favoriteFoodses.isEmpty()) {
+            return favoriteFoodses.iterator().next().getId().getIsFavorite();
+        } else {
+            return false;
+        }
+    }
+    
+}

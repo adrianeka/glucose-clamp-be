@@ -22,7 +22,7 @@ import com.tujuhsembilan.bookrecipe.model.FavoriteFoods;
 import com.tujuhsembilan.bookrecipe.model.Recipes;
 import com.tujuhsembilan.bookrecipe.repository.FavoriteFoodsRepository;
 import com.tujuhsembilan.bookrecipe.repository.RecipesRepository;
-import com.tujuhsembilan.bookrecipe.service.spesification.RecipeSpesification;
+import com.tujuhsembilan.bookrecipe.service.specification.RecipeSpesification;
 
 import lib.minio.MinioSrvc;
 

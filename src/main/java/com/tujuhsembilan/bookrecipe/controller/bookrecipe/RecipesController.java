@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tujuhsembilan.bookrecipe.dto.request.MyRecipeRequestDTO;
+import com.tujuhsembilan.bookrecipe.dto.request.RecipeFilterRequestDTO;
+import com.tujuhsembilan.bookrecipe.service.RecipeListService;
 import com.tujuhsembilan.bookrecipe.service.RecipesService;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
@@ -22,6 +24,9 @@ public class RecipesController {
     
 	@Autowired
 	private RecipesService recipeService;
+
+	@Autowired
+	private RecipeListService recipeListService;
 	
 	@GetMapping("/my-recipes")
 	public ResponseEntity<Object> getResepSaya(@ModelAttribute MyRecipeRequestDTO myRecipesDTO, @RequestParam(required = false) String sortBy, @RequestParam(required = false, defaultValue = "1") int pageSize, @RequestParam(required = false, defaultValue = "8") int pageNumber) {
@@ -42,4 +47,16 @@ public class RecipesController {
 		
 		return recipeService.deleteResepSaya(recipeId, userId);
 	}
+
+	@GetMapping("")
+	public ResponseEntity<Object> getAllRecipes(@RequestParam(required = false, defaultValue = "8") int pageSize,
+            @RequestParam(required = false, defaultValue = "1") int pageNumber,
+            @ModelAttribute RecipeFilterRequestDTO recipeFiltersDTO) {
+        return recipeListService.getAllRecipes(pageSize, pageNumber, recipeFiltersDTO);
+    }
+
+    @PutMapping("/{recipeId}/favorites")
+    public ResponseEntity<Object> toggleFavorite(@PathVariable(name = "recipeId") int recipeId) {
+        return recipeListService.toggleFavorite(recipeId);
+    }
 }

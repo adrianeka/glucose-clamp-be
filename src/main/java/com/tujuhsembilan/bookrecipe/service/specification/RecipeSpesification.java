@@ -1,4 +1,4 @@
-package com.tujuhsembilan.bookrecipe.service.spesification;
+package com.tujuhsembilan.bookrecipe.service.specification;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -58,11 +58,13 @@ public class RecipesService {
             );
 
 
+
             List<UserFav> userFavList = favoriteFoodsPage.getContent().stream()
-//                    .filter(fav -> fav.getUsers().getUserId() == userDetails.getId() )
+//                    .filter(fav -> fav.getId().getUserId() == userDetails.getId() )
                     .filter(favActive -> favActive.getIsFavorite())
                     .map(this::mapFavoriteFoodsToUserFav)
                     .collect(Collectors.toList());
+
 
             if (userFavList.isEmpty()) {
                 return new ErrorDTO(HttpStatus.NOT_FOUND.value(), "Data Not Found",

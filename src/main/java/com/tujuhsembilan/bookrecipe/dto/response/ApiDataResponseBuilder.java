@@ -1,9 +1,8 @@
 package com.tujuhsembilan.bookrecipe.dto.response;
 
-import org.springframework.http.HttpStatus;
-
 import lombok.Builder;
 import lombok.Getter;
+import org.springframework.http.HttpStatus;
 
 @Getter
 public class ApiDataResponseBuilder {

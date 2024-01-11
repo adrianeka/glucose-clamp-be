@@ -5,50 +5,37 @@ import com.tujuhsembilan.bookrecipe.dto.bookrecipe.CategoryFav;
 import com.tujuhsembilan.bookrecipe.dto.bookrecipe.DisplayPaginationRecipeFav;
 import com.tujuhsembilan.bookrecipe.dto.bookrecipe.LevelFav;
 import com.tujuhsembilan.bookrecipe.dto.bookrecipe.UserFav;
+import com.tujuhsembilan.bookrecipe.dto.request.MyRecipeRequestDTO;
+import com.tujuhsembilan.bookrecipe.dto.response.MyRecipeCategoriesDTO;
+import com.tujuhsembilan.bookrecipe.dto.response.MyRecipeResDTO;
+import com.tujuhsembilan.bookrecipe.dto.response.MyRecipesLevelsDTO;
 import com.tujuhsembilan.bookrecipe.model.Categories;
 import com.tujuhsembilan.bookrecipe.model.FavoriteFoods;
 import com.tujuhsembilan.bookrecipe.model.Levels;
+import com.tujuhsembilan.bookrecipe.model.Recipes;
 import com.tujuhsembilan.bookrecipe.repository.FavoriteFoodsRepository;
+import com.tujuhsembilan.bookrecipe.repository.RecipesRepository;
 import com.tujuhsembilan.bookrecipe.security.service.UserDetailsImplement;
-import org.springframework.data.domain.Sort;
+import com.tujuhsembilan.bookrecipe.service.spesification.RecipeSpesification;
 import com.tujuhsembilan.bookrecipe.spesification.filter.RecipeFilter;
 import com.tujuhsembilan.bookrecipe.spesification.spesification.RecipeSpecification;
 import lib.minio.MinioSrvc;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.dao.DataAccessException;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.context.SecurityContextHolder;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import com.tujuhsembilan.bookrecipe.dto.request.MyRecipeRequestDTO;
-import com.tujuhsembilan.bookrecipe.dto.response.MyRecipeCategoriesDTO;
-import com.tujuhsembilan.bookrecipe.dto.response.MyRecipeResDTO;
-import com.tujuhsembilan.bookrecipe.dto.response.MyRecipesLevelsDTO;
-import com.tujuhsembilan.bookrecipe.model.FavoriteFoods;
-import com.tujuhsembilan.bookrecipe.model.Recipes;
-import com.tujuhsembilan.bookrecipe.repository.FavoriteFoodsRepository;
-import com.tujuhsembilan.bookrecipe.repository.RecipesRepository;
-import com.tujuhsembilan.bookrecipe.service.spesification.RecipeSpesification;
-
-import lib.minio.MinioSrvc;
-
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -62,6 +49,7 @@ public class RecipesService {
 	@Autowired
 	private FavoriteFoodsRepository favoriteRepo;
 
+	@Lazy
 	@Autowired
 	private MinioSrvc minioService;
 
@@ -131,7 +119,7 @@ public class RecipesService {
 		Boolean isFavorite = false;
 
 		if (favFood != null) {
-			return favFood.getId().getIsFavorite();
+			return favFood.getIsFavorite();
 		}
 
 		return isFavorite;
@@ -174,15 +162,15 @@ public class RecipesService {
     public Object getDataByIdWithFilterAndSort(int page, int pageSize, RecipeFilter filter) {
         DisplayPaginationRecipeFav response = new DisplayPaginationRecipeFav();
         try {
-//            UserDetailsImplement userDetails = (UserDetailsImplement) SecurityContextHolder
-//                    .getContext()
-//                    .getAuthentication()
-//                    .getPrincipal();
-//            log.info("Read Recipes with User id " + userDetails.getId() + " Success!");
+            UserDetailsImplement userDetails = (UserDetailsImplement) SecurityContextHolder
+                    .getContext()
+                    .getAuthentication()
+                    .getPrincipal();
+            log.info("Read Recipes with User id " + userDetails.getId() + " Success!");
 
             RecipeSpecification specification = new RecipeSpecification(filter);
 
-            Page<FavoriteFoods> favoriteFoodsPage = favoriteFoodsRepository.findAll(
+            Page<FavoriteFoods> favoriteFoodsPage = favoriteRepo.findAll(
                     specification,
                     PageRequest.of(page, pageSize, specification.getSort())
             );
@@ -190,7 +178,7 @@ public class RecipesService {
 
 
             List<UserFav> userFavList = favoriteFoodsPage.getContent().stream()
-//                    .filter(fav -> fav.getId().getUserId() == userDetails.getId() )
+                    .filter(fav -> fav.getId().getUserId() == userDetails.getId() )
                     .filter(favActive -> favActive.getIsFavorite())
                     .map(this::mapFavoriteFoodsToUserFav)
                     .collect(Collectors.toList());
@@ -226,7 +214,7 @@ public class RecipesService {
                     userFav.setRecipeName(recipe.getRecipeName());
                     String imageUrl = recipe.getImageFilename();
                     try {
-                        imageUrl = minioSrvc.getLink(BUCKET_MINIO, recipe.getImageFilename(), MinioSrvc.DEFAULT_EXPIRY);
+                        imageUrl = minioService.getLink(bucket, recipe.getImageFilename(), MinioSrvc.DEFAULT_EXPIRY);
                     } catch (Exception e) {
                         log.error("Error retrieving image URL for recipeId: " + recipe.getRecipeId(), e);
                     }

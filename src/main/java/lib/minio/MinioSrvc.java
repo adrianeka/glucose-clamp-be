@@ -1,5 +1,23 @@
 package lib.minio;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import io.minio.*;
+import io.minio.errors.*;
+import io.minio.http.Method;
+import io.minio.messages.Item;
+import jakarta.servlet.http.HttpServletResponse;
+import lib.i18n.utility.MessageUtil;
+import lib.minio.configuration.property.MinioProp;
+import lib.minio.exception.MinioServiceDownloadException;
+import lib.minio.exception.MinioServiceUploadException;
+import lombok.Builder;
+import lombok.Data;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.InvalidKeyException;
@@ -10,43 +28,12 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import lib.minio.configuration.property.MinioProp;
-import lib.minio.exception.MinioServiceDownloadException;
-import lib.minio.exception.MinioServiceUploadException;
-import lib.i18n.utility.MessageUtil;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
-
-import io.minio.GetObjectArgs;
-import io.minio.GetPresignedObjectUrlArgs;
-import io.minio.ListObjectsArgs;
-import io.minio.MinioClient;
-import io.minio.ObjectWriteResponse;
-import io.minio.PutObjectArgs;
-import io.minio.Result;
-import io.minio.errors.ErrorResponseException;
-import io.minio.errors.InsufficientDataException;
-import io.minio.errors.InternalException;
-import io.minio.errors.InvalidResponseException;
-import io.minio.errors.ServerException;
-import io.minio.errors.XmlParserException;
-import io.minio.http.Method;
-import io.minio.messages.Item;
-import jakarta.servlet.http.HttpServletResponse;
-import lombok.Builder;
-import lombok.Data;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-
 @Slf4j
 @Service
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class MinioSrvc {
 
-  private static final Long DEFAULT_EXPIRY = TimeUnit.HOURS.toSeconds(1);
+  public static final Long DEFAULT_EXPIRY = TimeUnit.HOURS.toSeconds(1);
 
   private final MinioClient minio;
   private final MinioProp prop;
@@ -61,7 +48,7 @@ public class MinioSrvc {
     return bMsg(bucket) + " of file " + filename;
   }
 
-  private String getLink(String bucket, String filename, Long expiry) {
+  public String getLink(String bucket, String filename, Long expiry) {
     try {
       return minio.getPresignedObjectUrl(
           GetPresignedObjectUrlArgs.builder()

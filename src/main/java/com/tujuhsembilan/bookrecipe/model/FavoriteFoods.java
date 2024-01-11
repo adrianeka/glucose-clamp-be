@@ -2,12 +2,11 @@ package com.tujuhsembilan.bookrecipe.model;
 // Generated Jan 4, 2024, 3:00:37 PM by Hibernate Tools 6.3.1.Final
 
 import jakarta.persistence.*;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.sql.Timestamp;
 

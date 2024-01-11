@@ -3,7 +3,7 @@ package com.tujuhsembilan.bookrecipe.controller.bookrecipe;
 import com.tujuhsembilan.bookrecipe.dto.ErrorDTO;
 import com.tujuhsembilan.bookrecipe.dto.request.MyRecipeRequestDTO;
 import com.tujuhsembilan.bookrecipe.service.RecipesService;
-import com.tujuhsembilan.bookrecipe.spesification.filter.RecipeFilter;
+import com.tujuhsembilan.bookrecipe.service.spesification.filter.RecipeFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

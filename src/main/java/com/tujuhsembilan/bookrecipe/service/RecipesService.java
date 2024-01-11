@@ -17,8 +17,8 @@ import com.tujuhsembilan.bookrecipe.repository.FavoriteFoodsRepository;
 import com.tujuhsembilan.bookrecipe.repository.RecipesRepository;
 import com.tujuhsembilan.bookrecipe.security.service.UserDetailsImplement;
 import com.tujuhsembilan.bookrecipe.service.spesification.RecipeSpesification;
-import com.tujuhsembilan.bookrecipe.spesification.filter.RecipeFilter;
-import com.tujuhsembilan.bookrecipe.spesification.spesification.RecipeSpecification;
+import com.tujuhsembilan.bookrecipe.service.spesification.filter.RecipeFilter;
+import com.tujuhsembilan.bookrecipe.service.spesification.FavoriteFoodSpecification;
 import lib.minio.MinioSrvc;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -168,7 +168,7 @@ public class RecipesService {
                     .getPrincipal();
             log.info("Read Recipes with User id " + userDetails.getId() + " Success!");
 
-            RecipeSpecification specification = new RecipeSpecification(filter);
+            FavoriteFoodSpecification specification = new FavoriteFoodSpecification(filter);
 
             Page<FavoriteFoods> favoriteFoodsPage = favoriteRepo.findAll(
                     specification,

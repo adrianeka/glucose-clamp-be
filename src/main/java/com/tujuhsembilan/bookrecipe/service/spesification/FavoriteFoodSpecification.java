@@ -1,7 +1,7 @@
-package com.tujuhsembilan.bookrecipe.spesification.spesification;
+package com.tujuhsembilan.bookrecipe.service.spesification;
 
 import com.tujuhsembilan.bookrecipe.model.FavoriteFoods;
-import com.tujuhsembilan.bookrecipe.spesification.filter.RecipeFilter;
+import com.tujuhsembilan.bookrecipe.service.spesification.filter.RecipeFilter;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Predicate;
@@ -14,11 +14,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Log4j2
-public class RecipeSpecification implements Specification<FavoriteFoods> {
+public class FavoriteFoodSpecification implements Specification<FavoriteFoods> {
 
     private RecipeFilter filter;
 
-    public RecipeSpecification(RecipeFilter filter) {
+    public FavoriteFoodSpecification(RecipeFilter filter) {
         this.filter = filter;
     }
 

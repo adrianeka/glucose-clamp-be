@@ -28,32 +28,33 @@ import lib.minio.MinioSrvc;
 
 @Service
 public class RecipesService {
-	
+
 	@Autowired
-    private RecipesRepository recipeRepo;
-	
+	private RecipesRepository recipeRepo;
+
 	@Autowired
 	private FavoriteFoodsRepository favoriteRepo;
-	
+
 	@Autowired
 	private MinioSrvc minioService;
-	
+
 	private final String bucket = "talent79-dev";
-	
-	public ResponseEntity<Object> getResepSaya(MyRecipeRequestDTO myRecipesDTO, String sortBy, int pageSize, int pageNumber){
+
+	public ResponseEntity<Object> getResepSaya(MyRecipeRequestDTO myRecipesDTO, String sortBy, int pageSize,
+			int pageNumber) {
 		Sort sortByNameAsc = Sort.by(Sort.Direction.ASC, "recipeName");
 		Sort sortByNameDesc = Sort.by(Sort.Direction.DESC, "recipeName");
 		Sort sortByTimeAsc = Sort.by(Sort.Direction.ASC, "timeCook");
 		Sort sortByTimeDesc = Sort.by(Sort.Direction.DESC, "timeCook");
-		
+
 		int newPage = pageSize - 1;
-		
+
 		Sort choosenSort = null;
-		
+
 		boolean isSortByEmpty = (sortBy == null);
-		
-		if(!isSortByEmpty) {
-			switch(sortBy) {
+
+		if (!isSortByEmpty) {
+			switch (sortBy) {
 				case "nameAsc":
 					choosenSort = sortByNameAsc;
 					break;
@@ -70,61 +71,60 @@ public class RecipesService {
 		} else {
 			choosenSort = sortByNameAsc;
 		}
-		
+
 		PageRequest pageRequest = PageRequest.of(newPage, pageNumber, choosenSort);
-		
+
 		Specification<Recipes> recipeSpec = RecipeSpesification.recipeFilter(myRecipesDTO);
-		
+
 		Page<Recipes> recipes = recipeRepo.findAll(recipeSpec, pageRequest);
-		List<MyRecipeResDTO> response = recipes.stream().map(recipe -> 
-			new MyRecipeResDTO(
-					recipe.getRecipeId(),
-					new MyRecipeCategoriesDTO(recipe.getCategories().getCategoryId(), recipe.getCategories().getCategoryName()),
-					new MyRecipesLevelsDTO(recipe.getLevels().getLevelId(), recipe.getLevels().getLevelName()),
-					recipe.getRecipeName(),
-					getImageURL(bucket, recipe.getImageFilename()),
-					recipe.getTimeCook(),
-					getFavFood(recipe.getRecipeId(), recipe.getUsers().getUserId())
-				))
-			.collect(Collectors.toList());
-		
+		List<MyRecipeResDTO> response = recipes.stream().map(recipe -> new MyRecipeResDTO(
+				recipe.getRecipeId(),
+				new MyRecipeCategoriesDTO(recipe.getCategories().getCategoryId(),
+						recipe.getCategories().getCategoryName()),
+				new MyRecipesLevelsDTO(recipe.getLevels().getLevelId(), recipe.getLevels().getLevelName()),
+				recipe.getRecipeName(),
+				getImageURL(bucket, recipe.getImageFilename()),
+				recipe.getTimeCook(),
+				getFavFood(recipe.getRecipeId(), recipe.getUsers().getUserId())))
+				.collect(Collectors.toList());
+
 		Map<String, Object> result = new LinkedHashMap<String, Object>();
-		
+
 		result.put("total", response.size());
 		result.put("data", response);
 		result.put("message", "Berhasil memuat Resep Masakan Saya");
-		
+
 		return new ResponseEntity<>(result, HttpStatus.OK);
 	}
-	
+
 	private Boolean getFavFood(Integer recipeId, Integer userId) {
 		FavoriteFoods favFood = favoriteRepo.findById_RecipeIdAndId_UserId(recipeId, userId).orElse(null);
 		Boolean isFavorite = false;
-		
+
 		if (favFood != null) {
-			return favFood.getId().getIsFavorite();
+			return favFood.getIsFavorite();
 		}
-		
+
 		return isFavorite;
 	}
-	
+
 	private String getImageURL(String bucket, String filename) {
 		String url = "";
-		
-		if(bucket != null && filename != null) {
+
+		if (bucket != null && filename != null) {
 			url = minioService.getPublicLink(bucket, filename);
 		}
-		
+
 		return url;
 	}
-	
-	public ResponseEntity<Object> deleteResepSaya(int recipeId, int userId){
+
+	public ResponseEntity<Object> deleteResepSaya(int recipeId, int userId) {
 		Recipes resepSaya = recipeRepo.findByRecipeIdAndUsers_UserId(recipeId, userId).orElse(null);
-		
+
 		String message = "";
 		Integer jumlahResepDihapus = 0;
-		
-		if(resepSaya != null) {
+
+		if (resepSaya != null) {
 			jumlahResepDihapus = 1;
 			resepSaya.setIsDeleted(true);
 			recipeRepo.save(resepSaya);
@@ -132,13 +132,13 @@ public class RecipesService {
 		} else {
 			message = "Resep tidak ditemukan!";
 		}
-		
+
 		Map<String, Object> result = new LinkedHashMap<String, Object>();
-		
+
 		result.put("total", jumlahResepDihapus);
 		result.put("data", "");
 		result.put("message", message);
-		
+
 		return new ResponseEntity<>(result, HttpStatus.OK);
 	}
 }

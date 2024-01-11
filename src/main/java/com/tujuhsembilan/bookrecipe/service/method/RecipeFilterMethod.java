@@ -2,7 +2,6 @@ package com.tujuhsembilan.bookrecipe.service.method;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import lib.minio.MinioSrvc;
@@ -19,15 +18,16 @@ import com.tujuhsembilan.bookrecipe.dto.response.RecipeLevelDTO;
 import com.tujuhsembilan.bookrecipe.dto.response.RecipeResponseDTO;
 import com.tujuhsembilan.bookrecipe.model.FavoriteFoods;
 import com.tujuhsembilan.bookrecipe.model.Recipes;
+import com.tujuhsembilan.bookrecipe.repository.FavoriteFoodsRepository;
 import com.tujuhsembilan.bookrecipe.repository.RecipeListRepository;
 import com.tujuhsembilan.bookrecipe.service.specification.RecipeListSpecification;
-
 
 public class RecipeFilterMethod {
 
     private final String bucket = "talent79-dev";
 
     public ResponseEntity<Object> filterRecipe(RecipeListRepository recipesListRepo,
+            FavoriteFoodsRepository favoriteFoodsRepo,
             Map<String, Object> result, HttpStatus status,
             int pageSize, int pageNumber, RecipeFilterRequestDTO recipeFiltersDTO,
             MinioSrvc minioService) {
@@ -55,18 +55,16 @@ public class RecipeFilterMethod {
 
         long totalData = recipesListRepo.count(spec);
 
-        List<RecipeResponseDTO> response = recipesFiltered.stream().map(recipe -> 
-			new RecipeResponseDTO(
-					recipe.getRecipeId(),
-					new RecipeCategoryDTO(recipe.getCategories().getCategoryId(), recipe.getCategories().getCategoryName()),
-					new RecipeLevelDTO(recipe.getLevels().getLevelId(), recipe.getLevels().getLevelName()),
-					recipe.getRecipeName(),
-                    getImageURL(minioService, bucket, recipe.getImageFilename()),
-					recipe.getTimeCook(),
-                    getIsFavorite(recipe)			
-				))
-			.collect(Collectors.toList());
-		
+        List<RecipeResponseDTO> response = recipesFiltered.stream().map(recipe -> new RecipeResponseDTO(
+                recipe.getRecipeId(),
+                new RecipeCategoryDTO(recipe.getCategories().getCategoryId(), recipe.getCategories().getCategoryName()),
+                new RecipeLevelDTO(recipe.getLevels().getLevelId(), recipe.getLevels().getLevelName()),
+                recipe.getRecipeName(),
+                getImageURL(minioService, bucket, recipe.getImageFilename()),
+                recipe.getTimeCook(),
+                getIsFavorite(favoriteFoodsRepo, recipe.getRecipeId(), recipeFiltersDTO.getUserId())))
+                .collect(Collectors.toList());
+
         result.put("total", totalData);
         result.put("data", response);
         result.put("message", "Berhasil memuat Resep Masakan Saya");
@@ -74,25 +72,25 @@ public class RecipeFilterMethod {
         return ResponseEntity.status(status).body(result);
     }
 
-    private Boolean getIsFavorite(Recipes recipe) {
-        Set<FavoriteFoods> favoriteFoodses = recipe.getFavoriteFoodses();
-        if (favoriteFoodses != null && !favoriteFoodses.isEmpty()) {
-            FavoriteFoods firstFavorite = favoriteFoodses.iterator().next();
-            if (firstFavorite != null && firstFavorite.getId() != null) {
-                return firstFavorite.getId().getIsFavorite();
+    private Boolean getIsFavorite(FavoriteFoodsRepository favoriteFoodsRepo, Integer recipeId, Integer userId) {
+        FavoriteFoods favoriteFoods = favoriteFoodsRepo.findById_RecipeIdAndId_UserId(recipeId, userId).orElse(null);
+        if (favoriteFoods != null) {
+            if (favoriteFoods.getIsFavorite() == true) {
+                return true;
             }
         }
         return false;
+
     }
 
     private String getImageURL(MinioSrvc minioService, String bucket, String filename) {
         String url = "";
 
-        if(bucket != null && filename != null) {
+        if (bucket != null && filename != null) {
             url = minioService.getPublicLink(bucket, filename);
         }
 
         return url;
     }
-    
+
 }

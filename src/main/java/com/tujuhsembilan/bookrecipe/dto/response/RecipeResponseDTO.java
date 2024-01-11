@@ -14,7 +14,7 @@ public class RecipeResponseDTO {
 	private RecipeCategoryDTO categories;
 	private RecipeLevelDTO levels;
 	private String recipeName;
-	private String imageFilename;
+	private String imageUrl;
 	private Integer time;
-	private Boolean is_favorite;
+	private Boolean isFavorite;
 }

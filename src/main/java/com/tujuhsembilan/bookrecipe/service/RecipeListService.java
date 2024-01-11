@@ -20,6 +20,7 @@ import lib.minio.MinioSrvc;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 public class RecipeListService {
@@ -34,7 +35,7 @@ public class RecipeListService {
 
     @Autowired
     private UsersRepository userRepo;
-    
+
     @Autowired
     private MinioSrvc minioService;
 
@@ -46,7 +47,9 @@ public class RecipeListService {
 
         try {
 
-            recipeFilterMethod.filterRecipe(recipeListRepo, result, status, pageSize, pageNumber, recipeFiltersDTO, minioService);
+            recipeFilterMethod.filterRecipe(recipeListRepo, favoriteFoodsRepo, result, status, pageSize, pageNumber,
+                    recipeFiltersDTO,
+                    minioService);
 
         } catch (Exception e) {
             status = HttpStatus.INTERNAL_SERVER_ERROR;
@@ -60,53 +63,47 @@ public class RecipeListService {
         return ResponseEntity.status(status).body(result);
     }
 
-    public ResponseEntity<Object> toggleFavorite(int recipeId) {
+    public ResponseEntity<Object> toggleFavorite(int recipeId, int userId) {
         Map<String, Object> result = new HashMap<>();
         HttpStatus status = HttpStatus.CREATED;
         String message = "Resep " + recipeId + " berhasil ditambahkan ke dalam favorit";
-        // User Dummy
-        int userId = 9;
 
         try {
-            Recipes recipesData = recipeRepo.findById(recipeId).orElse(null);
+            Optional<Recipes> recipesData = recipeRepo.findById(recipeId);
+            Optional<Users> usersData = userRepo.findById(userId);
+            Recipes recipe = recipesData.get();
+            Users user = usersData.get();
 
-            if (recipesData == null) {
+            if (recipe == null) {
                 status = HttpStatus.NOT_FOUND;
                 message = "Data dengan id " + recipeId + " tidak ditemukan!";
             } else {
-                String recipeName = recipesData.getRecipeName();
+                String recipeName = recipe.getRecipeName();
                 FavoriteFoods favoriteFoods = favoriteFoodsRepo
-                                                .findById_RecipeIdAndId_UserId(userId, recipesData.getRecipeId())
-                                                .orElse(null);
-                
-                FavoriteFoodsId favId = new FavoriteFoodsId();
+                        .findById_RecipeIdAndId_UserId(recipeId, userId).orElse(null);
 
                 if (favoriteFoods == null) {
-                    Users users = userRepo.findById(userId).orElse(null);
+                    FavoriteFoodsId favId = new FavoriteFoodsId();
                     FavoriteFoods favorite = new FavoriteFoods();
-                    favId.setIsFavorite(true);
-                    favId.setUserId(users.getUserId());
-                    favId.setRecipeId(recipesData.getRecipeId());
+                    favId.setUserId(user.getUserId());
+                    favId.setRecipeId(recipe.getRecipeId());
+                    favorite.setIsFavorite(true);
 
-                    favorite.setUsers(users);
-                    favorite.setRecipes(recipesData);
+                    favorite.setUsers(user);
+                    favorite.setRecipes(recipe);
                     favorite.setId(favId);
                     favorite = favoriteFoodsRepo.save(favorite);
                     message = "Resep " + recipeName + " berhasil ditambahkan ke favorite!";
-                } else {
-                    favId.setUserId(userId);
-                    favId.setRecipeId(recipesData.getRecipeId());
-                    boolean isFavorite = favoriteFoods.getId().getIsFavorite();
-                    if (isFavorite) {
-                        favId.setIsFavorite(false);
-                        favoriteFoods.setId(favId);
+                } else if (favoriteFoods != null) {
+                    if (favoriteFoods.getIsFavorite() == true) {
+                        favoriteFoods.setIsFavorite(false);
+                        favoriteFoods = favoriteFoodsRepo.save(favoriteFoods);
                         message = "Resep " + recipeName + " berhasil dihapus dari favorite!";
                     } else {
-                        favId.setIsFavorite(true);
-                        favoriteFoods.setId(favId);
+                        favoriteFoods.setIsFavorite(true);
+                        favoriteFoods = favoriteFoodsRepo.save(favoriteFoods);
                         message = "Resep " + recipeName + " berhasil ditambahkan ke favorite!";
                     }
-                    favoriteFoods = favoriteFoodsRepo.save(favoriteFoods);
                 }
             }
 

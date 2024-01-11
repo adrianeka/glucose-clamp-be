@@ -43,6 +43,7 @@ import java.util.stream.Collectors;
 @Log4j2
 public class RecipesService {
 
+
 	@Autowired
     private RecipesRepository recipeRepo;
 
@@ -55,63 +56,75 @@ public class RecipesService {
 
 	private final String bucket = "talent79-dev";
 
-	public ResponseEntity<Object> getResepSaya(MyRecipeRequestDTO myRecipesDTO, String sortBy, int pageSize, int pageNumber){
-		Sort sortByNameAsc = Sort.by(Sort.Direction.ASC, "recipeName");
-		Sort sortByNameDesc = Sort.by(Sort.Direction.DESC, "recipeName");
-		Sort sortByTimeAsc = Sort.by(Sort.Direction.ASC, "timeCook");
-		Sort sortByTimeDesc = Sort.by(Sort.Direction.DESC, "timeCook");
+	public ResponseEntity<Object> getResepSaya(MyRecipeRequestDTO myRecipesDTO, String sortBy, int pageSize,
+			int pageNumber) {
 
-		int newPage = pageSize - 1;
+		try {
+			Sort sortByNameAsc = Sort.by(Sort.Direction.ASC, "recipeName");
+			Sort sortByNameDesc = Sort.by(Sort.Direction.DESC, "recipeName");
+			Sort sortByTimeAsc = Sort.by(Sort.Direction.ASC, "timeCook");
+			Sort sortByTimeDesc = Sort.by(Sort.Direction.DESC, "timeCook");
 
-		Sort choosenSort = null;
+			int newPage = pageSize - 1;
 
-		boolean isSortByEmpty = (sortBy == null);
+			Sort choosenSort = null;
 
-		if(!isSortByEmpty) {
-			switch(sortBy) {
-				case "nameAsc":
-					choosenSort = sortByNameAsc;
-					break;
-				case "nameDesc":
-					choosenSort = sortByNameDesc;
-					break;
-				case "timeAsc":
-					choosenSort = sortByTimeAsc;
-					break;
-				case "timeDesc":
-					choosenSort = sortByTimeDesc;
-					break;
+			boolean isSortByEmpty = (sortBy == null);
+
+			if (!isSortByEmpty) {
+				switch (sortBy) {
+					case "nameAsc":
+						choosenSort = sortByNameAsc;
+						break;
+					case "nameDesc":
+						choosenSort = sortByNameDesc;
+						break;
+					case "timeAsc":
+						choosenSort = sortByTimeAsc;
+						break;
+					case "timeDesc":
+						choosenSort = sortByTimeDesc;
+						break;
+				}
+			} else {
+				choosenSort = sortByNameAsc;
 			}
-		} else {
-			choosenSort = sortByNameAsc;
-		}
 
-		PageRequest pageRequest = PageRequest.of(newPage, pageNumber, choosenSort);
+			PageRequest pageRequest = PageRequest.of(newPage, pageNumber, choosenSort);
 
-		Specification<Recipes> recipeSpec = RecipeSpesification.recipeFilter(myRecipesDTO);
+			Specification<Recipes> recipeSpec = RecipeSpesification.recipeFilter(myRecipesDTO);
 
-		Page<Recipes> recipes = recipeRepo.findAll(recipeSpec, pageRequest);
-		List<MyRecipeResDTO> response = recipes.stream().map(recipe ->
-			new MyRecipeResDTO(
+			Page<Recipes> recipes = recipeRepo.findAll(recipeSpec, pageRequest);
+			List<MyRecipeResDTO> response = recipes.stream().map(recipe -> new MyRecipeResDTO(
 					recipe.getRecipeId(),
-					new MyRecipeCategoriesDTO(recipe.getCategories().getCategoryId(), recipe.getCategories().getCategoryName()),
+					new MyRecipeCategoriesDTO(recipe.getCategories().getCategoryId(),
+							recipe.getCategories().getCategoryName()),
 					new MyRecipesLevelsDTO(recipe.getLevels().getLevelId(), recipe.getLevels().getLevelName()),
 					recipe.getRecipeName(),
 					getImageURL(bucket, recipe.getImageFilename()),
 					recipe.getTimeCook(),
-					getFavFood(recipe.getRecipeId(), recipe.getUsers().getUserId())
-				))
-			.collect(Collectors.toList());
+					getFavFood(recipe.getRecipeId(), recipe.getUsers().getUserId())))
+					.collect(Collectors.toList());
 
-		long totalData = recipeRepo.count(recipeSpec);
+			long totalData = recipeRepo.count(recipeSpec);
 
-		Map<String, Object> result = new LinkedHashMap<String, Object>();
+			Map<String, Object> result = new LinkedHashMap<String, Object>();
 
-		result.put("total", totalData);
-		result.put("data", response);
-		result.put("message", "Berhasil memuat Resep Masakan Saya");
+			result.put("total", totalData);
+			result.put("data", response);
+			result.put("message", "Berhasil memuat Resep Masakan Saya");
 
-		return new ResponseEntity<>(result, HttpStatus.OK);
+			return new ResponseEntity<>(result, HttpStatus.OK);
+		} catch (Exception e) {
+			System.err.println("An error occurred: " + e.getMessage());
+
+			// Create a response for the error
+			Map<String, Object> errorResult = new LinkedHashMap<String, Object>();
+			errorResult.put("message", "An internal server error occurred");
+
+			return new ResponseEntity<>(errorResult, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+
 	}
 
 	private Boolean getFavFood(Integer recipeId, Integer userId) {
@@ -135,28 +148,39 @@ public class RecipesService {
 		return url;
 	}
 
-	public ResponseEntity<Object> deleteResepSaya(int recipeId, int userId){
-		Recipes resepSaya = recipeRepo.findByRecipeIdAndUsers_UserId(recipeId, userId).orElse(null);
+	public ResponseEntity<Object> deleteResepSaya(int recipeId, int userId) {
+		try {
+			Recipes resepSaya = recipeRepo.findByRecipeIdAndUsers_UserId(recipeId, userId).orElse(null);
 
-		String message = "";
-		Integer jumlahResepDihapus = 0;
+			String message = "";
+			Integer jumlahResepDihapus = 0;
 
-		if(resepSaya != null) {
-			jumlahResepDihapus = 1;
-			resepSaya.setIsDeleted(true);
-			recipeRepo.save(resepSaya);
-			message = "Resep " + resepSaya.getRecipeName() + " berhasil dihapus";
-		} else {
-			message = "Resep tidak ditemukan!";
+			if (resepSaya != null) {
+				jumlahResepDihapus = 1;
+				resepSaya.setIsDeleted(true);
+				recipeRepo.save(resepSaya);
+				message = "Resep " + resepSaya.getRecipeName() + " berhasil dihapus";
+			} else {
+				message = "Resep tidak ditemukan!";
+			}
+
+			Map<String, Object> result = new LinkedHashMap<String, Object>();
+
+			result.put("total", jumlahResepDihapus);
+			result.put("data", "");
+			result.put("message", message);
+
+			return new ResponseEntity<>(result, HttpStatus.OK);
+		} catch (Exception e) {
+			System.err.println("An error occurred: " + e.getMessage());
+
+			// Create a response for the error
+			Map<String, Object> errorResult = new LinkedHashMap<String, Object>();
+			errorResult.put("message", "An internal server error occurred");
+
+			return new ResponseEntity<>(errorResult, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 
-		Map<String, Object> result = new LinkedHashMap<String, Object>();
-
-		result.put("total", jumlahResepDihapus);
-		result.put("data", "");
-		result.put("message", message);
-
-		return new ResponseEntity<>(result, HttpStatus.OK);
 	}
 
     public Object getDataByIdWithFilterAndSort(int page, int pageSize, RecipeFilter filter) {

@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 public class FavoriteFoodsDTO {
-	private FavoriteFoodsIdDTO id;
-	private RecipesDTO recipes;
-	private UsersDTO users;
+    private FavoriteFoodsIdDTO id;
+    private RecipesDTO recipes;
+    private UsersDTO users;
 }

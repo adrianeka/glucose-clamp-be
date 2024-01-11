@@ -16,8 +16,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import java.util.Set;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.stereotype.Service;
 
@@ -27,7 +25,6 @@ import org.springframework.transaction.annotation.Transactional;
 import com.tujuhsembilan.bookrecipe.dto.request.RegisterRequest;
 import com.tujuhsembilan.bookrecipe.dto.response.MessageResponse;
 import com.tujuhsembilan.bookrecipe.model.Users;
-import com.tujuhsembilan.bookrecipe.repository.UsersRepository;
 
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validator;

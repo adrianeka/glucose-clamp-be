@@ -36,6 +36,10 @@ public class FavoriteFoodSpecification implements Specification<FavoriteFoods> {
     public Predicate toPredicate(Root<FavoriteFoods> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) {
         List<Predicate> predicates = new ArrayList<>();
 
+        if (filter.getRecipeName() != null) {
+            predicates.add(criteriaBuilder.equal(root.get("recipes").get("recipeName"), filter.getRecipeName()));
+        }
+
         if (filter.getLevel() != null) {
             predicates.add(criteriaBuilder.equal(root.get("recipes").get("levels").get("levelName"), filter.getLevel()));
         }

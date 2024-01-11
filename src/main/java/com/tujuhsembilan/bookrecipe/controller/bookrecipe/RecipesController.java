@@ -14,28 +14,31 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/book-recipe/book-recipes")
 public class RecipesController {
 
-	@Autowired
-	private RecipesService recipeService;
+    @Autowired
+    private RecipesService recipeService;
 
-	@GetMapping("/my-recipes")
-	public ResponseEntity<Object> getResepSaya(@ModelAttribute MyRecipeRequestDTO myRecipesDTO, @RequestParam(required = false) String sortBy, @RequestParam(required = false, defaultValue = "1") Integer pageSize, @RequestParam(required = false, defaultValue = "8") Integer pageNumber) {
+    @GetMapping("/my-recipes")
+    public ResponseEntity<Object> getResepSaya(@ModelAttribute MyRecipeRequestDTO myRecipesDTO,
+											   @RequestParam(required = false) String sortBy,
+											   @RequestParam(required = false, defaultValue = "1") Integer pageSize,
+											   @RequestParam(required = false, defaultValue = "8") Integer pageNumber) {
 
-		try{
-			return recipeService.getResepSaya(myRecipesDTO, sortBy, pageSize, pageNumber);
+        try {
+            return recipeService.getResepSaya(myRecipesDTO, sortBy, pageSize, pageNumber);
 
-		} catch(NullPointerException e) {
-			e.printStackTrace();
+        } catch (NullPointerException e) {
+            e.printStackTrace();
 
-			return ResponseEntity.status(HttpStatus.NO_CONTENT).body("Resep Masakkan Tidak Tersedia");
-		}
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).body("Resep Masakkan Tidak Tersedia");
+        }
 
-	}
+    }
 
-	@PutMapping("/{recipeId}")
-	public ResponseEntity<Object> deleteResepSayaById(@PathVariable int recipeId, @RequestParam int userId){
+    @PutMapping("/{recipeId}")
+    public ResponseEntity<Object> deleteResepSayaById(@PathVariable int recipeId, @RequestParam int userId) {
 
-		return recipeService.deleteResepSaya(recipeId, userId);
-	}
+        return recipeService.deleteResepSaya(recipeId, userId);
+    }
 
     @GetMapping("/my-favorite-recipes")
     public ResponseEntity<Object> getUserFavoriteRecipe(

@@ -16,6 +16,8 @@ import com.tujuhsembilan.bookrecipe.repository.RecipesRepository;
 import com.tujuhsembilan.bookrecipe.repository.UsersRepository;
 import com.tujuhsembilan.bookrecipe.service.method.RecipeFilterMethod;
 
+import lib.minio.MinioSrvc;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -32,6 +34,9 @@ public class RecipeListService {
 
     @Autowired
     private UsersRepository userRepo;
+    
+    @Autowired
+    private MinioSrvc minioService;
 
     public ResponseEntity<Object> getAllRecipes(int pageSize, int pageNumber, RecipeFilterRequestDTO recipeFiltersDTO) {
         Map<String, Object> result = new HashMap<>();
@@ -41,7 +46,7 @@ public class RecipeListService {
 
         try {
 
-            recipeFilterMethod.filterRecipe(recipeListRepo, result, status, pageSize, pageNumber, recipeFiltersDTO);
+            recipeFilterMethod.filterRecipe(recipeListRepo, result, status, pageSize, pageNumber, recipeFiltersDTO, minioService);
 
         } catch (Exception e) {
             status = HttpStatus.INTERNAL_SERVER_ERROR;

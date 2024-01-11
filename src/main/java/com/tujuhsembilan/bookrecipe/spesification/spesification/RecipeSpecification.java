@@ -46,7 +46,7 @@ public class RecipeSpecification implements Specification<FavoriteFoods> {
 
         if (filter.getCookMin() != null && filter.getCookMax() != null) {
             if (filter.getCookMin() != 0 || filter.getCookMax() != 0) {
-                predicates.add(criteriaBuilder.between(root.get("recipes").get("recipesTimeCook"),
+                predicates.add(criteriaBuilder.between(root.get("recipes").get("timeCook"),
                         filter.getCookMin(), filter.getCookMax()));
             }
         }

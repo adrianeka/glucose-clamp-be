@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -54,11 +55,17 @@ public class UsersService {
                 .statusCode(statusOK.value())
                 .status(statusOK)
                 .build();   
-        } catch (Exception e) {
+        } catch (AuthenticationException e){
             return ApiDataResponseBuilder.builder()
                 .message("Invalid username or password")
                 .statusCode(HttpStatus.UNAUTHORIZED.value())
                 .status(HttpStatus.UNAUTHORIZED)
+                .build();
+        }catch (Exception e) {
+            return ApiDataResponseBuilder.builder()
+                .message("Internal server error")
+                .statusCode(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .build();
         }
     }

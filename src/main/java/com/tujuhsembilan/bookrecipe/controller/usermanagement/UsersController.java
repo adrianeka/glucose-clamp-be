@@ -19,6 +19,6 @@ public class UsersController {
     public ResponseEntity<Object> signIn(@Valid @RequestBody LoginRequest loginRequest) {
         ApiDataResponseBuilder result = usersService.signIn(loginRequest);
 
-        return ResponseEntity.ok(result);
+        return ResponseEntity.status(result.getStatus()).body(result);
     }
 }

@@ -5,6 +5,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import lib.minio.MinioSrvc;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -23,6 +25,10 @@ import com.tujuhsembilan.bookrecipe.service.specification.RecipeListSpecificatio
 
 
 public class RecipeFilterMethod {
+    @Autowired
+    private MinioSrvc minioService;
+
+    private final String bucket = "talent79-dev";
 
     public ResponseEntity<Object> filterRecipe(RecipeListRepository recipesListRepo,
             Map<String, Object> result, HttpStatus status,
@@ -37,9 +43,9 @@ public class RecipeFilterMethod {
             } else if (recipeFiltersDTO.getSortBy().equals("recipeName-DESC")) {
                 sorting = Sort.by(Sort.Order.desc("recipeName"));
             } else if (recipeFiltersDTO.getSortBy().equals("time-ASC")) {
-                sorting = Sort.by(Sort.Order.asc("time"));
+                sorting = Sort.by(Sort.Order.asc("timeCook"));
             } else if (recipeFiltersDTO.getSortBy().equals("time-DESC")) {
-                sorting = Sort.by(Sort.Order.desc("time"));
+                sorting = Sort.by(Sort.Order.desc("timeCook"));
             }
         } else {
             sorting = Sort.by(Sort.Order.asc("recipeName"));
@@ -57,7 +63,7 @@ public class RecipeFilterMethod {
 					new RecipeCategoryDTO(recipe.getCategories().getCategoryId(), recipe.getCategories().getCategoryName()),
 					new RecipeLevelDTO(recipe.getLevels().getLevelId(), recipe.getLevels().getLevelName()),
 					recipe.getRecipeName(),
-                    recipe.getImageFilename(),
+                    getImageURL(bucket, recipe.getImageFilename()),
 					recipe.getTimeCook(),
                     getIsFavorite(recipe)			
 				))
@@ -79,6 +85,16 @@ public class RecipeFilterMethod {
             }
         }
         return false;
+    }
+
+    private String getImageURL(String bucket, String filename) {
+        String url = "";
+
+        if(bucket != null && filename != null) {
+            url = minioService.getPublicLink(bucket, filename);
+        }
+
+        return url;
     }
     
 }

@@ -76,23 +76,6 @@ public class RecipesController {
 		return recipeListService.toggleFavorite(recipeId, userId);
 	}
 
-    @GetMapping("/my-recipes")
-    public ResponseEntity<Object> getResepSaya(@ModelAttribute MyRecipeRequestDTO myRecipesDTO,
-											   @RequestParam(required = false) String sortBy,
-											   @RequestParam(required = false, defaultValue = "1") Integer pageSize,
-											   @RequestParam(required = false, defaultValue = "8") Integer pageNumber) {
-
-        try {
-            return recipeService.getResepSaya(myRecipesDTO, sortBy, pageSize, pageNumber);
-
-        } catch (NullPointerException e) {
-            e.printStackTrace();
-
-            return ResponseEntity.status(HttpStatus.NO_CONTENT).body("Resep Masakkan Tidak Tersedia");
-        }
-
-    }
-
     @GetMapping("/my-favorite-recipes")
     public ResponseEntity<Object> getUserFavoriteRecipe(
             @RequestParam(name = "page", defaultValue = "0") int page,

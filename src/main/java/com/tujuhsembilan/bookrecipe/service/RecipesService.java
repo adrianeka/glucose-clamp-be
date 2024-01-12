@@ -1,7 +1,6 @@
 package com.tujuhsembilan.bookrecipe.service;
 
 import java.io.IOException;
-//import java.io.InputStream;
 
 import com.tujuhsembilan.bookrecipe.dto.CategoriesDTO;
 import com.tujuhsembilan.bookrecipe.dto.LevelsDTO;
@@ -49,8 +48,6 @@ import com.tujuhsembilan.bookrecipe.repository.LevelsRepository;
 import com.tujuhsembilan.bookrecipe.repository.UsersRepository;
 
 import java.sql.Timestamp;
-//import io.minio.MinioClient;
-//import io.minio.PutObjectArgs;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 
@@ -63,8 +60,6 @@ public class RecipesService {
 
     @Autowired
     private RecipesRepository recipesRepository;
-    @Autowired
-    private FavoriteFoodsService favoriteFoodsService;
 
     @Autowired
     private CategoriesRepository categoriesRepository;
@@ -78,19 +73,11 @@ public class RecipesService {
     @Autowired
     private ValidationService validationService;
 
-    /* 
-    @Autowired
-    private MinioClient minioClient;
-    */
-
-    @Value("${minio.bucketName}")
+    @Value("${application.minio.bucketName}")
     private String minioBucketName;
 
     @Autowired
     private ModelMapper modelMapper;
-
-    @Autowired
-    private RecipesRepository recipeRepo;
 
 	@Autowired
 	private FavoriteFoodsRepository favoriteRepo;
@@ -332,7 +319,7 @@ public class RecipesService {
 
 			Specification<Recipes> recipeSpec = RecipeSpesification.recipeFilter(myRecipesDTO);
 
-			Page<Recipes> recipes = recipeRepo.findAll(recipeSpec, pageRequest);
+			Page<Recipes> recipes = recipesRepository.findAll(recipeSpec, pageRequest);
 			List<MyRecipeResDTO> response = recipes.stream().map(recipe -> new MyRecipeResDTO(
 					recipe.getRecipeId(),
 					new MyRecipeCategoriesDTO(recipe.getCategories().getCategoryId(),
@@ -344,7 +331,7 @@ public class RecipesService {
 					getFavFood(recipe.getRecipeId(), recipe.getUsers().getUserId())))
 					.collect(Collectors.toList());
 
-			long totalData = recipeRepo.count(recipeSpec);
+			long totalData = recipesRepository.count(recipeSpec);
 
 			Map<String, Object> result = new LinkedHashMap<String, Object>();
 
@@ -388,7 +375,7 @@ public class RecipesService {
 
 	public ResponseEntity<Object> deleteResepSaya(int recipeId, int userId) {
 		try {
-			Recipes resepSaya = recipeRepo.findByRecipeIdAndUsers_UserId(recipeId, userId).orElse(null);
+			Recipes resepSaya = recipesRepository.findByRecipeIdAndUsers_UserId(recipeId, userId).orElse(null);
 
 			String message = "";
 			Integer jumlahResepDihapus = 0;
@@ -396,7 +383,7 @@ public class RecipesService {
 			if (resepSaya != null) {
 				jumlahResepDihapus = 1;
 				resepSaya.setIsDeleted(true);
-				recipeRepo.save(resepSaya);
+				recipesRepository.save(resepSaya);
 				message = "Resep " + resepSaya.getRecipeName() + " berhasil dihapus";
 			} else {
 				message = "Resep tidak ditemukan!";
@@ -555,9 +542,9 @@ public class RecipesService {
                 data.put("howToCook", recipesDTO.getHowToCook());
 
                 // Menggunakan metode findByUserIdAndRecipeId untuk mendapatkan FavoriteFoods
-                Optional<Boolean> isFavoriteOpt = favoriteFoodsService.findIsFavoriteByUserIdAndRecipeId(1, recipesDTO.getRecipeId());
+                //Optional<Boolean> isFavoriteOpt = favoriteFoodsService.findIsFavoriteByUserIdAndRecipeId(1, recipesDTO.getRecipeId());
 
-                boolean isFavorite = isFavoriteOpt.orElse(false);
+                boolean isFavorite = getFavFood(recipesDTO.getRecipeId(), 1);
 
                 // Menambahkan isFavorite ke dalam data
                 data.put("isFavorite", isFavorite);

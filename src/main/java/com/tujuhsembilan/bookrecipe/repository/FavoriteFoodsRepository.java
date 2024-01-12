@@ -11,9 +11,10 @@ import java.util.Optional;
 
 public interface FavoriteFoodsRepository extends JpaRepository<FavoriteFoods, FavoriteFoodsId>,
         JpaSpecificationExecutor<FavoriteFoods> {
-    @Query("SELECT f.id.isFavorite FROM FavoriteFoods f WHERE f.users.userId = :userId and f.recipes.recipeId = :recipeId")
+    @Query("SELECT f.isFavorite FROM FavoriteFoods f WHERE f.id.userId = :userId and f.id.recipeId = :recipeId")
     Optional<Boolean> findIsFavorite(@Param("userId") int userId, @Param("recipeId") int recipeId);
-    
+
+
     @Query("SELECT f FROM FavoriteFoods f WHERE f.id.recipeId = :recipeId and f.id.userId = :userId")
     Optional<FavoriteFoods> findMyFavorite(@Param("recipeId") int recipeId, @Param("userId") int userId);
 }

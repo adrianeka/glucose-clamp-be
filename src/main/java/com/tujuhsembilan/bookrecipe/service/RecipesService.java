@@ -453,7 +453,7 @@ public class RecipesService {
                 data.put("category", categoryData);
                 data.put("levels", levelData);
                 data.put("recipeName", recipesDTO.getRecipeName());
-                data.put("imageUrl", recipesDTO.getImageFilename());
+                data.put("imageUrl", getImageURL(minioBucketName, recipesDTO.getImageFilename()));
                 data.put("time", recipesDTO.getTimeCook());
                 data.put("ingredient", recipesDTO.getIngridient());
                 data.put("howToCook", recipesDTO.getHowToCook());

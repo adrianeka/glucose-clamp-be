@@ -159,20 +159,14 @@ public class RecipesService {
         Levels levels = levelsRepository.findById(request.getLevels().getLevelId())
                 .orElseThrow(() -> new EntityNotFoundException("Levels not found with id: " + request.getLevels().getLevelId()));
 
-        existingRecipe = Recipes.builder()
-                .categories(categories)
-                .levels(levels)
-                .recipeName(request.getRecipeName())
-                .imageFilename(existingRecipe.getImageFilename()) // Keep the existing image filename
-                .timeCook(request.getTimeCook())
-                .ingridient(request.getIngridient())
-                .howToCook(request.getHowToCook())
-                .createdBy(existingRecipe.getCreatedBy()) // Keep the existing created by user
-                .modifiedBy(modifiedByUser.getUsername())
-                .isDeleted(false)
-                .createdTime(existingRecipe.getCreatedTime())
-                .modifiedTime(new Timestamp(System.currentTimeMillis()))
-                .build();
+        existingRecipe.setCategories(categories);
+        existingRecipe.setLevels(levels);
+        existingRecipe.setRecipeName(request.getRecipeName());
+        existingRecipe.setTimeCook(request.getTimeCook());
+        existingRecipe.setIngridient(request.getIngridient());
+        existingRecipe.setHowToCook(request.getHowToCook());
+        existingRecipe.setModifiedBy(modifiedByUser.getUsername());
+        existingRecipe.setModifiedTime(new Timestamp(System.currentTimeMillis()));
 
         // Update image if provided
         if (imageFile != null) {

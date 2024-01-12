@@ -1,4 +1,4 @@
-package com.tujuhsembilan.bookrecipe.service.spesification;
+package com.tujuhsembilan.bookrecipe.service.specification;
 
 import com.tujuhsembilan.bookrecipe.dto.request.MyRecipeRequestDTO;
 import com.tujuhsembilan.bookrecipe.model.Recipes;

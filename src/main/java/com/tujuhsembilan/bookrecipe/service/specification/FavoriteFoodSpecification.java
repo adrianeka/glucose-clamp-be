@@ -1,7 +1,7 @@
-package com.tujuhsembilan.bookrecipe.service.spesification;
+package com.tujuhsembilan.bookrecipe.service.specification;
 
 import com.tujuhsembilan.bookrecipe.model.FavoriteFoods;
-import com.tujuhsembilan.bookrecipe.service.spesification.filter.RecipeFilter;
+import com.tujuhsembilan.bookrecipe.service.specification.filter.RecipeFilter;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Predicate;

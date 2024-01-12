@@ -1,4 +1,4 @@
-package com.tujuhsembilan.bookrecipe.service.spesification.filter;
+package com.tujuhsembilan.bookrecipe.service.specification.filter;
 
 
 import lombok.Builder;

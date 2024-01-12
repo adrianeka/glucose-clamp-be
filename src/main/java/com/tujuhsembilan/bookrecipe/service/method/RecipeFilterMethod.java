@@ -34,7 +34,7 @@ public class RecipeFilterMethod {
             MinioSrvc minioService) {
 
         Sort sorting = null;
-        Boolean isSortByEmpty = recipeFiltersDTO.getSortBy() == null;
+        boolean isSortByEmpty = recipeFiltersDTO.getSortBy() == null;
 
         if (!isSortByEmpty) {
             if (recipeFiltersDTO.getSortBy().equals("recipeName-ASC")) {

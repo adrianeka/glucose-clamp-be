@@ -127,7 +127,6 @@ public class RecipesService {
         newRecipe.setCreatedTime(new Timestamp(System.currentTimeMillis()));
         newRecipe.setModifiedTime(new Timestamp(System.currentTimeMillis()));
 
-
         // Simpan ke repository atau database
         recipesRepository.save(newRecipe);
 
@@ -193,93 +192,6 @@ public class RecipesService {
 
         return new MessageResponse(responseMessage, statusCode, status);
     }
-
-    /* 
-    private String uploadImageToMinio(CreateRecipeRequest request, MultipartFile imageFile) throws IOException {
-        String recipeName = sanitizeForFilename(request.getRecipeName());
-        String categoryName = sanitizeForFilename(request.getCategories().getCategoryName());
-        String levelName = sanitizeForFilename(request.getLevels().getLevelName());
-
-        if (recipeName.isEmpty() || categoryName.isEmpty() || levelName.isEmpty()) {
-            log.warn("One or more components for filename are empty. Recipe: {}, Category: {}, Level: {}",
-                    request.getRecipeName(), request.getCategories().getCategoryName(),
-                    request.getLevels().getLevelName());
-        }
-
-        String timestamp = String.valueOf(System.currentTimeMillis());
-        String fileExtension = getFileExtension(imageFile.getOriginalFilename());
-
-        String generatedFilename = String.format(
-                "%s_%s_%s_%s%s",
-                recipeName,
-                categoryName,
-                levelName,
-                timestamp,
-                fileExtension);
-
-        try (InputStream inputStream = imageFile.getInputStream()) {
-            minioClient.putObject(
-                    PutObjectArgs.builder()
-                            .bucket(minioBucketName)
-                            .object(generatedFilename)
-                            .stream(inputStream, imageFile.getSize(), -1)
-                            .contentType(imageFile.getContentType())
-                            .build());
-        } catch (Exception e) {
-            throw new IOException("Failed to upload image to MinIO", e);
-        }
-
-        log.info(generatedFilename);
-        return generatedFilename;
-    }
-
-    private String updateImageToMinio(UpdateRecipeRequest request, MultipartFile imageFile) throws IOException {
-        String recipeName = sanitizeForFilename(request.getRecipeName());
-        String categoryName = sanitizeForFilename(request.getCategories().getCategoryName());
-        String levelName = sanitizeForFilename(request.getLevels().getLevelName());
-
-        if (recipeName.isEmpty() || categoryName.isEmpty() || levelName.isEmpty()) {
-            log.warn("One or more components for filename are empty. Recipe: {}, Category: {}, Level: {}",
-                    request.getRecipeName(), request.getCategories().getCategoryName(),
-                    request.getLevels().getLevelName());
-        }
-
-        String timestamp = String.valueOf(System.currentTimeMillis());
-        String fileExtension = getFileExtension(imageFile.getOriginalFilename());
-
-        String generatedFilename = String.format(
-                "%s_%s_%s_%s%s",
-                recipeName,
-                categoryName,
-                levelName,
-                timestamp,
-                fileExtension);
-
-        try (InputStream inputStream = imageFile.getInputStream()) {
-            minioClient.putObject(
-                    PutObjectArgs.builder()
-                            .bucket(minioBucketName)
-                            .object(generatedFilename)
-                            .stream(inputStream, imageFile.getSize(), -1)
-                            .contentType(imageFile.getContentType())
-                            .build());
-        } catch (Exception e) {
-            throw new IOException("Failed to upload image to MinIO", e);
-        }
-
-        log.info(generatedFilename);
-        return generatedFilename;
-    }
-
-    private String sanitizeForFilename(String input) {
-        return input.replaceAll("[^a-zA-Z0-9]", "_");
-    }
-
-    private String getFileExtension(String filename) {
-        int dotIndex = filename.lastIndexOf('.');
-        return (dotIndex == -1) ? "" : filename.substring(dotIndex);
-    }
-    */
 
 	public ResponseEntity<Object> getResepSaya(MyRecipeRequestDTO myRecipesDTO, String sortBy, int pageSize,
 			int pageNumber) {

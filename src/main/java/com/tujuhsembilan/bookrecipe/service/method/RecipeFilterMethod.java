@@ -7,7 +7,6 @@ import java.util.stream.Collectors;
 
 import lib.minio.MinioSrvc;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -27,14 +26,12 @@ import com.tujuhsembilan.bookrecipe.service.specification.RecipeListSpecificatio
 
 public class RecipeFilterMethod {
 
-    @Value("${application.minio.bucketName}")
-    private String minioBucketName;
-
     public ResponseEntity<Object> filterRecipe(RecipeListRepository recipesListRepo,
             FavoriteFoodsRepository favoriteFoodsRepo,
             Map<String, Object> result, HttpStatus status,
             int pageSize, int pageNumber, RecipeFilterRequestDTO recipeFiltersDTO,
-            MinioSrvc minioService) {
+            MinioSrvc minioService,
+            String minioBucketName) {
 
         Sort sorting = null;
         boolean isSortByEmpty = recipeFiltersDTO.getSortBy() == null;
@@ -78,7 +75,7 @@ public class RecipeFilterMethod {
 
     private Boolean getIsFavorite(FavoriteFoodsRepository favoriteFoodsRepo, Integer recipeId, Integer userId) {
         Optional<FavoriteFoods> favoriteFoods = favoriteFoodsRepo.findMyFavorite(recipeId, userId);
-        if (!favoriteFoods.isPresent()) {
+        if (favoriteFoods.isPresent()) {
             if (favoriteFoods.get().getIsFavorite() == true) {
                 return true;
             }

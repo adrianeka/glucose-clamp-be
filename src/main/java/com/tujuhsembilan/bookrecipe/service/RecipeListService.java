@@ -1,6 +1,7 @@
 package com.tujuhsembilan.bookrecipe.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.http.HttpStatus;
@@ -38,6 +39,9 @@ public class RecipeListService {
 
     @Autowired
     private MinioSrvc minioService;
+    
+    @Value("${application.minio.bucketName}")
+    private String minioBucketName;
 
     public ResponseEntity<Object> getAllRecipes(int pageSize, int pageNumber, RecipeFilterRequestDTO recipeFiltersDTO) {
         Map<String, Object> result = new HashMap<>();
@@ -49,7 +53,7 @@ public class RecipeListService {
 
             recipeFilterMethod.filterRecipe(recipeListRepo, favoriteFoodsRepo, result, status, pageSize, pageNumber,
                     recipeFiltersDTO,
-                    minioService);
+                    minioService, minioBucketName);
 
         } catch (Exception e) {
             status = HttpStatus.INTERNAL_SERVER_ERROR;

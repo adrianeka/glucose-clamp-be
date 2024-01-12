@@ -5,6 +5,7 @@ import java.io.IOException;
 import com.tujuhsembilan.bookrecipe.dto.CategoriesDTO;
 import com.tujuhsembilan.bookrecipe.dto.LevelsDTO;
 import com.tujuhsembilan.bookrecipe.dto.RecipesDTO;
+import com.tujuhsembilan.bookrecipe.security.service.UserDetailsImplement;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -35,6 +36,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -322,11 +324,11 @@ public class RecipesService {
     public Object getDataByIdWithFilterAndSort(int page, int pageSize, RecipeFilter filter) {
         DisplayPaginationRecipeFav response = new DisplayPaginationRecipeFav();
         try {
-//            UserDetailsImplement userDetails = (UserDetailsImplement) SecurityContextHolder
-//                    .getContext()
-//                    .getAuthentication()
-//                    .getPrincipal();
-//            log.info("Read Recipes with User id " + userDetails.getId() + " Success!");
+            UserDetailsImplement userDetails = (UserDetailsImplement) SecurityContextHolder
+                    .getContext()
+                    .getAuthentication()
+                    .getPrincipal();
+            log.info("Read Recipes with User id " + userDetails.getId() + " Success!");
 
             FavoriteFoodSpecification specification = new FavoriteFoodSpecification(filter);
 
@@ -338,7 +340,7 @@ public class RecipesService {
 
 
             List<UserFav> userFavList = favoriteFoodsPage.getContent().stream()
-//                    .filter(fav -> fav.getId().getUserId() == userDetails.getId() )
+                    .filter(fav -> fav.getId().getUserId() == userDetails.getId() )
                     .filter(favActive -> favActive.getIsFavorite())
                     .map(this::mapFavoriteFoodsToUserFav)
                     .collect(Collectors.toList());

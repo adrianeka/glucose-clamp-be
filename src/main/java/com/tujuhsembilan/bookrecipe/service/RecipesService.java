@@ -1,7 +1,7 @@
 package com.tujuhsembilan.bookrecipe.service;
 
 import java.io.IOException;
-import java.io.InputStream;
+//import java.io.InputStream;
 
 import com.tujuhsembilan.bookrecipe.dto.CategoriesDTO;
 import com.tujuhsembilan.bookrecipe.dto.LevelsDTO;
@@ -49,8 +49,8 @@ import com.tujuhsembilan.bookrecipe.repository.LevelsRepository;
 import com.tujuhsembilan.bookrecipe.repository.UsersRepository;
 
 import java.sql.Timestamp;
-import io.minio.MinioClient;
-import io.minio.PutObjectArgs;
+//import io.minio.MinioClient;
+//import io.minio.PutObjectArgs;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 
@@ -78,14 +78,26 @@ public class RecipesService {
     @Autowired
     private ValidationService validationService;
 
+    /* 
     @Autowired
     private MinioClient minioClient;
+    */
 
     @Value("${minio.bucketName}")
     private String minioBucketName;
 
     @Autowired
     private ModelMapper modelMapper;
+
+    @Autowired
+    private RecipesRepository recipeRepo;
+
+	@Autowired
+	private FavoriteFoodsRepository favoriteRepo;
+
+	@Lazy
+	@Autowired
+	private MinioSrvc minioService;
 
     @Transactional
     public MessageResponse create(CreateRecipeRequest request, MultipartFile imageFile) {
@@ -105,7 +117,7 @@ public class RecipesService {
 
         String imageFilename;
         try {
-            imageFilename = uploadImageToMinio(request, imageFile);
+            imageFilename = minioService.uploadImageToMinio(request, imageFile, minioBucketName);
         } catch (IOException e) {
             String errorMessage = "Failed to upload image to MinIO";
             log.error(errorMessage, e);
@@ -167,7 +179,7 @@ public class RecipesService {
         // Update image if provided
         if (imageFile != null) {
             try {
-                String newImageFilename = updateImageToMinio(request, imageFile);
+                String newImageFilename = minioService.updateImageToMinio(request, imageFile, minioBucketName);
                 existingRecipe.setImageFilename(newImageFilename);
             } catch (IOException e) {
                 String errorMessage = "Failed to upload image to MinIO";
@@ -195,6 +207,7 @@ public class RecipesService {
         return new MessageResponse(responseMessage, statusCode, status);
     }
 
+    /* 
     private String uploadImageToMinio(CreateRecipeRequest request, MultipartFile imageFile) throws IOException {
         String recipeName = sanitizeForFilename(request.getRecipeName());
         String categoryName = sanitizeForFilename(request.getCategories().getCategoryName());
@@ -279,21 +292,7 @@ public class RecipesService {
         int dotIndex = filename.lastIndexOf('.');
         return (dotIndex == -1) ? "" : filename.substring(dotIndex);
     }
-
-
-
-
-	@Autowired
-    private RecipesRepository recipeRepo;
-
-	@Autowired
-	private FavoriteFoodsRepository favoriteRepo;
-
-	@Lazy
-	@Autowired
-	private MinioSrvc minioService;
-
-	private final String bucket = "talent79-dev";
+    */
 
 	public ResponseEntity<Object> getResepSaya(MyRecipeRequestDTO myRecipesDTO, String sortBy, int pageSize,
 			int pageNumber) {
@@ -340,7 +339,7 @@ public class RecipesService {
 							recipe.getCategories().getCategoryName()),
 					new MyRecipesLevelsDTO(recipe.getLevels().getLevelId(), recipe.getLevels().getLevelName()),
 					recipe.getRecipeName(),
-					getImageURL(bucket, recipe.getImageFilename()),
+					getImageURL(minioBucketName, recipe.getImageFilename()),
 					recipe.getTimeCook(),
 					getFavFood(recipe.getRecipeId(), recipe.getUsers().getUserId())))
 					.collect(Collectors.toList());
@@ -477,7 +476,7 @@ public class RecipesService {
                     userFav.setRecipeName(recipe.getRecipeName());
                     String imageUrl = recipe.getImageFilename();
                     try {
-                        imageUrl = minioService.getLink(bucket, recipe.getImageFilename(), MinioSrvc.DEFAULT_EXPIRY);
+                        imageUrl = minioService.getLink(minioBucketName, recipe.getImageFilename(), MinioSrvc.DEFAULT_EXPIRY);
                     } catch (Exception e) {
                         log.error("Error retrieving image URL for recipeId: " + recipe.getRecipeId(), e);
                     }

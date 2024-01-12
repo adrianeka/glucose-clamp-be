@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.*;
 import com.tujuhsembilan.bookrecipe.dto.request.RegisterRequest;
 import com.tujuhsembilan.bookrecipe.dto.response.MessageResponse;
 
-@CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 @RequestMapping("/user-management")
 public class UsersController {

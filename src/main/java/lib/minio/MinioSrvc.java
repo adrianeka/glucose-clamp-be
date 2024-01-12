@@ -1,6 +1,9 @@
 package lib.minio;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.tujuhsembilan.bookrecipe.dto.request.CreateRecipeRequest;
+import com.tujuhsembilan.bookrecipe.dto.request.UpdateRecipeRequest;
+
 import io.minio.*;
 import io.minio.errors.*;
 import io.minio.http.Method;
@@ -148,6 +151,91 @@ public class MinioSrvc {
           message.get(prop.getPostErrorMessage(), bucket, opt.filename), e);
     }
   }
+
+  private String sanitizeForFilename(String input) {
+    return input.replaceAll("[^a-zA-Z0-9]", "_");
+  }
+
+  private String getFileExtension(String filename) {
+    int dotIndex = filename.lastIndexOf('.');
+    return (dotIndex == -1) ? "" : filename.substring(dotIndex);
+  }
+
+  public String uploadImageToMinio(CreateRecipeRequest request, MultipartFile imageFile, String minioBucketName) throws IOException {
+        String recipeName = sanitizeForFilename(request.getRecipeName());
+        String categoryName = sanitizeForFilename(request.getCategories().getCategoryName());
+        String levelName = sanitizeForFilename(request.getLevels().getLevelName());
+
+        if (recipeName.isEmpty() || categoryName.isEmpty() || levelName.isEmpty()) {
+            log.warn("One or more components for filename are empty. Recipe: {}, Category: {}, Level: {}",
+                    request.getRecipeName(), request.getCategories().getCategoryName(),
+                    request.getLevels().getLevelName());
+        }
+
+        String timestamp = String.valueOf(System.currentTimeMillis());
+        String fileExtension = getFileExtension(imageFile.getOriginalFilename());
+
+        String generatedFilename = String.format(
+                "%s_%s_%s_%s%s",
+                recipeName,
+                categoryName,
+                levelName,
+                timestamp,
+                fileExtension);
+
+        try (InputStream inputStream = imageFile.getInputStream()) {
+            minio.putObject(
+                    PutObjectArgs.builder()
+                            .bucket(minioBucketName)
+                            .object(generatedFilename)
+                            .stream(inputStream, imageFile.getSize(), -1)
+                            .contentType(imageFile.getContentType())
+                            .build());
+        } catch (Exception e) {
+            throw new IOException("Failed to upload image to MinIO", e);
+        }
+
+        log.info(generatedFilename);
+        return generatedFilename;
+    }
+
+    public String updateImageToMinio(UpdateRecipeRequest request, MultipartFile imageFile, String minioBucketName) throws IOException {
+        String recipeName = sanitizeForFilename(request.getRecipeName());
+        String categoryName = sanitizeForFilename(request.getCategories().getCategoryName());
+        String levelName = sanitizeForFilename(request.getLevels().getLevelName());
+
+        if (recipeName.isEmpty() || categoryName.isEmpty() || levelName.isEmpty()) {
+            log.warn("One or more components for filename are empty. Recipe: {}, Category: {}, Level: {}",
+                    request.getRecipeName(), request.getCategories().getCategoryName(),
+                    request.getLevels().getLevelName());
+        }
+
+        String timestamp = String.valueOf(System.currentTimeMillis());
+        String fileExtension = getFileExtension(imageFile.getOriginalFilename());
+
+        String generatedFilename = String.format(
+                "%s_%s_%s_%s%s",
+                recipeName,
+                categoryName,
+                levelName,
+                timestamp,
+                fileExtension);
+
+        try (InputStream inputStream = imageFile.getInputStream()) {
+            minio.putObject(
+                    PutObjectArgs.builder()
+                            .bucket(minioBucketName)
+                            .object(generatedFilename)
+                            .stream(inputStream, imageFile.getSize(), -1)
+                            .contentType(imageFile.getContentType())
+                            .build());
+        } catch (Exception e) {
+            throw new IOException("Failed to upload image to MinIO", e);
+        }
+
+        log.info(generatedFilename);
+        return generatedFilename;
+    }
 
   public ObjectWriteResponse upload(MultipartFile file, String bucket) {
     return this.upload(file, bucket,

@@ -20,35 +20,35 @@ import java.sql.Timestamp;
 @EntityListeners(AuditingEntityListener.class)
 public class FavoriteFoods implements java.io.Serializable {
 
-	@EmbeddedId
-	private FavoriteFoodsId id;
+    @EmbeddedId
+    private FavoriteFoodsId id;
 
-	@MapsId("userId")
-	@ManyToOne
-	@JoinColumn(name = "user_id")
-	private Users users;
+    @MapsId("userId")
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private Users users;
 
-	@MapsId("recipeId")
-	@ManyToOne
-	@JoinColumn(name = "recipe_id")
-	private Recipes recipes;
+    @MapsId("recipeId")
+    @ManyToOne
+    @JoinColumn(name = "recipe_id")
+    private Recipes recipes;
 
-	@Column(name = "is_favorite")
-	private Boolean isFavorite;
+    @Column(name = "is_favorite")
+    private Boolean isFavorite;
 
-	@Column(name = "created_by")
-	private String createdBy;
+    @Column(name = "created_by")
+    private String createdBy;
 
-	@CreatedDate
-	@Temporal(TemporalType.TIMESTAMP)
-	@Column(name = "created_time", length = 29)
-	private Timestamp createdTime;
+    @CreatedDate
+    @Temporal(TemporalType.TIMESTAMP)
+    @Column(name = "created_time", length = 29)
+    private Timestamp createdTime;
 
-	@Column(name = "modified_by")
-	private String modifiedBy;
+    @Column(name = "modified_by")
+    private String modifiedBy;
 
-	@CreatedDate
-	@Temporal(TemporalType.TIMESTAMP)
-	@Column(name = "modified_time", length = 29)
-	private Timestamp modifiedTime;
+    @CreatedDate
+    @Temporal(TemporalType.TIMESTAMP)
+    @Column(name = "modified_time", length = 29)
+    private Timestamp modifiedTime;
 }

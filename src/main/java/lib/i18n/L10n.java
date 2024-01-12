@@ -1,10 +1,10 @@
 package lib.i18n;
 
+import lombok.Getter;
+
 import java.text.NumberFormat;
 import java.util.Currency;
 import java.util.Locale;
-
-import lombok.Getter;
 
 @Getter
 public enum L10n {

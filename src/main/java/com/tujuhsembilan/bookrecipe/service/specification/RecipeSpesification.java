@@ -1,14 +1,12 @@
 package com.tujuhsembilan.bookrecipe.service.specification;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.springframework.data.jpa.domain.Specification;
-
 import com.tujuhsembilan.bookrecipe.dto.request.MyRecipeRequestDTO;
 import com.tujuhsembilan.bookrecipe.model.Recipes;
-
 import jakarta.persistence.criteria.Predicate;
+import org.springframework.data.jpa.domain.Specification;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class RecipeSpesification {
 	public static Specification<Recipes> recipeFilter(MyRecipeRequestDTO myRecipeDTO){

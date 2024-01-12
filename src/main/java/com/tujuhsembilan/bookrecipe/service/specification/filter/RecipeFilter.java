@@ -1,0 +1,16 @@
+package com.tujuhsembilan.bookrecipe.service.specification.filter;
+
+
+import lombok.Builder;
+import lombok.Data;
+
+@Builder
+@Data
+public class RecipeFilter {
+    private String recipeName;
+    private String level;
+    private String category;
+    private Integer cookMin;
+    private Integer cookMax;
+    private Integer sort;
+}

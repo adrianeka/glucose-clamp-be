@@ -19,9 +19,9 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @Embeddable
 @EntityListeners(AuditingEntityListener.class)
 public class FavoriteFoodsId implements java.io.Serializable {
-	@Column(name = "user_id")
-	private Integer userId;
+    @Column(name = "user_id")
+    private Integer userId;
 
-	@Column(name = "recipe_id")
-	private Integer recipeId;
+    @Column(name = "recipe_id")
+    private Integer recipeId;
 }

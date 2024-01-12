@@ -8,13 +8,11 @@ import com.tujuhsembilan.bookrecipe.service.UsersService;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import com.tujuhsembilan.bookrecipe.dto.request.RegisterRequest;
 import com.tujuhsembilan.bookrecipe.dto.response.MessageResponse;
-import com.tujuhsembilan.bookrecipe.service.UsersService;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController

@@ -5,8 +5,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.sql.Timestamp;
-
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -14,9 +12,4 @@ import java.sql.Timestamp;
 public class CategoriesDTO {
     private int categoryId;
 	private String categoryName;
-	// private Boolean isDeleted;
-	// private String createdBy;
-	// private Timestamp createdTime;
-	// private String modifiedBy;
-	// private Timestamp modifiedTime;
 }

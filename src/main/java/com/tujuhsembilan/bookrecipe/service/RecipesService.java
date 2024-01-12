@@ -113,19 +113,20 @@ public class RecipesService {
         }
         log.info(imageFilename);
 
-        Recipes newRecipe = new Recipes();
-        newRecipe.setCategories(categories);
-        newRecipe.setLevels(levels);
-        newRecipe.setRecipeName(request.getRecipeName());
-        newRecipe.setImageFilename(imageFilename); 
-        newRecipe.setTimeCook(request.getTimeCook());
-        newRecipe.setIngridient(request.getIngridient());
-        newRecipe.setHowToCook(request.getHowToCook());
-        newRecipe.setCreatedBy(createdByUser.getUsername());
-        newRecipe.setModifiedBy(createdByUser.getUsername());
-        newRecipe.setIsDeleted(false);
-        newRecipe.setCreatedTime(new Timestamp(System.currentTimeMillis()));
-        newRecipe.setModifiedTime(new Timestamp(System.currentTimeMillis()));
+        Recipes newRecipe = Recipes.builder()
+                .categories(categories)
+                .levels(levels)
+                .recipeName(request.getRecipeName())
+                .imageFilename(imageFilename)
+                .timeCook(request.getTimeCook())
+                .ingridient(request.getIngridient())
+                .howToCook(request.getHowToCook())
+                .createdBy(createdByUser.getUsername())
+                .modifiedBy(createdByUser.getUsername())
+                .isDeleted(false)
+                .createdTime(new Timestamp(System.currentTimeMillis()))
+                .modifiedTime(new Timestamp(System.currentTimeMillis()))
+                .build();
 
 
         // Simpan ke repository atau database
@@ -159,9 +160,20 @@ public class RecipesService {
         Levels levels = levelsRepository.findById(request.getLevels().getLevelId())
                 .orElseThrow(() -> new EntityNotFoundException("Levels not found with id: " + request.getLevels().getLevelId()));
 
-        existingRecipe.setCategories(categories);
-        existingRecipe.setLevels(levels);
-        existingRecipe.setRecipeName(request.getRecipeName());
+        existingRecipe = Recipes.builder()
+                .categories(categories)
+                .levels(levels)
+                .recipeName(request.getRecipeName())
+                .imageFilename(existingRecipe.getImageFilename()) // Keep the existing image filename
+                .timeCook(request.getTimeCook())
+                .ingridient(request.getIngridient())
+                .howToCook(request.getHowToCook())
+                .createdBy(existingRecipe.getCreatedBy()) // Keep the existing created by user
+                .modifiedBy(modifiedByUser.getUsername())
+                .isDeleted(false)
+                .createdTime(existingRecipe.getCreatedTime())
+                .modifiedTime(new Timestamp(System.currentTimeMillis()))
+                .build();
 
         // Update image if provided
         if (imageFile != null) {
@@ -175,12 +187,6 @@ public class RecipesService {
                         HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase());
             }
         }
-
-        existingRecipe.setTimeCook(request.getTimeCook());
-        existingRecipe.setIngridient(request.getIngridient());
-        existingRecipe.setHowToCook(request.getHowToCook());
-        existingRecipe.setModifiedBy(modifiedByUser.getUsername());
-        existingRecipe.setModifiedTime(new Timestamp(System.currentTimeMillis()));
 
         // Save the updated recipe
         recipesRepository.save(existingRecipe);

@@ -3,6 +3,10 @@ package com.tujuhsembilan.bookrecipe.service;
 import java.io.IOException;
 import java.io.InputStream;
 
+import com.tujuhsembilan.bookrecipe.dto.CategoriesDTO;
+import com.tujuhsembilan.bookrecipe.dto.LevelsDTO;
+import com.tujuhsembilan.bookrecipe.dto.RecipesDTO;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -49,10 +53,8 @@ import io.minio.MinioClient;
 import io.minio.PutObjectArgs;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -61,6 +63,8 @@ public class RecipesService {
 
     @Autowired
     private RecipesRepository recipesRepository;
+    @Autowired
+    private FavoriteFoodsService favoriteFoodsService;
 
     @Autowired
     private CategoriesRepository categoriesRepository;
@@ -79,6 +83,9 @@ public class RecipesService {
 
     @Value("${minio.bucketName}")
     private String minioBucketName;
+
+    @Autowired
+    private ModelMapper modelMapper;
 
     @Transactional
     public MessageResponse create(CreateRecipeRequest request, MultipartFile imageFile) {
@@ -501,5 +508,81 @@ public class RecipesService {
                     log.error("Data is null");
                     return new UserFav();
                 });
+    }
+
+    public Map<String, Object> getRecipeById(int recipeId) {
+        Map<String, Object> response = new HashMap<>();
+
+        try {
+            Optional<Recipes> recipeOptional = recipesRepository.findById(recipeId);
+
+            if (recipeOptional.isPresent()) {
+                Recipes recipe = recipeOptional.get();
+
+                RecipesDTO recipesDTO = modelMapper.map(recipe, RecipesDTO.class);
+                Map<String, Object> data = new HashMap<>();
+
+                // Membuat map untuk kategori
+                Map<String, Object> categoryData = new HashMap<>();
+                CategoriesDTO categoriesDTO = recipesDTO.getCategories();
+
+                if (categoriesDTO != null) {
+                    categoryData.put("categoryId", categoriesDTO.getCategoryId());
+                    categoryData.put("categoryName", categoriesDTO.getCategoryName());
+                } else {
+                    categoryData.put("categoryId", null);
+                    categoryData.put("categoryName", null);
+                }
+
+                Map<String, Object> levelData = new HashMap<>();
+                LevelsDTO levelDTO = recipesDTO.getLevels();
+
+                if (levelDTO != null) {
+                    levelData.put("levelId", levelDTO.getLevelId());
+                    levelData.put("levelName", levelDTO.getLevelName());
+                } else {
+                    levelData.put("levelId", null);
+                    levelData.put("levelName", null);
+                }
+
+                // Menambahkan data kategori ke dalam map utama
+                data.put("recipeId", recipesDTO.getRecipeId());
+                data.put("category", categoryData);
+                data.put("levels", levelData);
+                data.put("recipeName", recipesDTO.getRecipeName());
+                data.put("imageUrl", recipesDTO.getImageFilename());
+                data.put("time", recipesDTO.getTimeCook());
+                data.put("ingredient", recipesDTO.getIngridient());
+                data.put("howToCook", recipesDTO.getHowToCook());
+
+                // Menggunakan metode findByUserIdAndRecipeId untuk mendapatkan FavoriteFoods
+                Optional<Boolean> isFavoriteOpt = favoriteFoodsService.findIsFavoriteByUserIdAndRecipeId(1, recipesDTO.getRecipeId());
+
+                boolean isFavorite = isFavoriteOpt.orElse(false);
+
+                // Menambahkan isFavorite ke dalam data
+                data.put("isFavorite", isFavorite);
+                response.put("total", 1);
+                response.put("data", data);
+                response.put("message", "Recipe found successfully");
+                response.put("statusCode", 200);
+                response.put("status", "success");
+            } else {
+                response.put("total", 0);
+                response.put("data", null);
+                response.put("message", "Recipe not found");
+                response.put("statusCode", 404);
+                response.put("status", "error");
+            }
+        } catch (Exception e) {
+            // Tangani exception sesuai kebutuhan Anda
+            response.put("total", 0);
+            response.put("data", null);
+            response.put("message", "Error occurred while processing the request");
+            response.put("statusCode", 500);
+            response.put("status", "error");
+        }
+
+        return response;
     }
 }

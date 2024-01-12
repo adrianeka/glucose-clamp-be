@@ -23,6 +23,8 @@ import com.tujuhsembilan.bookrecipe.service.RecipesService;
 
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.Map;
+
 @Slf4j
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
@@ -106,5 +108,11 @@ public class RecipesController {
             return ResponseEntity.status(500)
                     .body(new MessageResponse("Terjadi kesalahan server. Silakan coba kembali", 500, "ERROR"));
         }
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Object> getRecipeById(@PathVariable int id) {
+        Map<String, Object> response = recipesService.getRecipeById(id);
+        return new ResponseEntity<>(response, HttpStatus.valueOf((int) response.get("statusCode")));
     }
 }

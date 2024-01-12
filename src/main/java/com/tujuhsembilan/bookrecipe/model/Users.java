@@ -26,7 +26,7 @@ public class Users implements java.io.Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "generator_users_user_id_seq")
-    @SequenceGenerator(name="generator_users_user_id_seq", sequenceName="user_id_users_seq", schema = "public", allocationSize = 1)
+    @SequenceGenerator(name="generator_users_user_id_seq", sequenceName="users_user_id_seq", schema = "public", allocationSize = 1)
     @Column(name = "user_id", unique = true, nullable = false)
     private int userId;
 

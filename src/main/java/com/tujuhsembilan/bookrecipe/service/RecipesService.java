@@ -353,14 +353,13 @@ public class RecipesService {
 	}
 
 	private Boolean getFavFood(Integer recipeId, Integer userId) {
-		FavoriteFoods favFood = favoriteRepo.findById_RecipeIdAndId_UserId(recipeId, userId).orElse(null);
-		Boolean isFavorite = false;
+		Optional<Boolean> favFood = favoriteRepo.findIsFavorite(recipeId, userId);
 
-		if (favFood != null) {
-			return favFood.getIsFavorite();
-		}
-
-		return isFavorite;
+		if (favFood.isPresent()) {
+			return favFood.get();
+		} else {
+            return false;
+        }
 	}
 
 	private String getImageURL(String bucket, String filename) {
@@ -375,7 +374,7 @@ public class RecipesService {
 
 	public ResponseEntity<Object> deleteResepSaya(int recipeId, int userId) {
 		try {
-			Recipes resepSaya = recipesRepository.findByRecipeIdAndUsers_UserId(recipeId, userId).orElse(null);
+			Recipes resepSaya = recipesRepository.findByMyRecipe(recipeId, userId).orElse(null);
 
 			String message = "";
 			Integer jumlahResepDihapus = 0;

@@ -2,6 +2,7 @@ package com.tujuhsembilan.bookrecipe.service.method;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import lib.minio.MinioSrvc;
@@ -73,9 +74,9 @@ public class RecipeFilterMethod {
     }
 
     private Boolean getIsFavorite(FavoriteFoodsRepository favoriteFoodsRepo, Integer recipeId, Integer userId) {
-        FavoriteFoods favoriteFoods = favoriteFoodsRepo.findById_RecipeIdAndId_UserId(recipeId, userId).orElse(null);
-        if (favoriteFoods != null) {
-            if (favoriteFoods.getIsFavorite() == true) {
+        Optional<FavoriteFoods> favoriteFoods = favoriteFoodsRepo.findMyFavorite(recipeId, userId);
+        if (!favoriteFoods.isPresent()) {
+            if (favoriteFoods.get().getIsFavorite() == true) {
                 return true;
             }
         }

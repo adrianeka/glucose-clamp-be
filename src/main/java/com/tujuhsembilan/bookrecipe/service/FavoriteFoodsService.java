@@ -8,9 +8,9 @@ import java.util.Optional;
 
 @Service
 public class FavoriteFoodsService {
-    //@Autowired
-    //private FavoriteFoodsRepository favoriteFoodsRepository;
-    // public Optional<Boolean> findIsFavoriteByUserIdAndRecipeId(int userId, int recipeId) {
-    //     return favoriteFoodsRepository.findIsFavoriteByUserIdAndRecipeId(userId, recipeId);
-    // }
+    @Autowired
+    private FavoriteFoodsRepository favoriteFoodsRepository;
+    public Optional<Boolean> findIsFavoriteByUserIdAndRecipeId(int userId, int recipeId) {
+        return favoriteFoodsRepository.findIsFavorite(userId, recipeId);
+    }
 }

@@ -26,7 +26,6 @@ public class UsersController {
         consumes = MediaType.APPLICATION_JSON_VALUE,
         produces = MediaType.APPLICATION_JSON_VALUE
     )
-
     public MessageResponse register(@RequestBody RegisterRequest request){
         return usersService.register(request);
     }

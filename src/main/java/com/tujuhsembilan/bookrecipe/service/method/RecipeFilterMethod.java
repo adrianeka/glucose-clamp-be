@@ -17,6 +17,7 @@ import com.tujuhsembilan.bookrecipe.dto.request.RecipeFilterRequestDTO;
 import com.tujuhsembilan.bookrecipe.dto.response.RecipeCategoryDTO;
 import com.tujuhsembilan.bookrecipe.dto.response.RecipeLevelDTO;
 import com.tujuhsembilan.bookrecipe.dto.response.RecipeResponseDTO;
+import com.tujuhsembilan.bookrecipe.enums.Bucket;
 import com.tujuhsembilan.bookrecipe.model.FavoriteFoods;
 import com.tujuhsembilan.bookrecipe.model.Recipes;
 import com.tujuhsembilan.bookrecipe.repository.FavoriteFoodsRepository;
@@ -25,7 +26,7 @@ import com.tujuhsembilan.bookrecipe.service.specification.RecipeListSpecificatio
 
 public class RecipeFilterMethod {
 
-    private final String bucket = "talent79-dev";
+	String bucketName = Bucket.TALENT79_DEV.getBucketName();
 
     public ResponseEntity<Object> filterRecipe(RecipeListRepository recipesListRepo,
             FavoriteFoodsRepository favoriteFoodsRepo,
@@ -61,7 +62,7 @@ public class RecipeFilterMethod {
                 new RecipeCategoryDTO(recipe.getCategories().getCategoryId(), recipe.getCategories().getCategoryName()),
                 new RecipeLevelDTO(recipe.getLevels().getLevelId(), recipe.getLevels().getLevelName()),
                 recipe.getRecipeName(),
-                getImageURL(minioService, bucket, recipe.getImageFilename()),
+                getImageURL(minioService, bucketName, recipe.getImageFilename()),
                 recipe.getTimeCook(),
                 getIsFavorite(favoriteFoodsRepo, recipe.getRecipeId(), recipeFiltersDTO.getUserId())))
                 .collect(Collectors.toList());

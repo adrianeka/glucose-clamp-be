@@ -18,6 +18,7 @@ import com.tujuhsembilan.bookrecipe.dto.request.MyRecipeRequestDTO;
 import com.tujuhsembilan.bookrecipe.dto.response.MyRecipeCategoriesDTO;
 import com.tujuhsembilan.bookrecipe.dto.response.MyRecipeResDTO;
 import com.tujuhsembilan.bookrecipe.dto.response.MyRecipesLevelsDTO;
+import com.tujuhsembilan.bookrecipe.enums.Bucket;
 import com.tujuhsembilan.bookrecipe.model.Categories;
 import com.tujuhsembilan.bookrecipe.model.FavoriteFoods;
 import com.tujuhsembilan.bookrecipe.model.Levels;
@@ -75,6 +76,8 @@ public class RecipesService {
 
     @Value("${application.minio.bucketName}")
     private String minioBucketName;
+    
+    String bucketName = Bucket.TALENT79_DEV.getBucketName();
 
     @Autowired
     private ModelMapper modelMapper;

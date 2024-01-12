@@ -79,10 +79,10 @@ public class RecipeListService {
                 message = "Data dengan id " + recipeId + " tidak ditemukan!";
             } else {
                 String recipeName = recipe.getRecipeName();
-                FavoriteFoods favoriteFoods = favoriteFoodsRepo
-                        .findById_RecipeIdAndId_UserId(recipeId, userId).orElse(null);
+                Optional<FavoriteFoods> favoriteFoods = favoriteFoodsRepo
+                        .findMyFavorite(recipeId, userId);
 
-                if (favoriteFoods == null) {
+                if (!favoriteFoods.isPresent()) {
                     FavoriteFoodsId favId = new FavoriteFoodsId();
                     FavoriteFoods favorite = new FavoriteFoods();
                     favId.setUserId(user.getUserId());
@@ -94,14 +94,14 @@ public class RecipeListService {
                     favorite.setId(favId);
                     favorite = favoriteFoodsRepo.save(favorite);
                     message = "Resep " + recipeName + " berhasil ditambahkan ke favorite!";
-                } else if (favoriteFoods != null) {
-                    if (favoriteFoods.getIsFavorite() == true) {
-                        favoriteFoods.setIsFavorite(false);
-                        favoriteFoods = favoriteFoodsRepo.save(favoriteFoods);
+                } else if (favoriteFoods.isPresent()) {
+                    if (favoriteFoods.get().getIsFavorite() == true) {
+                        favoriteFoods.get().setIsFavorite(false);
+                        favoriteFoodsRepo.save(favoriteFoods.get());
                         message = "Resep " + recipeName + " berhasil dihapus dari favorite!";
                     } else {
-                        favoriteFoods.setIsFavorite(true);
-                        favoriteFoods = favoriteFoodsRepo.save(favoriteFoods);
+                        favoriteFoods.get().setIsFavorite(true);
+                        favoriteFoodsRepo.save(favoriteFoods.get());
                         message = "Resep " + recipeName + " berhasil ditambahkan ke favorite!";
                     }
                 }

@@ -7,8 +7,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.sql.Timestamp;
-
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -17,9 +15,4 @@ import java.sql.Timestamp;
 public class LevelsDTO {
 	private int levelId;
 	private String levelName;
-	// private Boolean isDeleted;
-	// private String createdBy;
-	// private Timestamp createdTime;
-	// private String modifiedBy;
-	// private Timestamp modifiedTime;
 }

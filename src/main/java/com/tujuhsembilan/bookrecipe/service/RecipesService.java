@@ -18,6 +18,7 @@ import com.tujuhsembilan.bookrecipe.dto.request.MyRecipeRequestDTO;
 import com.tujuhsembilan.bookrecipe.dto.response.MyRecipeCategoriesDTO;
 import com.tujuhsembilan.bookrecipe.dto.response.MyRecipeResDTO;
 import com.tujuhsembilan.bookrecipe.dto.response.MyRecipesLevelsDTO;
+import com.tujuhsembilan.bookrecipe.enums.Bucket;
 import com.tujuhsembilan.bookrecipe.model.Categories;
 import com.tujuhsembilan.bookrecipe.model.FavoriteFoods;
 import com.tujuhsembilan.bookrecipe.model.Levels;
@@ -75,6 +76,8 @@ public class RecipesService {
 
     @Value("${application.minio.bucketName}")
     private String minioBucketName;
+    
+    String bucketName = Bucket.TALENT79_DEV.getBucketName();
 
     @Autowired
     private ModelMapper modelMapper;
@@ -127,7 +130,6 @@ public class RecipesService {
                 .createdTime(new Timestamp(System.currentTimeMillis()))
                 .modifiedTime(new Timestamp(System.currentTimeMillis()))
                 .build();
-
 
         // Simpan ke repository atau database
         recipesRepository.save(newRecipe);
@@ -199,93 +201,6 @@ public class RecipesService {
 
         return new MessageResponse(responseMessage, statusCode, status);
     }
-
-    /* 
-    private String uploadImageToMinio(CreateRecipeRequest request, MultipartFile imageFile) throws IOException {
-        String recipeName = sanitizeForFilename(request.getRecipeName());
-        String categoryName = sanitizeForFilename(request.getCategories().getCategoryName());
-        String levelName = sanitizeForFilename(request.getLevels().getLevelName());
-
-        if (recipeName.isEmpty() || categoryName.isEmpty() || levelName.isEmpty()) {
-            log.warn("One or more components for filename are empty. Recipe: {}, Category: {}, Level: {}",
-                    request.getRecipeName(), request.getCategories().getCategoryName(),
-                    request.getLevels().getLevelName());
-        }
-
-        String timestamp = String.valueOf(System.currentTimeMillis());
-        String fileExtension = getFileExtension(imageFile.getOriginalFilename());
-
-        String generatedFilename = String.format(
-                "%s_%s_%s_%s%s",
-                recipeName,
-                categoryName,
-                levelName,
-                timestamp,
-                fileExtension);
-
-        try (InputStream inputStream = imageFile.getInputStream()) {
-            minioClient.putObject(
-                    PutObjectArgs.builder()
-                            .bucket(minioBucketName)
-                            .object(generatedFilename)
-                            .stream(inputStream, imageFile.getSize(), -1)
-                            .contentType(imageFile.getContentType())
-                            .build());
-        } catch (Exception e) {
-            throw new IOException("Failed to upload image to MinIO", e);
-        }
-
-        log.info(generatedFilename);
-        return generatedFilename;
-    }
-
-    private String updateImageToMinio(UpdateRecipeRequest request, MultipartFile imageFile) throws IOException {
-        String recipeName = sanitizeForFilename(request.getRecipeName());
-        String categoryName = sanitizeForFilename(request.getCategories().getCategoryName());
-        String levelName = sanitizeForFilename(request.getLevels().getLevelName());
-
-        if (recipeName.isEmpty() || categoryName.isEmpty() || levelName.isEmpty()) {
-            log.warn("One or more components for filename are empty. Recipe: {}, Category: {}, Level: {}",
-                    request.getRecipeName(), request.getCategories().getCategoryName(),
-                    request.getLevels().getLevelName());
-        }
-
-        String timestamp = String.valueOf(System.currentTimeMillis());
-        String fileExtension = getFileExtension(imageFile.getOriginalFilename());
-
-        String generatedFilename = String.format(
-                "%s_%s_%s_%s%s",
-                recipeName,
-                categoryName,
-                levelName,
-                timestamp,
-                fileExtension);
-
-        try (InputStream inputStream = imageFile.getInputStream()) {
-            minioClient.putObject(
-                    PutObjectArgs.builder()
-                            .bucket(minioBucketName)
-                            .object(generatedFilename)
-                            .stream(inputStream, imageFile.getSize(), -1)
-                            .contentType(imageFile.getContentType())
-                            .build());
-        } catch (Exception e) {
-            throw new IOException("Failed to upload image to MinIO", e);
-        }
-
-        log.info(generatedFilename);
-        return generatedFilename;
-    }
-
-    private String sanitizeForFilename(String input) {
-        return input.replaceAll("[^a-zA-Z0-9]", "_");
-    }
-
-    private String getFileExtension(String filename) {
-        int dotIndex = filename.lastIndexOf('.');
-        return (dotIndex == -1) ? "" : filename.substring(dotIndex);
-    }
-    */
 
 	public ResponseEntity<Object> getResepSaya(MyRecipeRequestDTO myRecipesDTO, String sortBy, int pageSize,
 			int pageNumber) {
@@ -359,14 +274,13 @@ public class RecipesService {
 	}
 
 	private Boolean getFavFood(Integer recipeId, Integer userId) {
-		FavoriteFoods favFood = favoriteRepo.findById_RecipeIdAndId_UserId(recipeId, userId).orElse(null);
-		Boolean isFavorite = false;
+		Optional<Boolean> favFood = favoriteRepo.findIsFavorite(recipeId, userId);
 
-		if (favFood != null) {
-			return favFood.getIsFavorite();
-		}
-
-		return isFavorite;
+		if (favFood.isPresent()) {
+			return favFood.get();
+		} else {
+            return false;
+        }
 	}
 
 	private String getImageURL(String bucket, String filename) {
@@ -381,7 +295,7 @@ public class RecipesService {
 
 	public ResponseEntity<Object> deleteResepSaya(int recipeId, int userId) {
 		try {
-			Recipes resepSaya = recipesRepository.findByRecipeIdAndUsers_UserId(recipeId, userId).orElse(null);
+			Recipes resepSaya = recipesRepository.findByMyRecipe(recipeId, userId).orElse(null);
 
 			String message = "";
 			Integer jumlahResepDihapus = 0;

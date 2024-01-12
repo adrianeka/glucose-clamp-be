@@ -2,6 +2,7 @@ package com.tujuhsembilan.bookrecipe.service.method;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import lib.minio.MinioSrvc;
@@ -16,6 +17,7 @@ import com.tujuhsembilan.bookrecipe.dto.request.RecipeFilterRequestDTO;
 import com.tujuhsembilan.bookrecipe.dto.response.RecipeCategoryDTO;
 import com.tujuhsembilan.bookrecipe.dto.response.RecipeLevelDTO;
 import com.tujuhsembilan.bookrecipe.dto.response.RecipeResponseDTO;
+import com.tujuhsembilan.bookrecipe.enums.Bucket;
 import com.tujuhsembilan.bookrecipe.model.FavoriteFoods;
 import com.tujuhsembilan.bookrecipe.model.Recipes;
 import com.tujuhsembilan.bookrecipe.repository.FavoriteFoodsRepository;
@@ -24,7 +26,7 @@ import com.tujuhsembilan.bookrecipe.service.specification.RecipeListSpecificatio
 
 public class RecipeFilterMethod {
 
-    private final String bucket = "talent79-dev";
+	String bucketName = Bucket.TALENT79_DEV.getBucketName();
 
     public ResponseEntity<Object> filterRecipe(RecipeListRepository recipesListRepo,
             FavoriteFoodsRepository favoriteFoodsRepo,
@@ -33,7 +35,7 @@ public class RecipeFilterMethod {
             MinioSrvc minioService) {
 
         Sort sorting = null;
-        Boolean isSortByEmpty = recipeFiltersDTO.getSortBy() == null;
+        boolean isSortByEmpty = recipeFiltersDTO.getSortBy() == null;
 
         if (!isSortByEmpty) {
             if (recipeFiltersDTO.getSortBy().equals("recipeName-ASC")) {
@@ -60,7 +62,7 @@ public class RecipeFilterMethod {
                 new RecipeCategoryDTO(recipe.getCategories().getCategoryId(), recipe.getCategories().getCategoryName()),
                 new RecipeLevelDTO(recipe.getLevels().getLevelId(), recipe.getLevels().getLevelName()),
                 recipe.getRecipeName(),
-                getImageURL(minioService, bucket, recipe.getImageFilename()),
+                getImageURL(minioService, bucketName, recipe.getImageFilename()),
                 recipe.getTimeCook(),
                 getIsFavorite(favoriteFoodsRepo, recipe.getRecipeId(), recipeFiltersDTO.getUserId())))
                 .collect(Collectors.toList());
@@ -73,9 +75,9 @@ public class RecipeFilterMethod {
     }
 
     private Boolean getIsFavorite(FavoriteFoodsRepository favoriteFoodsRepo, Integer recipeId, Integer userId) {
-        FavoriteFoods favoriteFoods = favoriteFoodsRepo.findById_RecipeIdAndId_UserId(recipeId, userId).orElse(null);
-        if (favoriteFoods != null) {
-            if (favoriteFoods.getIsFavorite() == true) {
+        Optional<FavoriteFoods> favoriteFoods = favoriteFoodsRepo.findMyFavorite(recipeId, userId);
+        if (!favoriteFoods.isPresent()) {
+            if (favoriteFoods.get().getIsFavorite() == true) {
                 return true;
             }
         }

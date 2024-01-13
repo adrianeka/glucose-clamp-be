@@ -31,6 +31,11 @@
    mvn clean package
    ```
 
+<!-- SWAGGER -->
+### Swagger
+- Swagger UI : `http://localhost:8080/bookrecipe-documentation`
+- Swagger Docs : `http://localhost:8080/bookrecipe-api-docs`
+
 <!-- HEALTH CHECK -->
 ### Health Check
 

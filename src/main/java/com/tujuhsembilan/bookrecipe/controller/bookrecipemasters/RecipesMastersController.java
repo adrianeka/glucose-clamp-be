@@ -1,5 +1,7 @@
 package com.tujuhsembilan.bookrecipe.controller.bookrecipemasters;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +19,7 @@ import com.tujuhsembilan.bookrecipe.service.LevelsService;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Tag(name = "Book Recipe Master", description = "Book Recipe Master Management APIs")
 @RestController
 @RequestMapping("/book-recipe-masters")
 public class RecipesMastersController {
@@ -26,6 +29,9 @@ public class RecipesMastersController {
     @Autowired
     private LevelsService levelsService;
 
+    @Operation(
+            summary = "Retrieve Category Option List",
+            description = "Get List of Master Data Category")
     @GetMapping("/category-option-lists")
     public ResponseEntity<ListResponse<CategoriesDTO>> getCategoryOptions() {
         List<CategoriesDTO> categoryDTOs = categoryService.getAllCategories().stream()
@@ -36,6 +42,9 @@ public class RecipesMastersController {
         return ResponseEntity.ok(response);
     }
 
+    @Operation(
+            summary = "Retrieve Levels Option List",
+            description = "Get List of Master Data Level")
     @GetMapping("/level-option-lists")
     public ResponseEntity<ListResponse<LevelsDTO>> getLevelOptions() {
         List<Levels> levels = levelsService.getAllLevels();

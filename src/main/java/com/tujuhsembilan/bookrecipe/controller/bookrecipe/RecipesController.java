@@ -1,5 +1,6 @@
 package com.tujuhsembilan.bookrecipe.controller.bookrecipe;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -28,6 +29,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.Map;
 
 @Slf4j
+@Tag(name = "Book Recipe", description = "Book Recipe Management APIs")
 @RestController
 @RequestMapping("/book-recipe/book-recipes")
 public class RecipesController {
@@ -43,7 +45,6 @@ public class RecipesController {
 			@RequestParam(required = false) String sortBy,
 			@RequestParam(required = false, defaultValue = "1") int pageSize,
 			@RequestParam(required = false, defaultValue = "8") int pageNumber) {
-
 		try {
 			return recipeService.getResepSaya(myRecipesDTO, sortBy, pageSize, pageNumber);
 
@@ -52,12 +53,10 @@ public class RecipesController {
 
 			return ResponseEntity.status(HttpStatus.NO_CONTENT).body("Resep Masakkan Tidak Tersedia");
 		}
-
 	}
 
 	@PutMapping("/{recipeId}")
 	public ResponseEntity<Object> deleteResepSayaById(@PathVariable int recipeId, @RequestParam int userId) {
-
 		return recipeService.deleteResepSaya(recipeId, userId);
 	}
 

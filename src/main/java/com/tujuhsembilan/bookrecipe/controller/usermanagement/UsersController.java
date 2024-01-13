@@ -1,5 +1,6 @@
 package com.tujuhsembilan.bookrecipe.controller.usermanagement;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import com.tujuhsembilan.bookrecipe.dto.request.LoginRequest;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import com.tujuhsembilan.bookrecipe.dto.request.RegisterRequest;
 import com.tujuhsembilan.bookrecipe.dto.response.MessageResponse;
 
+@Tag(name = "User", description = "User Management APIs")
 @RestController
 @RequestMapping("/user-management")
 public class UsersController {

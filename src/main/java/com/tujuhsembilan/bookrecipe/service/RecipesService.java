@@ -341,9 +341,10 @@ public class RecipesService {
                         .map(this::mapFavoriteFoodsToUserFav)
                         .collect(Collectors.toList());
 
+
                 if (userFavList.isEmpty() || userFavList == null) {
                     return new ErrorDTO(HttpStatus.NOT_FOUND.value(), "Data Not Found",
-                            "User Not Found");
+                            "Data Empty");
                 }
 
                 response.setTotal(favoriteRepo.countByIsFavoriteAndUsersUserId(true, filter.getUserId()));

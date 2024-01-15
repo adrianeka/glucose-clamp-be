@@ -37,12 +37,8 @@ public class FavoriteFoodSpecification implements Specification<FavoriteFoods> {
         List<Predicate> predicates = new ArrayList<>();
 
         Boolean isFavorite = true; // default filter
-
-        if (filter.getUserId() != null) {
-            predicates.add(criteriaBuilder.equal(root.get("users").get("userId"), filter.getUserId()));
-        }
-
-        predicates.add(criteriaBuilder.equal(root.get("isFavorite"), isFavorite));
+        predicates.add(criteriaBuilder.equal(root.get("users").get("userId"), filter.getUserId())); // default filter
+        predicates.add(criteriaBuilder.equal(root.get("isFavorite"), isFavorite)); // default filter
 
 
         if (filter.getRecipeName() != null) {

@@ -325,33 +325,36 @@ public class RecipesService {
 
     public Object getDataByIdWithFilterAndSort(int page, int pageSize, RecipeFilter filter) {
         DisplayPaginationRecipeFav response = new DisplayPaginationRecipeFav();
+
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             Object principal = authentication.getPrincipal();
 
             if (principal instanceof UserDetailsImplement) {
-                UserDetailsImplement userDetails = (UserDetailsImplement) principal;
-                log.info("Read Recipes with User id " + userDetails.getId() + " Success!");
 
                 FavoriteFoodSpecification specification = new FavoriteFoodSpecification(filter);
 
-                PageRequest pageRequest = PageRequest.of(page, pageSize, specification.getSort());
+                PageRequest pageRequest = PageRequest.of(page - 1, pageSize, specification.getSort());
                 Page<FavoriteFoods> favoriteFoodsPage = favoriteRepo.findAll(specification, pageRequest);
-
-                filter.setUserId(userDetails.getId());
 
                 List<UserFav> userFavList = favoriteFoodsPage.getContent().stream()
                         .map(this::mapFavoriteFoodsToUserFav)
                         .collect(Collectors.toList());
 
+                int totalPages = favoriteFoodsPage.getTotalPages();
+                if (page > totalPages) {
+                    return new ErrorDTO(HttpStatus.NOT_FOUND.value(), "Page Not Found",
+                            "Requested page does not exist");
+                }
 
                 if (userFavList.isEmpty() || userFavList == null) {
                     return new ErrorDTO(HttpStatus.NOT_FOUND.value(), "Data Not Found",
                             "User Not Found");
                 }
-                response.setTotal(favoriteRepo.countByIsFavoriteAndUsersUserId(true, userDetails.getId()));
+
+                response.setTotal(favoriteRepo.countByIsFavoriteAndUsersUserId(true, filter.getUserId()));
                 response.setData(userFavList);
-                response.setMessage("Success"); // todo use message.properties
+                response.setMessage("Success");
                 response.setStatus("Success Get Data");
                 response.setStatusCode(HttpStatus.OK.value());
 
@@ -369,6 +372,7 @@ public class RecipesService {
         }
         return response;
     }
+
 
 
     private UserFav mapFavoriteFoodsToUserFav(FavoriteFoods favoriteFoods) {

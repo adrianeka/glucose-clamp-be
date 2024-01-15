@@ -333,17 +333,14 @@ public class RecipesService {
                 UserDetailsImplement userDetails = (UserDetailsImplement) principal;
                 log.info("Read Recipes with User id " + userDetails.getId() + " Success!");
 
-
                 FavoriteFoodSpecification specification = new FavoriteFoodSpecification(filter);
 
-                Page<FavoriteFoods> favoriteFoodsPage = favoriteRepo.findAll(
-                        specification,
-                        PageRequest.of(page, pageSize, specification.getSort())
-                );
+                PageRequest pageRequest = PageRequest.of(page, pageSize, specification.getSort());
+                Page<FavoriteFoods> favoriteFoodsPage = favoriteRepo.findAll(specification, pageRequest);
+
+                filter.setUserId(userDetails.getId());
 
                 List<UserFav> userFavList = favoriteFoodsPage.getContent().stream()
-                        .filter(fav -> fav.getId().getUserId() == userDetails.getId())
-                        .filter(favActive -> favActive.getIsFavorite())
                         .map(this::mapFavoriteFoodsToUserFav)
                         .collect(Collectors.toList());
 
@@ -359,7 +356,6 @@ public class RecipesService {
                 response.setStatusCode(HttpStatus.OK.value());
 
             } else if (principal instanceof String) {
-                // Handle the case where principal is a String
                 return new ErrorDTO(HttpStatus.UNAUTHORIZED.value(), "Unauthorized",
                         "User not authenticated");
             }

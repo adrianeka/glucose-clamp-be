@@ -7,6 +7,7 @@ import lombok.Data;
 @Builder
 @Data
 public class RecipeFilter {
+    private Integer userId;
     private String recipeName;
     private String level;
     private String category;

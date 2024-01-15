@@ -352,14 +352,16 @@ public class RecipesService {
                     return new ErrorDTO(HttpStatus.NOT_FOUND.value(), "Data Not Found",
                             "User Not Found");
                 }
-                response.setTotal(userFavList.size());
+                response.setTotal(favoriteRepo.countByIsFavoriteAndUsersUserId(true, userDetails.getId()));
                 response.setData(userFavList);
                 response.setMessage("Success"); // todo use message.properties
                 response.setStatus("Success Get Data");
                 response.setStatusCode(HttpStatus.OK.value());
-            } else {
-                return new ErrorDTO(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Data Access",
-                        " Error Fetching Jwt");
+
+            } else if (principal instanceof String) {
+                // Handle the case where principal is a String
+                return new ErrorDTO(HttpStatus.UNAUTHORIZED.value(), "Unauthorized",
+                        "User not authenticated");
             }
 
         } catch (DataAccessException e) {

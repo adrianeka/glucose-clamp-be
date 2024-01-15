@@ -12,7 +12,7 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 public class DisplayPaginationRecipeFav {
-    private int total;
+    private long total;
     private List<UserFav> data;
     private String message;
     private int statusCode;

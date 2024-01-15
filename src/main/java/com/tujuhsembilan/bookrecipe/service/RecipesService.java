@@ -36,6 +36,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -50,6 +51,7 @@ import com.tujuhsembilan.bookrecipe.repository.LevelsRepository;
 import com.tujuhsembilan.bookrecipe.repository.UsersRepository;
 
 import java.sql.Timestamp;
+
 import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 
@@ -69,7 +71,7 @@ public class RecipesService {
     @Autowired
     private LevelsRepository levelsRepository;
 
-    @Autowired 
+    @Autowired
     private UsersRepository usersRepository;
 
     @Autowired
@@ -81,12 +83,12 @@ public class RecipesService {
     @Autowired
     private ModelMapper modelMapper;
 
-	@Autowired
-	private FavoriteFoodsRepository favoriteRepo;
+    @Autowired
+    private FavoriteFoodsRepository favoriteRepo;
 
-	@Lazy
-	@Autowired
-	private MinioSrvc minioService;
+    @Lazy
+    @Autowired
+    private MinioSrvc minioService;
 
     @Transactional
     public MessageResponse create(CreateRecipeRequest request, MultipartFile imageFile) {
@@ -195,173 +197,177 @@ public class RecipesService {
         return new MessageResponse(responseMessage, statusCode, status);
     }
 
-	public ResponseEntity<Object> getResepSaya(MyRecipeRequestDTO myRecipesDTO, String sortBy, int pageSize,
-			int pageNumber) {
+    public ResponseEntity<Object> getResepSaya(MyRecipeRequestDTO myRecipesDTO, String sortBy, int pageSize,
+                                               int pageNumber) {
 
-		try {
-			Sort sortByNameAsc = Sort.by(Sort.Direction.ASC, "recipeName");
-			Sort sortByNameDesc = Sort.by(Sort.Direction.DESC, "recipeName");
-			Sort sortByTimeAsc = Sort.by(Sort.Direction.ASC, "timeCook");
-			Sort sortByTimeDesc = Sort.by(Sort.Direction.DESC, "timeCook");
+        try {
+            Sort sortByNameAsc = Sort.by(Sort.Direction.ASC, "recipeName");
+            Sort sortByNameDesc = Sort.by(Sort.Direction.DESC, "recipeName");
+            Sort sortByTimeAsc = Sort.by(Sort.Direction.ASC, "timeCook");
+            Sort sortByTimeDesc = Sort.by(Sort.Direction.DESC, "timeCook");
 
-			int newPage = pageSize - 1;
+            int newPage = pageSize - 1;
 
-			Sort choosenSort = null;
+            Sort choosenSort = null;
 
-			boolean isSortByEmpty = (sortBy == null);
+            boolean isSortByEmpty = (sortBy == null);
 
-			if (!isSortByEmpty) {
-				switch (sortBy) {
-					case "nameAsc":
-						choosenSort = sortByNameAsc;
-						break;
-					case "nameDesc":
-						choosenSort = sortByNameDesc;
-						break;
-					case "timeAsc":
-						choosenSort = sortByTimeAsc;
-						break;
-					case "timeDesc":
-						choosenSort = sortByTimeDesc;
-						break;
-				}
-			} else {
-				choosenSort = sortByNameAsc;
-			}
+            if (!isSortByEmpty) {
+                switch (sortBy) {
+                    case "nameAsc":
+                        choosenSort = sortByNameAsc;
+                        break;
+                    case "nameDesc":
+                        choosenSort = sortByNameDesc;
+                        break;
+                    case "timeAsc":
+                        choosenSort = sortByTimeAsc;
+                        break;
+                    case "timeDesc":
+                        choosenSort = sortByTimeDesc;
+                        break;
+                }
+            } else {
+                choosenSort = sortByNameAsc;
+            }
 
-			PageRequest pageRequest = PageRequest.of(newPage, pageNumber, choosenSort);
+            PageRequest pageRequest = PageRequest.of(newPage, pageNumber, choosenSort);
 
-			Specification<Recipes> recipeSpec = RecipeSpesification.recipeFilter(myRecipesDTO);
+            Specification<Recipes> recipeSpec = RecipeSpesification.recipeFilter(myRecipesDTO);
 
-			Page<Recipes> recipes = recipesRepository.findAll(recipeSpec, pageRequest);
-			List<MyRecipeResDTO> response = recipes.stream().map(recipe -> new MyRecipeResDTO(
-					recipe.getRecipeId(),
-					new MyRecipeCategoriesDTO(recipe.getCategories().getCategoryId(),
-							recipe.getCategories().getCategoryName()),
-					new MyRecipesLevelsDTO(recipe.getLevels().getLevelId(), recipe.getLevels().getLevelName()),
-					recipe.getRecipeName(),
-					getImageURL(minioBucketName, recipe.getImageFilename()),
-					recipe.getTimeCook(),
-					getFavFood(recipe.getRecipeId(), recipe.getUsers().getUserId())))
-					.collect(Collectors.toList());
+            Page<Recipes> recipes = recipesRepository.findAll(recipeSpec, pageRequest);
+            List<MyRecipeResDTO> response = recipes.stream().map(recipe -> new MyRecipeResDTO(
+                            recipe.getRecipeId(),
+                            new MyRecipeCategoriesDTO(recipe.getCategories().getCategoryId(),
+                                    recipe.getCategories().getCategoryName()),
+                            new MyRecipesLevelsDTO(recipe.getLevels().getLevelId(), recipe.getLevels().getLevelName()),
+                            recipe.getRecipeName(),
+                            getImageURL(minioBucketName, recipe.getImageFilename()),
+                            recipe.getTimeCook(),
+                            getFavFood(recipe.getRecipeId(), recipe.getUsers().getUserId())))
+                    .collect(Collectors.toList());
 
-			long totalData = recipesRepository.count(recipeSpec);
+            long totalData = recipesRepository.count(recipeSpec);
 
-			Map<String, Object> result = new LinkedHashMap<String, Object>();
+            Map<String, Object> result = new LinkedHashMap<String, Object>();
 
-			result.put("total", totalData);
-			result.put("data", response);
-			result.put("message", "Berhasil memuat Resep Masakan Saya");
+            result.put("total", totalData);
+            result.put("data", response);
+            result.put("message", "Berhasil memuat Resep Masakan Saya");
 
-			return new ResponseEntity<>(result, HttpStatus.OK);
-		} catch (Exception e) {
-			System.err.println("An error occurred: " + e.getMessage());
+            return new ResponseEntity<>(result, HttpStatus.OK);
+        } catch (Exception e) {
+            System.err.println("An error occurred: " + e.getMessage());
 
-			// Create a response for the error
-			Map<String, Object> errorResult = new LinkedHashMap<String, Object>();
-			errorResult.put("message", "An internal server error occurred");
+            // Create a response for the error
+            Map<String, Object> errorResult = new LinkedHashMap<String, Object>();
+            errorResult.put("message", "An internal server error occurred");
 
-			return new ResponseEntity<>(errorResult, HttpStatus.INTERNAL_SERVER_ERROR);
-		}
+            return new ResponseEntity<>(errorResult, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
 
-	}
+    }
 
-	private Boolean getFavFood(Integer recipeId, Integer userId) {
-		Optional<Boolean> favFood = favoriteRepo.findIsFavorite(recipeId, userId);
+    private Boolean getFavFood(Integer recipeId, Integer userId) {
+        Optional<Boolean> favFood = favoriteRepo.findIsFavorite(recipeId, userId);
 
-		if (favFood.isPresent()) {
-			return favFood.get();
-		} else {
+        if (favFood.isPresent()) {
+            return favFood.get();
+        } else {
             return false;
         }
-	}
+    }
 
-	private String getImageURL(String bucket, String filename) {
-		String url = "";
+    private String getImageURL(String bucket, String filename) {
+        String url = "";
 
-		if(bucket != null && filename != null) {
-			url = minioService.getPublicLink(bucket, filename);
-		}
+        if (bucket != null && filename != null) {
+            url = minioService.getPublicLink(bucket, filename);
+        }
 
-		return url;
-	}
+        return url;
+    }
 
-	public ResponseEntity<Object> deleteResepSaya(int recipeId, int userId) {
-		try {
-			Recipes resepSaya = recipesRepository.findByMyRecipe(recipeId, userId).orElse(null);
+    public ResponseEntity<Object> deleteResepSaya(int recipeId, int userId) {
+        try {
+            Recipes resepSaya = recipesRepository.findByMyRecipe(recipeId, userId).orElse(null);
 
-			String message = "";
-			Integer jumlahResepDihapus = 0;
+            String message = "";
+            Integer jumlahResepDihapus = 0;
 
-			if (resepSaya != null) {
-				jumlahResepDihapus = 1;
-				resepSaya.setIsDeleted(true);
-				recipesRepository.save(resepSaya);
-				message = "Resep " + resepSaya.getRecipeName() + " berhasil dihapus";
-			} else {
-				message = "Resep tidak ditemukan!";
-			}
+            if (resepSaya != null) {
+                jumlahResepDihapus = 1;
+                resepSaya.setIsDeleted(true);
+                recipesRepository.save(resepSaya);
+                message = "Resep " + resepSaya.getRecipeName() + " berhasil dihapus";
+            } else {
+                message = "Resep tidak ditemukan!";
+            }
 
-			Map<String, Object> result = new LinkedHashMap<String, Object>();
+            Map<String, Object> result = new LinkedHashMap<String, Object>();
 
-			result.put("total", jumlahResepDihapus);
-			result.put("data", "");
-			result.put("message", message);
+            result.put("total", jumlahResepDihapus);
+            result.put("data", "");
+            result.put("message", message);
 
-			return new ResponseEntity<>(result, HttpStatus.OK);
-		} catch (Exception e) {
-			System.err.println("An error occurred: " + e.getMessage());
+            return new ResponseEntity<>(result, HttpStatus.OK);
+        } catch (Exception e) {
+            System.err.println("An error occurred: " + e.getMessage());
 
-			// Create a response for the error
-			Map<String, Object> errorResult = new LinkedHashMap<String, Object>();
-			errorResult.put("message", "An internal server error occurred");
+            // Create a response for the error
+            Map<String, Object> errorResult = new LinkedHashMap<String, Object>();
+            errorResult.put("message", "An internal server error occurred");
 
-			return new ResponseEntity<>(errorResult, HttpStatus.INTERNAL_SERVER_ERROR);
-		}
+            return new ResponseEntity<>(errorResult, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
 
-	}
+    }
 
     public Object getDataByIdWithFilterAndSort(int page, int pageSize, RecipeFilter filter) {
         DisplayPaginationRecipeFav response = new DisplayPaginationRecipeFav();
         try {
-            UserDetailsImplement userDetails = (UserDetailsImplement) SecurityContextHolder
-                    .getContext()
-                    .getAuthentication()
-                    .getPrincipal();
-            log.info("Read Recipes with User id " + userDetails.getId() + " Success!");
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            Object principal = authentication.getPrincipal();
 
-            FavoriteFoodSpecification specification = new FavoriteFoodSpecification(filter);
-
-            Page<FavoriteFoods> favoriteFoodsPage = favoriteRepo.findAll(
-                    specification,
-                    PageRequest.of(page, pageSize, specification.getSort())
-            );
+            if (principal instanceof UserDetailsImplement) {
+                UserDetailsImplement userDetails = (UserDetailsImplement) principal;
+                log.info("Read Recipes with User id " + userDetails.getId() + " Success!");
 
 
+                FavoriteFoodSpecification specification = new FavoriteFoodSpecification(filter);
 
-            List<UserFav> userFavList = favoriteFoodsPage.getContent().stream()
-                    .filter(fav -> fav.getId().getUserId() == userDetails.getId() )
-                    .filter(favActive -> favActive.getIsFavorite())
-                    .map(this::mapFavoriteFoodsToUserFav)
-                    .collect(Collectors.toList());
+                Page<FavoriteFoods> favoriteFoodsPage = favoriteRepo.findAll(
+                        specification,
+                        PageRequest.of(page, pageSize, specification.getSort())
+                );
+
+                List<UserFav> userFavList = favoriteFoodsPage.getContent().stream()
+                        .filter(fav -> fav.getId().getUserId() == userDetails.getId())
+                        .filter(favActive -> favActive.getIsFavorite())
+                        .map(this::mapFavoriteFoodsToUserFav)
+                        .collect(Collectors.toList());
 
 
-            if (userFavList.isEmpty()) {
-                return new ErrorDTO(HttpStatus.NOT_FOUND.value(), "Data Not Found",
-                        "User Not Found");
+                if (userFavList.isEmpty() || userFavList == null) {
+                    return new ErrorDTO(HttpStatus.NOT_FOUND.value(), "Data Not Found",
+                            "User Not Found");
+                }
+                response.setTotal(userFavList.size());
+                response.setData(userFavList);
+                response.setMessage("Success"); // todo use message.properties
+                response.setStatus("Success Get Data");
+                response.setStatusCode(HttpStatus.OK.value());
+            } else {
+                return new ErrorDTO(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Data Access",
+                        " Error Fetching Jwt");
             }
-            response.setTotal(userFavList.size());
-            response.setData(userFavList);
-            response.setMessage("Success"); // todo use message.properties
-            response.setStatus("Success Get Data");
-            response.setStatusCode(HttpStatus.OK.value());
 
         } catch (DataAccessException e) {
             return new ErrorDTO(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Data Access Error", e.getMessage());
         } catch (Exception e) {
             e.printStackTrace();
             return new ErrorDTO(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Unexpected Error",
-                    "cause :\n"+ e.getCause() +"\n " + e.getMessage() );
+                    "cause :\n" + e.getCause() + "\n " + e.getMessage());
         }
         return response;
     }

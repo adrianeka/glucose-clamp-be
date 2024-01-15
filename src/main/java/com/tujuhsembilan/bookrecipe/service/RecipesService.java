@@ -341,12 +341,6 @@ public class RecipesService {
                         .map(this::mapFavoriteFoodsToUserFav)
                         .collect(Collectors.toList());
 
-                int totalPages = favoriteFoodsPage.getTotalPages();
-                if (page > totalPages) {
-                    return new ErrorDTO(HttpStatus.NOT_FOUND.value(), "Page Not Found",
-                            "Requested page does not exist");
-                }
-
                 if (userFavList.isEmpty() || userFavList == null) {
                     return new ErrorDTO(HttpStatus.NOT_FOUND.value(), "Data Not Found",
                             "User Not Found");

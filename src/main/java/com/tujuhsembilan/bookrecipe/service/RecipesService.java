@@ -417,6 +417,17 @@ public class RecipesService {
         Map<String, Object> response = new HashMap<>();
 
         try {
+
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            Object principal = authentication.getPrincipal();
+            int userId = 1;
+
+            if (principal instanceof UserDetailsImplement) {
+                UserDetailsImplement userDetails = (UserDetailsImplement) principal;
+                userId = userDetails.getId();
+
+            }
+
             Optional<Recipes> recipeOptional = recipesRepository.findById(recipeId);
 
             if (recipeOptional.isPresent()) {
@@ -461,7 +472,8 @@ public class RecipesService {
                 // Menggunakan metode findByUserIdAndRecipeId untuk mendapatkan FavoriteFoods
                 //Optional<Boolean> isFavoriteOpt = favoriteFoodsService.findIsFavoriteByUserIdAndRecipeId(1, recipesDTO.getRecipeId());
 
-                boolean isFavorite = getFavFood(recipesDTO.getRecipeId(), 1);
+                boolean isFavorite = getFavFood(recipesDTO.getRecipeId(), userId);
+
 
                 // Menambahkan isFavorite ke dalam data
                 data.put("isFavorite", isFavorite);

@@ -207,7 +207,7 @@ public class RecipesService {
             Sort sortByTimeAsc = Sort.by(Sort.Direction.ASC, "timeCook");
             Sort sortByTimeDesc = Sort.by(Sort.Direction.DESC, "timeCook");
 
-            int newPage = pageSize - 1;
+            int newPage = pageNumber - 1;
 
             Sort choosenSort = null;
 
@@ -232,7 +232,7 @@ public class RecipesService {
                 choosenSort = sortByNameAsc;
             }
 
-            PageRequest pageRequest = PageRequest.of(newPage, pageNumber, choosenSort);
+            PageRequest pageRequest = PageRequest.of(newPage, pageSize, choosenSort);
 
             Specification<Recipes> recipeSpec = RecipeSpesification.recipeFilter(myRecipesDTO);
 

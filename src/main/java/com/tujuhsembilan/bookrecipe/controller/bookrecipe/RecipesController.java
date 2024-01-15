@@ -43,8 +43,8 @@ public class RecipesController {
 	@GetMapping("/my-recipes")
 	public ResponseEntity<Object> getResepSaya(@ModelAttribute MyRecipeRequestDTO myRecipesDTO,
 			@RequestParam(required = false) String sortBy,
-			@RequestParam(required = false, defaultValue = "1") int pageSize,
-			@RequestParam(required = false, defaultValue = "8") int pageNumber) {
+			@RequestParam(required = false, defaultValue = "8") int pageSize,
+			@RequestParam(required = false, defaultValue = "1") int pageNumber) {
 		try {
 			return recipeService.getResepSaya(myRecipesDTO, sortBy, pageSize, pageNumber);
 

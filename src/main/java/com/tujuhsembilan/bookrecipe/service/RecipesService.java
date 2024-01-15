@@ -91,12 +91,12 @@ public class RecipesService {
     private MinioSrvc minioService;
 
     @Transactional
-    public MessageResponse create(CreateRecipeRequest request, MultipartFile imageFile) {
+    public MessageResponse create(CreateRecipeRequest request, MultipartFile imageFile, int userId) {
         validationService.validate(request);
 
-        Users createdByUser = usersRepository.findById(1)
+        Users createdByUser = usersRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException(
-                        "User not found with id: " + 1));
+                        "User not found with id: " + userId));
 
         Categories categories = categoriesRepository.findById(request.getCategories().getCategoryId())
                 .orElseThrow(() -> new EntityNotFoundException(
@@ -118,6 +118,7 @@ public class RecipesService {
         log.info(imageFilename);
 
         Recipes newRecipe = Recipes.builder()
+                .users(createdByUser)
                 .categories(categories)
                 .levels(levels)
                 .recipeName(request.getRecipeName())
@@ -145,12 +146,12 @@ public class RecipesService {
     }
 
     @Transactional
-    public MessageResponse updateRecipeById(UpdateRecipeRequest request, MultipartFile imageFile) {
+    public MessageResponse updateRecipeById(UpdateRecipeRequest request, MultipartFile imageFile, int userId) {
         validationService.validate(request);
 
         // Retrieve the current user information from the security context
-        Users modifiedByUser = usersRepository.findById(1)
-                .orElseThrow(() -> new EntityNotFoundException("User not found with id: " + 1));
+        Users modifiedByUser = usersRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("User not found with id: " + userId));
 
         // Find the existing recipe by ID
         Recipes existingRecipe = recipesRepository.findById(request.getRecipeId())

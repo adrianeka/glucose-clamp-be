@@ -92,11 +92,11 @@ public class RecipesController {
         produces = { MediaType.APPLICATION_JSON_VALUE }
     )    
     public ResponseEntity<MessageResponse> createRecipe(
+            @RequestParam("userId") int userId,
             @RequestPart("request") CreateRecipeRequest request,
             @RequestPart(value = "file", required = false) MultipartFile file) {
         try {
-            // Users users = new Users(); 
-            MessageResponse response = recipeService.create(request, file);
+            MessageResponse response = recipeService.create(request, file, userId);
             return ResponseEntity.status(response.getStatusCode()).body(response);
         } catch (Exception e) {
             log.error("Error", e);
@@ -109,10 +109,11 @@ public class RecipesController {
         consumes = { MediaType.APPLICATION_JSON_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE }, 
         produces = { MediaType.APPLICATION_JSON_VALUE })
     public ResponseEntity<MessageResponse> updateRecipe(
+            @RequestParam("userId") int userId,
             @RequestPart("request") UpdateRecipeRequest request,
             @RequestPart(value = "file", required = false) MultipartFile file) {
         try {
-            MessageResponse response = recipeService.updateRecipeById(request, file);
+            MessageResponse response = recipeService.updateRecipeById(request, file, userId);
             return ResponseEntity.status(response.getStatusCode()).body(response);
         } catch (Exception e) {
             log.error("Error", e);

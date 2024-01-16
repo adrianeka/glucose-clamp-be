@@ -472,7 +472,7 @@ public class RecipesService {
                 // Menggunakan metode findByUserIdAndRecipeId untuk mendapatkan FavoriteFoods
                 //Optional<Boolean> isFavoriteOpt = favoriteFoodsService.findIsFavoriteByUserIdAndRecipeId(1, recipesDTO.getRecipeId());
 
-                boolean isFavorite = getFavFood(recipesDTO.getRecipeId(), userId);
+                boolean isFavorite = getFavFood(userId,recipesDTO.getRecipeId());
 
 
                 // Menambahkan isFavorite ke dalam data

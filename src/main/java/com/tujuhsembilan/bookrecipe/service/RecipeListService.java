@@ -75,13 +75,13 @@ public class RecipeListService {
         try {
             Optional<Recipes> recipesData = recipeRepo.findById(recipeId);
             Optional<Users> usersData = userRepo.findById(userId);
-            Recipes recipe = recipesData.get();
-            Users user = usersData.get();
 
-            if (recipe == null) {
+            if (recipesData.isEmpty() && usersData.isEmpty()) {
                 status = HttpStatus.NOT_FOUND;
                 message = messageUtil.get("application.error.recipe.not-found", recipeId);
             } else {
+            	Recipes recipe = recipesData.get();
+                Users user = usersData.get();
                 String recipeName = recipe.getRecipeName();
                 Optional<FavoriteFoods> favoriteFoods = favoriteFoodsRepo
                         .findMyFavorite(recipeId, userId);
@@ -98,8 +98,8 @@ public class RecipeListService {
                     favorite.setId(favId);
                     favorite = favoriteFoodsRepo.save(favorite);
                     message = messageUtil.get("application.success.add-favorite", recipeName);
-                } else if (favoriteFoods.isPresent()) {
-                    if (favoriteFoods.get().getIsFavorite() == true) {
+                } else {
+                    if (favoriteFoods.get().getIsFavorite().booleanValue()) {
                         favoriteFoods.get().setIsFavorite(false);
                         favoriteFoodsRepo.save(favoriteFoods.get());
                         message = messageUtil.get("application.success.delete-favorite", recipeName);

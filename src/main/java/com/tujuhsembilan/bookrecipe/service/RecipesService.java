@@ -178,7 +178,7 @@ public class RecipesService {
         // Save the updated recipe
         recipesRepository.save(existingRecipe);
 
-        String responseMessage = "Resep " + request.getRecipeName() + " berhasil diubah!";
+        String responseMessage = messageUtil.get("application.success.update.resep", request.getRecipeName());
         int statusCode = HttpStatus.OK.value();
         String status = HttpStatus.OK.getReasonPhrase();
 

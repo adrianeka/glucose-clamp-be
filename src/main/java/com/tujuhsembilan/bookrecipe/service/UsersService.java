@@ -11,7 +11,9 @@ import com.tujuhsembilan.bookrecipe.security.jwt.JwtUtils;
 import com.tujuhsembilan.bookrecipe.security.service.UserDetailsImplement;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validator;
+import lib.i18n.utility.MessageUtil;
 import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -36,7 +38,20 @@ public class UsersService {
     
     @Autowired
     private Validator validator;
+    
+    @Autowired
+    private MessageUtil messageUtil;
+    
+    @Autowired
+    AuthenticationManager authenticationManager;
 
+    @Autowired
+    PasswordEncoder encoder;
+
+    @Autowired
+    JwtUtils jwtUtils;
+
+    final HttpStatus statusOK = HttpStatus.OK;
 
     @Transactional
     public MessageResponse register(RegisterRequest request){
@@ -51,19 +66,19 @@ public class UsersService {
         log.info("Received registration request: {}", request);
 
         if(userRepository.existsByUsername(request.getUsername())){
-            String errorMessage = "Username telah digunakan oleh user yang telah mendaftar sebelumnya";
+            String errorMessage = messageUtil.get("application.error.already-exist.user");
             return new MessageResponse(errorMessage, HttpStatus.BAD_REQUEST.value(), "ERROR");
         }
 
 
         if (!request.getPassword().equals(request.getRetypePassword())) {
-            String errorMessage = "Konfirmasi kata sandi tidak sama dengan kata sandi";
+            String errorMessage = messageUtil.get("application.error.password-not-match.user");
             return new MessageResponse(errorMessage, HttpStatus.BAD_REQUEST.value(), "ERROR");
         }  
 
 
         if(request.getPassword().length() < 6){
-            String errorMessage = "Kata sandi tidak boleh kurang dari 6 karakter";
+            String errorMessage = messageUtil.get("application.error.password-validation.user");
             return new MessageResponse(errorMessage, HttpStatus.BAD_REQUEST.value(), "ERROR");
         }
 
@@ -79,21 +94,10 @@ public class UsersService {
 
         log.info("Received user: {}", user);
         
-        String successMessage = "Berhasil menambahkan " + request.getUsername();
+        String successMessage = messageUtil.get("application.success.add.user", request.getUsername());
         return new MessageResponse(successMessage, HttpStatus.OK.value(), "OK");
 
     }
-
-    @Autowired
-    AuthenticationManager authenticationManager;
-
-    @Autowired
-    PasswordEncoder encoder;
-
-    @Autowired
-    JwtUtils jwtUtils;
-
-    final HttpStatus statusOK = HttpStatus.OK;
 
     public ApiDataResponseBuilder signIn(LoginRequest loginRequest){
         try {
@@ -111,19 +115,19 @@ public class UsersService {
 
             return ApiDataResponseBuilder.builder()
                 .data(new JwtResponse(jwt, userDetails.getId(), userDetails.getUsername(), roles.get()))
-                .message("Auth User Success")
+                .message(messageUtil.get("application.success.auth.user"))
                 .statusCode(statusOK.value())
                 .status(statusOK)
                 .build();   
         } catch (AuthenticationException e){
             return ApiDataResponseBuilder.builder()
-                .message("Invalid username or password")
+                .message(messageUtil.get("application.error.auth.user"))
                 .statusCode(HttpStatus.UNAUTHORIZED.value())
                 .status(HttpStatus.UNAUTHORIZED)
                 .build();
         }catch (Exception e) {
             return ApiDataResponseBuilder.builder()
-                .message("Internal server error")
+                .message(messageUtil.get("application.error.internal"))
                 .statusCode(HttpStatus.INTERNAL_SERVER_ERROR.value())
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .build();

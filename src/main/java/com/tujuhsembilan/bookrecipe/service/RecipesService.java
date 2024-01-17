@@ -269,7 +269,7 @@ public class RecipesService {
 
     }
 
-    private Boolean getFavFood(Integer recipeId, Integer userId) {
+    private boolean getFavFood(int recipeId, int userId) {
         Optional<Boolean> favFood = favoriteRepo.findIsFavorite(recipeId, userId);
 
         if (favFood.isPresent()) {

@@ -15,6 +15,6 @@ public class MyRecipeResDTO {
 	private MyRecipesLevelsDTO levels;
 	private String recipeName;
 	private String imageUrl;
-	private Integer time;
-	private Boolean is_favorite;
+	private int time;
+	private boolean isFavorite;
 }

@@ -19,6 +19,8 @@ import com.tujuhsembilan.bookrecipe.dto.request.MyRecipeRequestDTO;
 import com.tujuhsembilan.bookrecipe.dto.response.MyRecipeCategoriesDTO;
 import com.tujuhsembilan.bookrecipe.dto.response.MyRecipeResDTO;
 import com.tujuhsembilan.bookrecipe.dto.response.MyRecipesLevelsDTO;
+import com.tujuhsembilan.bookrecipe.exception.classes.AlreadyDeletedException;
+import com.tujuhsembilan.bookrecipe.exception.classes.DataNotFoundException;
 import com.tujuhsembilan.bookrecipe.model.Categories;
 import com.tujuhsembilan.bookrecipe.model.FavoriteFoods;
 import com.tujuhsembilan.bookrecipe.model.Levels;
@@ -185,7 +187,7 @@ public class RecipesService {
                         HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase());
             }
         }
-
+        
         // Save the updated recipe
         recipesRepository.save(existingRecipe);
 
@@ -198,45 +200,47 @@ public class RecipesService {
         return new MessageResponse(responseMessage, statusCode, status);
     }
 
-    public ResponseEntity<Object> getResepSaya(MyRecipeRequestDTO myRecipesDTO, String sortBy, int pageSize,
-                                               int pageNumber) {
+    public ResponseEntity<Object> getResepSaya(MyRecipeRequestDTO myRecipesDTO, String sortBy, int pageSize, int pageNumber) {
+        Sort sortByNameAsc = Sort.by(Sort.Direction.ASC, "recipeName");
+        Sort sortByNameDesc = Sort.by(Sort.Direction.DESC, "recipeName");
+        Sort sortByTimeAsc = Sort.by(Sort.Direction.ASC, "timeCook");
+        Sort sortByTimeDesc = Sort.by(Sort.Direction.DESC, "timeCook");
 
-        try {
-            Sort sortByNameAsc = Sort.by(Sort.Direction.ASC, "recipeName");
-            Sort sortByNameDesc = Sort.by(Sort.Direction.DESC, "recipeName");
-            Sort sortByTimeAsc = Sort.by(Sort.Direction.ASC, "timeCook");
-            Sort sortByTimeDesc = Sort.by(Sort.Direction.DESC, "timeCook");
+        int newPage = pageNumber - 1;
 
-            int newPage = pageNumber - 1;
+        Sort choosenSort = null;
 
-            Sort choosenSort = null;
+        boolean isSortByEmpty = (sortBy == null);
 
-            boolean isSortByEmpty = (sortBy == null);
-
-            if (!isSortByEmpty) {
-                switch (sortBy) {
-                    case "nameAsc":
-                        choosenSort = sortByNameAsc;
-                        break;
-                    case "nameDesc":
-                        choosenSort = sortByNameDesc;
-                        break;
-                    case "timeAsc":
-                        choosenSort = sortByTimeAsc;
-                        break;
-                    case "timeDesc":
-                        choosenSort = sortByTimeDesc;
-                        break;
-                }
-            } else {
-                choosenSort = sortByNameAsc;
+        if (!isSortByEmpty) {
+            switch (sortBy) {
+                case "nameAsc":
+                    choosenSort = sortByNameAsc;
+                    break;
+                case "nameDesc":
+                    choosenSort = sortByNameDesc;
+                    break;
+                case "timeAsc":
+                    choosenSort = sortByTimeAsc;
+                    break;
+                case "timeDesc":
+                    choosenSort = sortByTimeDesc;
+                    break;
             }
+        } else {
+            choosenSort = sortByNameAsc;
+        }
 
-            PageRequest pageRequest = PageRequest.of(newPage, pageSize, choosenSort);
+        PageRequest pageRequest = PageRequest.of(newPage, pageSize, choosenSort);
 
-            Specification<Recipes> recipeSpec = RecipeSpesification.recipeFilter(myRecipesDTO);
+        Specification<Recipes> recipeSpec = RecipeSpesification.recipeFilter(myRecipesDTO);
 
-            Page<Recipes> recipes = recipesRepository.findAll(recipeSpec, pageRequest);
+        Page<Recipes> recipes = recipesRepository.findAll(recipeSpec, pageRequest);
+            
+        if(recipes.isEmpty()) {
+        	throw new DataNotFoundException("Resep Masakkan Tidak Tersedia");
+        } else {
+            long totalData = recipesRepository.count(recipeSpec);
             List<MyRecipeResDTO> response = recipes.stream().map(recipe -> new MyRecipeResDTO(
                             recipe.getRecipeId(),
                             new MyRecipeCategoriesDTO(recipe.getCategories().getCategoryId(),
@@ -248,8 +252,6 @@ public class RecipesService {
                             getFavFood(recipe.getRecipeId(), recipe.getUsers().getUserId())))
                     .collect(Collectors.toList());
 
-            long totalData = recipesRepository.count(recipeSpec);
-
             Map<String, Object> result = new LinkedHashMap<String, Object>();
 
             result.put("total", totalData);
@@ -257,15 +259,7 @@ public class RecipesService {
             result.put("message", "Berhasil memuat Resep Masakan Saya");
 
             return new ResponseEntity<>(result, HttpStatus.OK);
-        } catch (Exception e) {
-            System.err.println("An error occurred: " + e.getMessage());
-
-            // Create a response for the error
-            Map<String, Object> errorResult = new LinkedHashMap<String, Object>();
-            errorResult.put("message", "An internal server error occurred");
-
-            return new ResponseEntity<>(errorResult, HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+       }
 
     }
 
@@ -290,39 +284,27 @@ public class RecipesService {
     }
 
     public ResponseEntity<Object> deleteResepSaya(int recipeId, int userId) {
-        try {
-            Optional<Recipes> resepSaya = recipesRepository.findByMyRecipe(recipeId, userId);
+    	Recipes resepSaya = recipesRepository.findByMyRecipe(recipeId, userId).orElseThrow(() -> new DataNotFoundException("Resep tidak ditemukan!"));
+    	
+        String message = "";
+        Integer jumlahResepDihapus = 0;
 
-            String message = "";
-            Integer jumlahResepDihapus = 0;
-
-            if (resepSaya.isPresent()) {
-                Recipes resep = resepSaya.get();
-                jumlahResepDihapus = 1;
-                resep.setIsDeleted(true);
-                recipesRepository.save(resep);
-                message = "Resep " + resep.getRecipeName() + " berhasil dihapus";
-            } else {
-                message = "Resep tidak ditemukan!";
-            }
-
-            Map<String, Object> result = new LinkedHashMap<String, Object>();
-
-            result.put("total", jumlahResepDihapus);
-            result.put("data", "");
-            result.put("message", message);
-
-            return new ResponseEntity<>(result, HttpStatus.OK);
-        } catch (Exception e) {
-            System.err.println("An error occurred: " + e.getMessage());
-
-            // Create a response for the error
-            Map<String, Object> errorResult = new LinkedHashMap<String, Object>();
-            errorResult.put("message", "An internal server error occurred");
-
-            return new ResponseEntity<>(errorResult, HttpStatus.INTERNAL_SERVER_ERROR);
+        if(resepSaya.getIsDeleted()) {
+        	throw new AlreadyDeletedException(resepSaya.getRecipeName() + " sudah terhapus!");
+        } else {
+        	jumlahResepDihapus = 1;
+            resepSaya.setIsDeleted(true);
+            recipesRepository.save(resepSaya);
+            message = "Resep " + resepSaya.getRecipeName() + " berhasil dihapus";
         }
 
+        Map<String, Object> result = new LinkedHashMap<String, Object>();
+
+        result.put("total", jumlahResepDihapus);
+        result.put("data", "");
+        result.put("message", message);
+
+        return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
     public Object getDataByIdWithFilterAndSort(int page, int pageSize, RecipeFilter filter) {
@@ -342,11 +324,9 @@ public class RecipesService {
                 List<UserFav> userFavList = favoriteFoodsPage.getContent().stream()
                         .map(this::mapFavoriteFoodsToUserFav)
                         .collect(Collectors.toList());
-
-
+                
                 if (userFavList.isEmpty() || userFavList == null) {
-                    return new ErrorDTO(HttpStatus.NOT_FOUND.value(), "Data Not Found",
-                            "Data Empty");
+                    throw new DataNotFoundException("Data Empty");
                 }
 
                 response.setTotal(favoriteRepo.countByIsFavoriteAndUsersUserId(true, filter.getUserId()));

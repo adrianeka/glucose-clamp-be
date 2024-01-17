@@ -8,7 +8,6 @@ import com.tujuhsembilan.bookrecipe.dto.RecipesDTO;
 import com.tujuhsembilan.bookrecipe.security.service.UserDetailsImplement;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import com.tujuhsembilan.bookrecipe.dto.ErrorDTO;
 import com.tujuhsembilan.bookrecipe.dto.bookrecipe.CategoryFav;
@@ -80,9 +79,6 @@ public class RecipesService {
     @Autowired
     private ValidationService validationService;
 
-    @Value("${application.minio.bucketName}")
-    private String minioBucketName;
-
     @Autowired
     private ModelMapper modelMapper;
 
@@ -111,7 +107,7 @@ public class RecipesService {
 
         String imageFilename;
         try {
-            imageFilename = minioService.uploadImageToMinio(request, imageFile, minioBucketName);
+            imageFilename = minioService.uploadImageToMinio(request, imageFile);
         } catch (IOException e) {
             String errorMessage = "Failed to upload image to MinIO";
             log.error(errorMessage, e);
@@ -179,7 +175,7 @@ public class RecipesService {
         // Update image if provided
         if (imageFile != null) {
             try {
-                String newImageFilename = minioService.updateImageToMinio(request, imageFile, minioBucketName);
+                String newImageFilename = minioService.updateImageToMinio(request, imageFile);
                 existingRecipe.setImageFilename(newImageFilename);
             } catch (IOException e) {
                 String errorMessage = "Failed to upload image to MinIO";
@@ -248,7 +244,7 @@ public class RecipesService {
                                     recipe.getCategories().getCategoryName()),
                             new MyRecipesLevelsDTO(recipe.getLevels().getLevelId(), recipe.getLevels().getLevelName()),
                             recipe.getRecipeName(),
-                            getImageURL(minioBucketName, recipe.getImageFilename()),
+                            getImageURL(recipe.getImageFilename()),
                             recipe.getTimeCook(),
                             getFavFood(recipe.getRecipeId(), recipe.getUsers().getUserId())))
                     .collect(Collectors.toList());
@@ -276,11 +272,11 @@ public class RecipesService {
         }
     }
 
-    private String getImageURL(String bucket, String filename) {
+    private String getImageURL(String filename) {
         String url = "";
 
-        if (bucket != null && filename != null) {
-            url = minioService.getPublicLink(bucket, filename);
+        if (filename != null) {
+            url = minioService.getPublicLink(filename);
         }
 
         return url;
@@ -365,7 +361,7 @@ public class RecipesService {
                     userFav.setRecipeName(recipe.getRecipeName());
                     String imageUrl = recipe.getImageFilename();
                     try {
-                        imageUrl = minioService.getLink(minioBucketName, recipe.getImageFilename(), MinioSrvc.DEFAULT_EXPIRY);
+                        imageUrl = minioService.getLink(recipe.getImageFilename(), MinioSrvc.DEFAULT_EXPIRY);
                     } catch (Exception e) {
                         log.error("Error retrieving image URL for recipeId: " + recipe.getRecipeId(), e);
                     }
@@ -449,7 +445,7 @@ public class RecipesService {
                 data.put("category", categoryData);
                 data.put("levels", levelData);
                 data.put("recipeName", recipesDTO.getRecipeName());
-                data.put("imageUrl", getImageURL(minioBucketName, recipesDTO.getImageFilename()));
+                data.put("imageUrl", getImageURL(recipesDTO.getImageFilename()));
                 data.put("time", recipesDTO.getTimeCook());
                 data.put("ingredient", recipesDTO.getIngridient());
                 data.put("howToCook", recipesDTO.getHowToCook());

@@ -11,6 +11,7 @@ public class MinioProp {
   private String url;
   private String username;
   private String password;
+  private String bucketName;
   private String getErrorMessage;
   private String postErrorMessage;
 }

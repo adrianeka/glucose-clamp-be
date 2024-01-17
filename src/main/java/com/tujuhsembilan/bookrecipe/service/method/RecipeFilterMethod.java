@@ -30,8 +30,7 @@ public class RecipeFilterMethod {
             FavoriteFoodsRepository favoriteFoodsRepo,
             Map<String, Object> result, HttpStatus status,
             int pageSize, int pageNumber, RecipeFilterRequestDTO recipeFiltersDTO,
-            MinioSrvc minioService,
-            String minioBucketName) {
+            MinioSrvc minioService) {
 
         Sort sorting = null;
         boolean isSortByEmpty = recipeFiltersDTO.getSortBy() == null;
@@ -61,7 +60,7 @@ public class RecipeFilterMethod {
                 new RecipeCategoryDTO(recipe.getCategories().getCategoryId(), recipe.getCategories().getCategoryName()),
                 new RecipeLevelDTO(recipe.getLevels().getLevelId(), recipe.getLevels().getLevelName()),
                 recipe.getRecipeName(),
-                getImageURL(minioService, minioBucketName, recipe.getImageFilename()),
+                getImageURL(minioService, recipe.getImageFilename()),
                 recipe.getTimeCook(),
                 getIsFavorite(favoriteFoodsRepo, recipe.getRecipeId(), recipeFiltersDTO.getUserId())))
                 .collect(Collectors.toList());
@@ -84,11 +83,11 @@ public class RecipeFilterMethod {
 
     }
 
-    private String getImageURL(MinioSrvc minioService, String bucket, String filename) {
+    private String getImageURL(MinioSrvc minioService, String filename) {
         String url = "";
 
-        if (bucket != null && filename != null) {
-            url = minioService.getPublicLink(bucket, filename);
+        if (filename != null) {
+            url = minioService.getPublicLink(filename);
         }
 
         return url;

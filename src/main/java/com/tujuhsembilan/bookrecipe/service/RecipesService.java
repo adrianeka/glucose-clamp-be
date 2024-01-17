@@ -42,9 +42,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.sql.Timestamp;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -385,11 +383,10 @@ public class RecipesService {
                 });
     }
 
-    public Map<String, Object> getRecipeById(int recipeId) {
-        Map<String, Object> response = new HashMap<>();
+    public ResponseBodyDTO getRecipeById(int recipeId) {
+        ResponseBodyDTO response = new ResponseBodyDTO();
 
         try {
-
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             Object principal = authentication.getPrincipal();
             int userId = 1;
@@ -404,71 +401,48 @@ public class RecipesService {
 
             if (recipeOptional.isPresent()) {
                 Recipes recipe = recipeOptional.get();
-
                 RecipesDTO recipesDTO = modelMapper.map(recipe, RecipesDTO.class);
-                Map<String, Object> data = new HashMap<>();
+                RecipesDTO dataRecipe = new RecipesDTO();
 
-                // Membuat map untuk kategori
-                Map<String, Object> categoryData = new HashMap<>();
+                // Populate RecipeDataDTO fields
+                dataRecipe.setRecipeId(recipesDTO.getRecipeId());
+
                 CategoriesDTO categoriesDTO = recipesDTO.getCategories();
+                dataRecipe.setCategories(categoriesDTO);
 
-                if (categoriesDTO != null) {
-                    categoryData.put("categoryId", categoriesDTO.getCategoryId());
-                    categoryData.put("categoryName", categoriesDTO.getCategoryName());
-                } else {
-                    categoryData.put("categoryId", null);
-                    categoryData.put("categoryName", null);
-                }
-
-                Map<String, Object> levelData = new HashMap<>();
                 LevelsDTO levelDTO = recipesDTO.getLevels();
+                dataRecipe.setLevels(levelDTO);
 
-                if (levelDTO != null) {
-                    levelData.put("levelId", levelDTO.getLevelId());
-                    levelData.put("levelName", levelDTO.getLevelName());
-                } else {
-                    levelData.put("levelId", null);
-                    levelData.put("levelName", null);
-                }
+                dataRecipe.setRecipeName(recipesDTO.getRecipeName());
+                dataRecipe.setImageFilename(getImageURL(recipesDTO.getImageFilename()));
+                dataRecipe.setTimeCook(recipesDTO.getTimeCook());
+                dataRecipe.setIngridient(recipesDTO.getIngridient());
+                dataRecipe.setHowToCook(recipesDTO.getHowToCook());
+                dataRecipe.setIsFavorite(getFavFood(userId, recipesDTO.getRecipeId()));
 
-                // Menambahkan data kategori ke dalam map utama
-                data.put("recipeId", recipesDTO.getRecipeId());
-                data.put("category", categoryData);
-                data.put("levels", levelData);
-                data.put("recipeName", recipesDTO.getRecipeName());
-                data.put("imageUrl", getImageURL(recipesDTO.getImageFilename()));
-                data.put("time", recipesDTO.getTimeCook());
-                data.put("ingredient", recipesDTO.getIngridient());
-                data.put("howToCook", recipesDTO.getHowToCook());
-
-                // Menggunakan metode findByUserIdAndRecipeId untuk mendapatkan FavoriteFoods
-
-                boolean isFavorite = getFavFood(userId,recipesDTO.getRecipeId());
-
-
-                // Menambahkan isFavorite ke dalam data
-                data.put("isFavorite", isFavorite);
-                response.put("total", 1);
-                response.put("data", data);
-                response.put("message", messageUtil.get("application.success.recipe.found"));
-                response.put("statusCode", 200);
-                response.put("status", "success");
+                response.setTotal(1);
+                response.setData(dataRecipe);
+                response.setMessage(messageUtil.get("application.success.recipe.found"));
+                response.setStatusCode(200);
+                response.setStatus("success");
             } else {
-                response.put("total", 0);
-                response.put("data", null);
-                response.put("message", messageUtil.get("application.error.recipe.not-found"));
-                response.put("statusCode", 404);
-                response.put("status", "error");
+                response.setTotal(0);
+                response.setData(null);
+                response.setMessage(messageUtil.get("application.error.recipe.not-found"));
+                response.setStatusCode(404);
+                response.setStatus("error");
             }
         } catch (Exception e) {
-            // Tangani exception sesuai kebutuhan Anda
-            response.put("total", 0);
-            response.put("data", null);
-            response.put("message", messageUtil.get("application.error.internal"));
-            response.put("statusCode", 500);
-            response.put("status", "error");
+            log.error("Exception occurred while processing the request", e);
+            // Handle exception as needed
+            response.setTotal(0);
+            response.setData(null);
+            response.setMessage(messageUtil.get("application.error.internal"));
+            response.setStatusCode(500);
+            response.setStatus("error");
         }
 
         return response;
     }
+
 }

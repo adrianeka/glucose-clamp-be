@@ -6,6 +6,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.sql.Timestamp;
+// import java.util.Set;
+
+// import com.tujuhsembilan.bookrecipe.model.FavoriteFoods;
 
 @Data
 @AllArgsConstructor
@@ -27,4 +30,5 @@ public class RecipesDTO {
     private Timestamp createdTime;
     private String modifiedBy;
     private Timestamp modifiedTime;
+    private Boolean isFavorite;
 }

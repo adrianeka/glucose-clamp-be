@@ -6,6 +6,7 @@ import com.tujuhsembilan.bookrecipe.dto.request.MyRecipeRequestDTO;
 import com.tujuhsembilan.bookrecipe.dto.request.RecipeFilterRequestDTO;
 import com.tujuhsembilan.bookrecipe.dto.request.UpdateRecipeRequest;
 import com.tujuhsembilan.bookrecipe.dto.response.MessageResponse;
+import com.tujuhsembilan.bookrecipe.dto.response.ResponseBodyDTO;
 import com.tujuhsembilan.bookrecipe.service.RecipeListService;
 import com.tujuhsembilan.bookrecipe.service.RecipesService;
 import com.tujuhsembilan.bookrecipe.service.specification.filter.RecipeFilter;
@@ -18,7 +19,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.Map;
+// import java.util.Map;
 
 @Slf4j
 @Tag(name = "Book Recipe", description = "Book Recipe Management APIs")
@@ -108,8 +109,8 @@ public class RecipesController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Object> getRecipeById(@PathVariable int id) {
-        Map<String, Object> response = recipeService.getRecipeById(id);
-        return new ResponseEntity<>(response, HttpStatus.valueOf((int) response.get("statusCode")));
+    public ResponseEntity<ResponseBodyDTO> getRecipeById(@PathVariable int id) {
+        ResponseBodyDTO response = recipeService.getRecipeById(id);
+        return new ResponseEntity<>(response, HttpStatus.valueOf((int) response.getStatusCode()));
     }
 }

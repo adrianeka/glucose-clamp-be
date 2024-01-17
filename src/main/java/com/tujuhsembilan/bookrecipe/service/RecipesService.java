@@ -19,6 +19,7 @@ import com.tujuhsembilan.bookrecipe.dto.request.MyRecipeRequestDTO;
 import com.tujuhsembilan.bookrecipe.dto.response.MyRecipeCategoriesDTO;
 import com.tujuhsembilan.bookrecipe.dto.response.MyRecipeResDTO;
 import com.tujuhsembilan.bookrecipe.dto.response.MyRecipesLevelsDTO;
+import com.tujuhsembilan.bookrecipe.dto.response.ResponseBodyDTO;
 import com.tujuhsembilan.bookrecipe.exception.classes.AlreadyDeletedException;
 import com.tujuhsembilan.bookrecipe.exception.classes.DataNotFoundException;
 import com.tujuhsembilan.bookrecipe.model.Categories;
@@ -251,14 +252,16 @@ public class RecipesService {
                             recipe.getTimeCook(),
                             getFavFood(recipe.getRecipeId(), recipe.getUsers().getUserId())))
                     .collect(Collectors.toList());
+            
+            ResponseBodyDTO responseBody = ResponseBodyDTO.builder()
+            		.total(totalData)
+            		.data(response)
+            		.message("Berhasil memuat Resep Masakan Saya")
+            		.statusCode(HttpStatus.OK.value())
+            		.status(HttpStatus.OK.name())
+            		.build();
 
-            Map<String, Object> result = new LinkedHashMap<String, Object>();
-
-            result.put("total", totalData);
-            result.put("data", response);
-            result.put("message", "Berhasil memuat Resep Masakan Saya");
-
-            return new ResponseEntity<>(result, HttpStatus.OK);
+            return new ResponseEntity<>(responseBody, HttpStatus.OK);
        }
 
     }
@@ -297,14 +300,15 @@ public class RecipesService {
             recipesRepository.save(resepSaya);
             message = "Resep " + resepSaya.getRecipeName() + " berhasil dihapus";
         }
+        
+        ResponseBodyDTO responseBody = ResponseBodyDTO.builder()
+        		.total(jumlahResepDihapus)
+        		.message(message)
+        		.statusCode(HttpStatus.OK.value())
+        		.status(HttpStatus.OK.name())
+        		.build();
 
-        Map<String, Object> result = new LinkedHashMap<String, Object>();
-
-        result.put("total", jumlahResepDihapus);
-        result.put("data", "");
-        result.put("message", message);
-
-        return new ResponseEntity<>(result, HttpStatus.OK);
+        return new ResponseEntity<>(responseBody, HttpStatus.OK);
     }
 
     public Object getDataByIdWithFilterAndSort(int page, int pageSize, RecipeFilter filter) {
@@ -451,7 +455,6 @@ public class RecipesService {
                 data.put("howToCook", recipesDTO.getHowToCook());
 
                 // Menggunakan metode findByUserIdAndRecipeId untuk mendapatkan FavoriteFoods
-                //Optional<Boolean> isFavoriteOpt = favoriteFoodsService.findIsFavoriteByUserIdAndRecipeId(1, recipesDTO.getRecipeId());
 
                 boolean isFavorite = getFavFood(userId,recipesDTO.getRecipeId());
 

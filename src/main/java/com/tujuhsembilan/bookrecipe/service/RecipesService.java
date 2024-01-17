@@ -291,16 +291,17 @@ public class RecipesService {
 
     public ResponseEntity<Object> deleteResepSaya(int recipeId, int userId) {
         try {
-            Recipes resepSaya = recipesRepository.findByMyRecipe(recipeId, userId).orElse(null);
+            Optional<Recipes> resepSaya = recipesRepository.findByMyRecipe(recipeId, userId);
 
             String message = "";
             Integer jumlahResepDihapus = 0;
 
-            if (resepSaya != null) {
+            if (resepSaya.isPresent()) {
+                Recipes resep = resepSaya.get();
                 jumlahResepDihapus = 1;
-                resepSaya.setIsDeleted(true);
-                recipesRepository.save(resepSaya);
-                message = "Resep " + resepSaya.getRecipeName() + " berhasil dihapus";
+                resep.setIsDeleted(true);
+                recipesRepository.save(resep);
+                message = "Resep " + resep.getRecipeName() + " berhasil dihapus";
             } else {
                 message = "Resep tidak ditemukan!";
             }

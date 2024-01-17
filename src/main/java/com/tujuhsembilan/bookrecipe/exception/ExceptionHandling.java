@@ -3,11 +3,6 @@ package com.tujuhsembilan.bookrecipe.exception;
 import com.tujuhsembilan.bookrecipe.dto.ErrorDTO;
 import com.tujuhsembilan.bookrecipe.exception.classes.AlreadyDeletedException;
 import com.tujuhsembilan.bookrecipe.exception.classes.DataNotFoundException;
-
-import jakarta.persistence.EntityNotFoundException;
-
-import java.io.IOException;
-
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;

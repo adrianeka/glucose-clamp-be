@@ -1,42 +1,37 @@
 package com.tujuhsembilan.bookrecipe.service;
 
-import java.io.IOException;
-
 import com.tujuhsembilan.bookrecipe.dto.CategoriesDTO;
+import com.tujuhsembilan.bookrecipe.dto.ErrorDTO;
 import com.tujuhsembilan.bookrecipe.dto.LevelsDTO;
 import com.tujuhsembilan.bookrecipe.dto.RecipesDTO;
-import com.tujuhsembilan.bookrecipe.security.service.UserDetailsImplement;
-import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import com.tujuhsembilan.bookrecipe.dto.ErrorDTO;
 import com.tujuhsembilan.bookrecipe.dto.bookrecipe.CategoryFav;
 import com.tujuhsembilan.bookrecipe.dto.bookrecipe.DisplayPaginationRecipeFav;
 import com.tujuhsembilan.bookrecipe.dto.bookrecipe.LevelFav;
 import com.tujuhsembilan.bookrecipe.dto.bookrecipe.UserFav;
+import com.tujuhsembilan.bookrecipe.dto.request.CreateRecipeRequest;
 import com.tujuhsembilan.bookrecipe.dto.request.MyRecipeRequestDTO;
-import com.tujuhsembilan.bookrecipe.dto.response.MyRecipeCategoriesDTO;
-import com.tujuhsembilan.bookrecipe.dto.response.MyRecipeResDTO;
-import com.tujuhsembilan.bookrecipe.dto.response.MyRecipesLevelsDTO;
-import com.tujuhsembilan.bookrecipe.dto.response.ResponseBodyDTO;
+import com.tujuhsembilan.bookrecipe.dto.request.UpdateRecipeRequest;
+import com.tujuhsembilan.bookrecipe.dto.response.*;
 import com.tujuhsembilan.bookrecipe.exception.classes.AlreadyDeletedException;
 import com.tujuhsembilan.bookrecipe.exception.classes.DataNotFoundException;
-import com.tujuhsembilan.bookrecipe.model.Categories;
-import com.tujuhsembilan.bookrecipe.model.FavoriteFoods;
-import com.tujuhsembilan.bookrecipe.model.Levels;
-import com.tujuhsembilan.bookrecipe.model.Recipes;
-import com.tujuhsembilan.bookrecipe.repository.FavoriteFoodsRepository;
-import com.tujuhsembilan.bookrecipe.repository.RecipesRepository;
+import com.tujuhsembilan.bookrecipe.model.*;
+import com.tujuhsembilan.bookrecipe.repository.*;
+import com.tujuhsembilan.bookrecipe.security.service.UserDetailsImplement;
 import com.tujuhsembilan.bookrecipe.service.specification.FavoriteFoodSpecification;
 import com.tujuhsembilan.bookrecipe.service.specification.RecipeSpesification;
 import com.tujuhsembilan.bookrecipe.service.specification.filter.RecipeFilter;
+import jakarta.persistence.EntityNotFoundException;
 import lib.minio.MinioSrvc;
+import lombok.extern.slf4j.Slf4j;
+import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -44,20 +39,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.tujuhsembilan.bookrecipe.dto.request.CreateRecipeRequest;
-import com.tujuhsembilan.bookrecipe.dto.request.UpdateRecipeRequest;
-import com.tujuhsembilan.bookrecipe.dto.response.MessageResponse;
-import com.tujuhsembilan.bookrecipe.model.Users;
-import com.tujuhsembilan.bookrecipe.repository.CategoriesRepository;
-import com.tujuhsembilan.bookrecipe.repository.LevelsRepository;
-import com.tujuhsembilan.bookrecipe.repository.UsersRepository;
-
+import java.io.IOException;
 import java.sql.Timestamp;
-
-import jakarta.persistence.EntityNotFoundException;
-import lombok.extern.slf4j.Slf4j;
-
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service

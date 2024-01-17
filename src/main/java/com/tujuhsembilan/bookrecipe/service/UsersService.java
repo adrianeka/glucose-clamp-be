@@ -1,11 +1,17 @@
 package com.tujuhsembilan.bookrecipe.service;
 
 import com.tujuhsembilan.bookrecipe.dto.request.LoginRequest;
+import com.tujuhsembilan.bookrecipe.dto.request.RegisterRequest;
 import com.tujuhsembilan.bookrecipe.dto.response.ApiDataResponseBuilder;
 import com.tujuhsembilan.bookrecipe.dto.response.JwtResponse;
+import com.tujuhsembilan.bookrecipe.dto.response.MessageResponse;
+import com.tujuhsembilan.bookrecipe.model.Users;
 import com.tujuhsembilan.bookrecipe.repository.UsersRepository;
 import com.tujuhsembilan.bookrecipe.security.jwt.JwtUtils;
 import com.tujuhsembilan.bookrecipe.security.service.UserDetailsImplement;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validator;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -13,22 +19,13 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import java.util.Set;
-
 import org.springframework.security.crypto.bcrypt.BCrypt;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import java.util.Optional;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.tujuhsembilan.bookrecipe.dto.request.RegisterRequest;
-import com.tujuhsembilan.bookrecipe.dto.response.MessageResponse;
-import com.tujuhsembilan.bookrecipe.model.Users;
-
-import jakarta.validation.ConstraintViolation;
-import jakarta.validation.Validator;
-import lombok.extern.slf4j.Slf4j;
+import java.util.Optional;
+import java.util.Set;
 
 @Slf4j
 @Service

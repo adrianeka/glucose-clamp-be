@@ -29,7 +29,6 @@ public class CreateRecipeRequest {
     @Pattern(regexp = "^[a-zA-Z\\s]*$", message = "Kolom tidak boleh berisi special character/angka")
     private String recipeName;
 
-    // @NotBlank(message = "Kolom imageFilename tidak boleh kosong")
     private String imageFilename;
 
     @NotNull(message = "Kolom timeCook tidak boleh kosong")

@@ -34,9 +34,9 @@ public class FavoriteFoodSpecification implements Specification<FavoriteFoods> {
     public Predicate toPredicate(Root<FavoriteFoods> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) {
         List<Predicate> predicates = new ArrayList<>();
 
-        Boolean isFavorite = true; // default filter
-        predicates.add(criteriaBuilder.equal(root.get("users").get("userId"), filter.getUserId())); // default filter
-        predicates.add(criteriaBuilder.equal(root.get("isFavorite"), isFavorite)); // default filter
+        Boolean isFavorite = true;
+        predicates.add(criteriaBuilder.equal(root.get("users").get("userId"), filter.getUserId()));
+        predicates.add(criteriaBuilder.equal(root.get("isFavorite"), isFavorite));
 
 
         if (filter.getRecipeName() != null) {
@@ -66,13 +66,13 @@ public class FavoriteFoodSpecification implements Specification<FavoriteFoods> {
         final int NAME_RECIPE_DESC = 2;
 
         if (filter.getSort() == null) {
-            return Sort.by(Sort.Order.asc("recipes.recipeName")); // DEFAULT SORTING
+            return Sort.by(Sort.Order.asc("recipes.recipeName"));
         }
 
         return switch (filter.getSort()) {
             case NAME_RECIPE_ASC -> Sort.by(Sort.Order.asc("recipes.recipeName"));
             case NAME_RECIPE_DESC -> Sort.by(Sort.Order.desc("recipes.recipeName"));
-            default -> Sort.by(Sort.Order.asc("recipes.recipeName")); // DEFAULT SORTING
+            default -> Sort.by(Sort.Order.asc("recipes.recipeName"));
         };
     }
 }

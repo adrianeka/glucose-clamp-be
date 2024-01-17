@@ -121,7 +121,6 @@ public class RecipesService {
                 .modifiedTime(new Timestamp(System.currentTimeMillis()))
                 .build();
 
-        // Simpan ke repository atau database
         recipesRepository.save(newRecipe);
 
         String responseMessage = messageUtil.get("application.success.add.resep", request.getRecipeName());
@@ -137,15 +136,12 @@ public class RecipesService {
     public MessageResponse updateRecipeById(UpdateRecipeRequest request, MultipartFile imageFile, int userId) {
         validationService.validate(request);
 
-        // Retrieve the current user information from the security context
         Users modifiedByUser = usersRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException(messageUtil.get("application.error.user.not-found", userId)));
 
-        // Find the existing recipe by ID
         Recipes existingRecipe = recipesRepository.findById(request.getRecipeId())
                 .orElseThrow(() -> new EntityNotFoundException(messageUtil.get("application.error.recipe.not-found", request.getRecipeId())));
 
-        // Update the recipe fields
         Categories categories = categoriesRepository.findById(request.getCategories().getCategoryId())
                 .orElseThrow(() -> new EntityNotFoundException(
                 		messageUtil.get("application.error.category.not-found", request.getCategories().getCategoryId())));
@@ -162,7 +158,6 @@ public class RecipesService {
         existingRecipe.setModifiedBy(modifiedByUser.getUsername());
         existingRecipe.setModifiedTime(new Timestamp(System.currentTimeMillis()));
 
-        // Update image if provided
         if (imageFile != null) {
             try {
                 String newImageFilename = minioService.updateImageToMinio(request, imageFile);
@@ -175,7 +170,6 @@ public class RecipesService {
             }
         }
         
-        // Save the updated recipe
         recipesRepository.save(existingRecipe);
 
         String responseMessage = "Resep " + request.getRecipeName() + " berhasil diubah!";
@@ -403,8 +397,7 @@ public class RecipesService {
                 Recipes recipe = recipeOptional.get();
                 RecipesDTO recipesDTO = modelMapper.map(recipe, RecipesDTO.class);
                 RecipesDTO dataRecipe = new RecipesDTO();
-
-                // Populate RecipeDataDTO fields
+                
                 dataRecipe.setRecipeId(recipesDTO.getRecipeId());
 
                 CategoriesDTO categoriesDTO = recipesDTO.getCategories();
@@ -434,7 +427,6 @@ public class RecipesService {
             }
         } catch (Exception e) {
             log.error("Exception occurred while processing the request", e);
-            // Handle exception as needed
             response.setTotal(0);
             response.setData(null);
             response.setMessage(messageUtil.get("application.error.internal"));

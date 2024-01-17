@@ -31,7 +31,6 @@ public class UpdateRecipeRequest {
     @Pattern(regexp = "^[a-zA-Z\\s]*$", message = "Kolom tidak boleh berisi special character/angka")
     private String recipeName;
 
-    // @NotBlank(message = "Kolom imageFilename tidak boleh kosong")
     private String imageFilename;
 
     @Min(value = 1, message = "Kolom hanya boleh berisi angka 1-999")

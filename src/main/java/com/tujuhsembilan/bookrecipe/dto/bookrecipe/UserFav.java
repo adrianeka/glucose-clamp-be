@@ -16,5 +16,5 @@ public class UserFav {
     private String recipeName;
     private String imageUrl;
     private int time;
-    private Boolean is_favorite;
+    private boolean isFavorite;
 }

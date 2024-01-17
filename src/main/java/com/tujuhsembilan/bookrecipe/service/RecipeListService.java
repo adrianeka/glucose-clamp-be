@@ -10,6 +10,8 @@ import com.tujuhsembilan.bookrecipe.repository.RecipeListRepository;
 import com.tujuhsembilan.bookrecipe.repository.RecipesRepository;
 import com.tujuhsembilan.bookrecipe.repository.UsersRepository;
 import com.tujuhsembilan.bookrecipe.service.method.RecipeFilterMethod;
+
+import lib.i18n.utility.MessageUtil;
 import lib.minio.MinioSrvc;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -37,6 +39,8 @@ public class RecipeListService {
     @Autowired
     private MinioSrvc minioService;
     
+    @Autowired
+    private MessageUtil messageUtil;
 
     public ResponseEntity<Object> getAllRecipes(int pageSize, int pageNumber, RecipeFilterRequestDTO recipeFiltersDTO) {
         Map<String, Object> result = new HashMap<>();
@@ -48,11 +52,12 @@ public class RecipeListService {
 
             recipeFilterMethod.filterRecipe(recipeListRepo, favoriteFoodsRepo, result, status, pageSize, pageNumber,
                     recipeFiltersDTO,
-                    minioService);
+                    minioService,
+                    messageUtil);
 
         } catch (Exception e) {
             status = HttpStatus.INTERNAL_SERVER_ERROR;
-            message = "Failed to Get Data!";
+            message = messageUtil.get("application.error.recipe.not-found");
 
             result.put("error", e.getMessage());
             result.put("message", message);
@@ -65,7 +70,7 @@ public class RecipeListService {
     public ResponseEntity<Object> toggleFavorite(int recipeId, int userId) {
         Map<String, Object> result = new HashMap<>();
         HttpStatus status = HttpStatus.CREATED;
-        String message = "Resep " + recipeId + " berhasil ditambahkan ke dalam favorit";
+        String message = messageUtil.get("application.success.add-favorite", recipeId);
 
         try {
             Optional<Recipes> recipesData = recipeRepo.findById(recipeId);
@@ -75,7 +80,7 @@ public class RecipeListService {
 
             if (recipe == null) {
                 status = HttpStatus.NOT_FOUND;
-                message = "Data dengan id " + recipeId + " tidak ditemukan!";
+                message = messageUtil.get("application.error.recipe.not-found", recipeId);
             } else {
                 String recipeName = recipe.getRecipeName();
                 Optional<FavoriteFoods> favoriteFoods = favoriteFoodsRepo
@@ -92,16 +97,16 @@ public class RecipeListService {
                     favorite.setRecipes(recipe);
                     favorite.setId(favId);
                     favorite = favoriteFoodsRepo.save(favorite);
-                    message = "Resep " + recipeName + " berhasil ditambahkan ke favorite!";
+                    message = messageUtil.get("application.success.add-favorite", recipeName);
                 } else if (favoriteFoods.isPresent()) {
                     if (favoriteFoods.get().getIsFavorite() == true) {
                         favoriteFoods.get().setIsFavorite(false);
                         favoriteFoodsRepo.save(favoriteFoods.get());
-                        message = "Resep " + recipeName + " berhasil dihapus dari favorite!";
+                        message = messageUtil.get("application.success.delete-favorite", recipeName);
                     } else {
                         favoriteFoods.get().setIsFavorite(true);
                         favoriteFoodsRepo.save(favoriteFoods.get());
-                        message = "Resep " + recipeName + " berhasil ditambahkan ke favorite!";
+                        message = messageUtil.get("application.success.add-favorite", recipeName);
                     }
                 }
             }
@@ -113,7 +118,7 @@ public class RecipeListService {
             return ResponseEntity.status(status).body(result);
 
         } catch (Exception e) {
-            message = "Error Exception";
+            message = messageUtil.get("application.error.internal");
             status = HttpStatus.INTERNAL_SERVER_ERROR;
 
             result.put("message", message);

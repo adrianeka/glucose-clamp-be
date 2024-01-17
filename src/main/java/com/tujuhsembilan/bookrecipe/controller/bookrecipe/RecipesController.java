@@ -37,15 +37,7 @@ public class RecipesController {
 			@RequestParam(required = false) String sortBy,
 			@RequestParam(required = false, defaultValue = "8") int pageSize,
 			@RequestParam(required = false, defaultValue = "1") int pageNumber) {
-		//try {
-			return recipeService.getResepSaya(myRecipesDTO, sortBy, pageSize, pageNumber);
-			/*
-		} catch (NullPointerException e) {
-			e.printStackTrace();
-
-			return ResponseEntity.status(HttpStatus.NO_CONTENT).body("Resep Masakkan Tidak Tersedia");
-		}
-		*/
+		return recipeService.getResepSaya(myRecipesDTO, sortBy, pageSize, pageNumber);
 	}
 
 	@PutMapping("/{recipeId}")

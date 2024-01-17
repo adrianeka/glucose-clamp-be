@@ -9,6 +9,8 @@ import com.tujuhsembilan.bookrecipe.model.Recipes;
 import com.tujuhsembilan.bookrecipe.repository.FavoriteFoodsRepository;
 import com.tujuhsembilan.bookrecipe.repository.RecipeListRepository;
 import com.tujuhsembilan.bookrecipe.service.specification.RecipeListSpecification;
+
+import lib.i18n.utility.MessageUtil;
 import lib.minio.MinioSrvc;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -28,7 +30,9 @@ public class RecipeFilterMethod {
             FavoriteFoodsRepository favoriteFoodsRepo,
             Map<String, Object> result, HttpStatus status,
             int pageSize, int pageNumber, RecipeFilterRequestDTO recipeFiltersDTO,
-            MinioSrvc minioService) {
+            MinioSrvc minioService,
+            MessageUtil messageUtil
+    		) {
 
         Sort sorting = null;
         boolean isSortByEmpty = recipeFiltersDTO.getSortBy() == null;
@@ -65,7 +69,7 @@ public class RecipeFilterMethod {
 
         result.put("total", totalData);
         result.put("data", response);
-        result.put("message", "Berhasil memuat Resep Masakan Saya");
+        result.put("message", messageUtil.get("application.success.load", "Resep Masakan Saya"));
 
         return ResponseEntity.status(status).body(result);
     }

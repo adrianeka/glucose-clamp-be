@@ -21,6 +21,7 @@ import com.tujuhsembilan.bookrecipe.service.specification.FavoriteFoodSpecificat
 import com.tujuhsembilan.bookrecipe.service.specification.RecipeSpesification;
 import com.tujuhsembilan.bookrecipe.service.specification.filter.RecipeFilter;
 import jakarta.persistence.EntityNotFoundException;
+import lib.i18n.utility.MessageUtil;
 import lib.minio.MinioSrvc;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -75,6 +76,9 @@ public class RecipesService {
     @Lazy
     @Autowired
     private MinioSrvc minioService;
+    
+    @Autowired
+    private MessageUtil messageUtil;
 
     @Transactional
     public MessageResponse create(CreateRecipeRequest request, MultipartFile imageFile, int userId) {
@@ -82,21 +86,21 @@ public class RecipesService {
 
         Users createdByUser = usersRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException(
-                        "User not found with id: " + userId));
+                		messageUtil.get("application.error.user.not-found", userId)));
 
         Categories categories = categoriesRepository.findById(request.getCategories().getCategoryId())
                 .orElseThrow(() -> new EntityNotFoundException(
-                        "Categories not found with id: " + request.getCategories().getCategoryId()));
+                		messageUtil.get("application.error.category.not-found", request.getCategories().getCategoryId())));
 
         Levels levels = levelsRepository.findById(request.getLevels().getLevelId())
                 .orElseThrow(() -> new EntityNotFoundException(
-                        "Levels not found with id: " + request.getLevels().getLevelId()));
+                		messageUtil.get("application.error.level.not-found", request.getLevels().getLevelId())));
 
         String imageFilename;
         try {
             imageFilename = minioService.uploadImageToMinio(request, imageFile);
         } catch (IOException e) {
-            String errorMessage = "Failed to upload image to MinIO";
+            String errorMessage = messageUtil.get("application.error.upload.minio");
             log.error(errorMessage, e);
             return new MessageResponse(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR.value(),
                     HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase());
@@ -122,7 +126,7 @@ public class RecipesService {
         // Simpan ke repository atau database
         recipesRepository.save(newRecipe);
 
-        String responseMessage = "Resep " + request.getRecipeName() + " berhasil ditambahkan!";
+        String responseMessage = messageUtil.get("application.success.add.resep", request.getRecipeName());
         int statusCode = HttpStatus.OK.value();
         String status = HttpStatus.OK.getReasonPhrase();
 
@@ -137,19 +141,20 @@ public class RecipesService {
 
         // Retrieve the current user information from the security context
         Users modifiedByUser = usersRepository.findById(userId)
-                .orElseThrow(() -> new EntityNotFoundException("User not found with id: " + userId));
+                .orElseThrow(() -> new EntityNotFoundException(messageUtil.get("application.error.user.not-found", userId)));
 
         // Find the existing recipe by ID
         Recipes existingRecipe = recipesRepository.findById(request.getRecipeId())
-                .orElseThrow(() -> new EntityNotFoundException("Recipe not found with id: " + request.getRecipeId()));
+                .orElseThrow(() -> new EntityNotFoundException(messageUtil.get("application.error.recipe.not-found", request.getRecipeId())));
 
         // Update the recipe fields
         Categories categories = categoriesRepository.findById(request.getCategories().getCategoryId())
                 .orElseThrow(() -> new EntityNotFoundException(
-                        "Categories not found with id: " + request.getCategories().getCategoryId()));
+                		messageUtil.get("application.error.category.not-found", request.getCategories().getCategoryId())));
+        				
         Levels levels = levelsRepository.findById(request.getLevels().getLevelId())
-                .orElseThrow(() -> new EntityNotFoundException("Levels not found with id: " + request.getLevels().getLevelId()));
-
+                .orElseThrow(() -> new EntityNotFoundException(messageUtil.get("application.error.level.not-found", request.getLevels().getLevelId())));
+        
         existingRecipe.setCategories(categories);
         existingRecipe.setLevels(levels);
         existingRecipe.setRecipeName(request.getRecipeName());
@@ -165,7 +170,7 @@ public class RecipesService {
                 String newImageFilename = minioService.updateImageToMinio(request, imageFile);
                 existingRecipe.setImageFilename(newImageFilename);
             } catch (IOException e) {
-                String errorMessage = "Failed to upload image to MinIO";
+                String errorMessage = messageUtil.get("application.error.upload.minio");
                 log.error(errorMessage, e);
                 return new MessageResponse(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR.value(),
                         HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase());
@@ -222,7 +227,7 @@ public class RecipesService {
         Page<Recipes> recipes = recipesRepository.findAll(recipeSpec, pageRequest);
             
         if(recipes.isEmpty()) {
-        	throw new DataNotFoundException("Resep Masakkan Tidak Tersedia");
+        	throw new DataNotFoundException(messageUtil.get("application.error.recipe.not-found"));
         } else {
             long totalData = recipesRepository.count(recipeSpec);
             List<MyRecipeResDTO> response = recipes.stream().map(recipe -> new MyRecipeResDTO(
@@ -239,7 +244,7 @@ public class RecipesService {
             ResponseBodyDTO responseBody = ResponseBodyDTO.builder()
             		.total(totalData)
             		.data(response)
-            		.message("Berhasil memuat Resep Masakan Saya")
+            		.message(messageUtil.get("application.success.load", "Resep Saya"))
             		.statusCode(HttpStatus.OK.value())
             		.status(HttpStatus.OK.name())
             		.build();
@@ -270,18 +275,18 @@ public class RecipesService {
     }
 
     public ResponseEntity<Object> deleteResepSaya(int recipeId, int userId) {
-    	Recipes resepSaya = recipesRepository.findByMyRecipe(recipeId, userId).orElseThrow(() -> new DataNotFoundException("Resep tidak ditemukan!"));
+    	Recipes resepSaya = recipesRepository.findByMyRecipe(recipeId, userId).orElseThrow(() -> new DataNotFoundException(messageUtil.get("application.error.not-found.resep-saya")));
     	
         String message = "";
         Integer jumlahResepDihapus = 0;
 
         if(resepSaya.getIsDeleted()) {
-        	throw new AlreadyDeletedException(resepSaya.getRecipeName() + " sudah terhapus!");
+        	throw new AlreadyDeletedException(messageUtil.get("application.error.already-deleted.resep", resepSaya.getRecipeName()));
         } else {
         	jumlahResepDihapus = 1;
             resepSaya.setIsDeleted(true);
             recipesRepository.save(resepSaya);
-            message = "Resep " + resepSaya.getRecipeName() + " berhasil dihapus";
+            message = messageUtil.get("application.success.delete.resep", resepSaya.getRecipeName());
         }
         
         ResponseBodyDTO responseBody = ResponseBodyDTO.builder()
@@ -313,13 +318,13 @@ public class RecipesService {
                         .collect(Collectors.toList());
                 
                 if (userFavList.isEmpty() || userFavList == null) {
-                    throw new DataNotFoundException("Data Empty");
+                    throw new DataNotFoundException(messageUtil.get("application.error.recipe.not-found"));
                 }
 
                 response.setTotal(favoriteRepo.countByIsFavoriteAndUsersUserId(true, filter.getUserId()));
                 response.setData(userFavList);
-                response.setMessage("Success");
-                response.setStatus("Success Get Data");
+                response.setMessage(messageUtil.get("application.success.load", "Resep Masakan Favorit"));
+                response.setStatus(HttpStatus.OK.name());
                 response.setStatusCode(HttpStatus.OK.value());
 
             } else if (principal instanceof String) {
@@ -350,12 +355,11 @@ public class RecipesService {
                     try {
                         imageUrl = minioService.getLink(recipe.getImageFilename(), MinioSrvc.DEFAULT_EXPIRY);
                     } catch (Exception e) {
-                        log.error("Error retrieving image URL for recipeId: " + recipe.getRecipeId(), e);
+                        log.error(messageUtil.get("application.error.image-url.minio", recipe.getRecipeId()), e);
                     }
                     userFav.setImageUrl(imageUrl);
                     userFav.setTime(recipe.getTimeCook());
-                    userFav.setIs_favorite(favoriteFoods.getIsFavorite());
-
+                    userFav.setFavorite(favoriteFoods.getIsFavorite());
                     Categories categories = recipe.getCategories();
                     Levels levels = recipe.getLevels();
 
@@ -371,12 +375,12 @@ public class RecipesService {
                         userFav.setCategories(categoryFav);
                         userFav.setLevels(levelFav);
                     } else {
-                        log.error("Categories or Levels are null for recipeId: " + recipe.getRecipeId());
+                        log.error(messageUtil.get("application.error.category-or-level.null", recipe.getRecipeId()));
                     }
                     return userFav;
                 })
                 .orElseGet(() -> {
-                    log.error("Data is null");
+                    log.error(messageUtil.get("application.error.recipe.not-found"));
                     return new UserFav();
                 });
     }
@@ -446,13 +450,13 @@ public class RecipesService {
                 data.put("isFavorite", isFavorite);
                 response.put("total", 1);
                 response.put("data", data);
-                response.put("message", "Recipe found successfully");
+                response.put("message", messageUtil.get("application.success.recipe.found"));
                 response.put("statusCode", 200);
                 response.put("status", "success");
             } else {
                 response.put("total", 0);
                 response.put("data", null);
-                response.put("message", "Recipe not found");
+                response.put("message", messageUtil.get("application.error.recipe.not-found"));
                 response.put("statusCode", 404);
                 response.put("status", "error");
             }
@@ -460,7 +464,7 @@ public class RecipesService {
             // Tangani exception sesuai kebutuhan Anda
             response.put("total", 0);
             response.put("data", null);
-            response.put("message", "Error occurred while processing the request");
+            response.put("message", messageUtil.get("application.error.internal"));
             response.put("statusCode", 500);
             response.put("status", "error");
         }

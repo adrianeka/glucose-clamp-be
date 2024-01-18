@@ -47,8 +47,8 @@ public class RecipesController {
 
 	@PutMapping("/book-recipes/{recipeId}/favorites")
 	public ResponseEntity<Object> toggleFavorite(@PathVariable(name = "recipeId") int recipeId,
-			@RequestBody int userId) {
-		return recipeListService.toggleFavorite(recipeId, userId);
+			@RequestBody FavoriteRecipeDTO favoriteRecipeDtO) {
+		return recipeListService.toggleFavorite(recipeId, favoriteRecipeDtO.getUserId());
 	}
 
     @GetMapping("/my-favorite-recipes")

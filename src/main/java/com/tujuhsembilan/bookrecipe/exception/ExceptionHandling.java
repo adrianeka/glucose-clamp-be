@@ -1,19 +1,15 @@
 package com.tujuhsembilan.bookrecipe.exception;
 
 import com.tujuhsembilan.bookrecipe.dto.ErrorDTO;
-import com.tujuhsembilan.bookrecipe.exception.classes.AlreadyDeletedException;
-import com.tujuhsembilan.bookrecipe.exception.classes.DataAccessException;
-import com.tujuhsembilan.bookrecipe.exception.classes.DataNotFoundException;
-import com.tujuhsembilan.bookrecipe.exception.classes.MinioUploadException;
-import com.tujuhsembilan.bookrecipe.exception.classes.UnauthorizedUserException;
-
+import com.tujuhsembilan.bookrecipe.exception.classes.*;
 import lib.i18n.utility.MessageUtil;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import java.lang.Exception;
 
 @RestControllerAdvice
 public class ExceptionHandling {

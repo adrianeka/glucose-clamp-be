@@ -21,7 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 @Slf4j
 @Tag(name = "Book Recipe", description = "Book Recipe Management APIs")
 @RestController
-@RequestMapping("/book-recipe/book-recipes")
+@RequestMapping("/book-recipe")
 public class RecipesController {
 
 	@Autowired
@@ -39,21 +39,21 @@ public class RecipesController {
 		return recipeService.getResepSaya(myRecipesDTO, page);
 	}
 
-	@PutMapping("/{recipeId}")
+	@PutMapping("/book-recipes/{recipeId}")
 	public ResponseEntity<Object> deleteResepSayaById(@PathVariable int recipeId, @RequestParam int userId) {
 		return recipeService.deleteResepSaya(recipeId, userId);
 	}
 
-	@GetMapping("")
+	@GetMapping("/book-recipes")
 	public ResponseEntity<Object> getAllRecipes(
 			@PageableDefault(page = 1, size = 8, sort = "recipeName", direction = Direction.ASC) Pageable page,
 			@ModelAttribute RecipeFilterRequestDTO recipeFiltersDTO) {
 		return recipeListService.getAllRecipes(page, recipeFiltersDTO);
 	}
 
-	@PutMapping("/{recipeId}/favorites/{userId}")
+	@PutMapping("/book-recipes/{recipeId}/favorites")
 	public ResponseEntity<Object> toggleFavorite(@PathVariable(name = "recipeId") int recipeId,
-			@PathVariable(name = "userId") int userId) {
+			@RequestBody int userId) {
 		return recipeListService.toggleFavorite(recipeId, userId);
 	}
 
@@ -67,6 +67,7 @@ public class RecipesController {
     }
 
     @PostMapping(
+    	path = {"/book-recipes"},
         consumes = { MediaType.APPLICATION_JSON_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE },
         produces = { MediaType.APPLICATION_JSON_VALUE }
     )    
@@ -84,7 +85,8 @@ public class RecipesController {
         }
     }
 
-    @PutMapping( 
+    @PutMapping(
+		path = {"/book-recipes"},
         consumes = { MediaType.APPLICATION_JSON_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE }, 
         produces = { MediaType.APPLICATION_JSON_VALUE })
     public ResponseEntity<MessageResponse> updateRecipe(
@@ -101,9 +103,9 @@ public class RecipesController {
         }
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<ResponseBodyDTO> getRecipeById(@PathVariable int id) {
-        ResponseBodyDTO response = recipeService.getRecipeById(id);
+    @GetMapping("/book-recipes/{recipeId}")
+    public ResponseEntity<ResponseBodyDTO> getRecipeById(@PathVariable int recipeId) {
+        ResponseBodyDTO response = recipeService.getRecipeById(recipeId);
         return new ResponseEntity<>(response, HttpStatus.valueOf((int) response.getStatusCode()));
     }
 }

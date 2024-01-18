@@ -1,4 +1,4 @@
-package com.tujuhsembilan.bookrecipe.service.specification.filter;
+package com.tujuhsembilan.bookrecipe.dto.request;
 
 
 import jakarta.validation.constraints.NotBlank;
@@ -8,14 +8,13 @@ import lombok.Data;
 
 @Builder
 @Data
-public class RecipeFilter {
+public class RecipeFilterDTO {
     @NotNull
     @NotBlank(message = "UserId Cannot Empty")
     private int userId;
     private String recipeName;
     private String level;
     private String category;
-    private Integer cookMin;
-    private Integer cookMax;
+    private Integer time;
     private Integer sort;
 }

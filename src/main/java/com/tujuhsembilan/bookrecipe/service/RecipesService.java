@@ -10,6 +10,7 @@ import com.tujuhsembilan.bookrecipe.dto.bookrecipe.LevelFav;
 import com.tujuhsembilan.bookrecipe.dto.bookrecipe.UserFav;
 import com.tujuhsembilan.bookrecipe.dto.request.CreateRecipeRequest;
 import com.tujuhsembilan.bookrecipe.dto.request.MyRecipeRequestDTO;
+import com.tujuhsembilan.bookrecipe.dto.request.RecipeFilterDTO;
 import com.tujuhsembilan.bookrecipe.dto.request.UpdateRecipeRequest;
 import com.tujuhsembilan.bookrecipe.dto.response.*;
 import com.tujuhsembilan.bookrecipe.exception.classes.AlreadyDeletedException;
@@ -17,9 +18,8 @@ import com.tujuhsembilan.bookrecipe.exception.classes.DataNotFoundException;
 import com.tujuhsembilan.bookrecipe.model.*;
 import com.tujuhsembilan.bookrecipe.repository.*;
 import com.tujuhsembilan.bookrecipe.security.service.UserDetailsImplement;
-import com.tujuhsembilan.bookrecipe.service.specification.FavoriteFoodSpecification;
+import com.tujuhsembilan.bookrecipe.service.specification.FavoriteFoodSpesification;
 import com.tujuhsembilan.bookrecipe.service.specification.RecipeSpesification;
-import com.tujuhsembilan.bookrecipe.service.specification.filter.RecipeFilter;
 import jakarta.persistence.EntityNotFoundException;
 import lib.i18n.utility.MessageUtil;
 import lib.minio.MinioSrvc;
@@ -29,7 +29,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
@@ -260,37 +259,33 @@ public class RecipesService {
         return new ResponseEntity<>(responseBody, HttpStatus.OK);
     }
 
-    public Object getDataByIdWithFilterAndSort(int page, int pageSize, RecipeFilter filter) {
-        DisplayPaginationRecipeFav response = new DisplayPaginationRecipeFav();
-
+    public Object getDataByIdWithFilterAndSort(RecipeFilterDTO filter, Pageable page) {
         try {
+            Specification<FavoriteFoods> recipeSpec = FavoriteFoodSpesification.recipesSpecification(filter);
+            Page<FavoriteFoods> favoriteFoods = favoriteRepo.findAll(recipeSpec, page);
+
+            if (favoriteFoods.isEmpty()) {
+                throw new DataNotFoundException(messageUtil.get("application.error.recipe.not-found"));
+            }
+//
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             Object principal = authentication.getPrincipal();
 
             if (principal instanceof UserDetailsImplement) {
-
-                FavoriteFoodSpecification specification = new FavoriteFoodSpecification(filter);
-
-                PageRequest pageRequest = PageRequest.of(page - 1, pageSize, specification.getSort());
-                Page<FavoriteFoods> favoriteFoodsPage = favoriteRepo.findAll(specification, pageRequest);
-
-                List<UserFav> userFavList = favoriteFoodsPage.getContent().stream()
+                List<UserFav> userFavList = favoriteFoods.getContent().stream()
                         .map(this::mapFavoriteFoodsToUserFav)
                         .collect(Collectors.toList());
-                
-                if (userFavList.isEmpty() || userFavList == null) {
-                    throw new DataNotFoundException(messageUtil.get("application.error.recipe.not-found"));
-                }
 
-                response.setTotal(favoriteRepo.countByIsFavoriteAndUsersUserId(true, filter.getUserId()));
-                response.setData(userFavList);
-                response.setMessage(messageUtil.get("application.success.load", "Resep Masakan Favorit"));
-                response.setStatus(HttpStatus.OK.name());
-                response.setStatusCode(HttpStatus.OK.value());
-
-            } else if (principal instanceof String) {
-                return new ErrorDTO(HttpStatus.UNAUTHORIZED.value(), "Unauthorized",
-                        "User not authenticated");
+                return DisplayPaginationRecipeFav.builder()
+                        .total(favoriteRepo.countByIsFavoriteAndUsersUserId(true, filter.getUserId()))
+                        .data(userFavList)
+                        .message(messageUtil.get("application.success.load", "Resep Masakan Favorit"))
+                        .status(HttpStatus.OK.name())
+                        .statusCode(HttpStatus.OK.value())
+                        .build();
+            }
+            else if (principal instanceof String) {
+                return new ErrorDTO(HttpStatus.UNAUTHORIZED.value(), "Unauthorized", "User not authenticated");
             }
 
         } catch (DataAccessException e) {
@@ -300,8 +295,10 @@ public class RecipesService {
             return new ErrorDTO(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Unexpected Error",
                     "cause :\n" + e.getCause() + "\n " + e.getMessage());
         }
-        return response;
+        return new ErrorDTO(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Unexpected Error",
+                "Unknown authentication principal type");
     }
+
 
 
 

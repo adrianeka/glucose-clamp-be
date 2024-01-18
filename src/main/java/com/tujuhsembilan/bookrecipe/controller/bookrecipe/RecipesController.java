@@ -1,15 +1,11 @@
 package com.tujuhsembilan.bookrecipe.controller.bookrecipe;
 
 import com.tujuhsembilan.bookrecipe.dto.ErrorDTO;
-import com.tujuhsembilan.bookrecipe.dto.request.CreateRecipeRequest;
-import com.tujuhsembilan.bookrecipe.dto.request.MyRecipeRequestDTO;
-import com.tujuhsembilan.bookrecipe.dto.request.RecipeFilterRequestDTO;
-import com.tujuhsembilan.bookrecipe.dto.request.UpdateRecipeRequest;
+import com.tujuhsembilan.bookrecipe.dto.request.*;
 import com.tujuhsembilan.bookrecipe.dto.response.MessageResponse;
 import com.tujuhsembilan.bookrecipe.dto.response.ResponseBodyDTO;
 import com.tujuhsembilan.bookrecipe.service.RecipeListService;
 import com.tujuhsembilan.bookrecipe.service.RecipesService;
-import com.tujuhsembilan.bookrecipe.service.specification.filter.RecipeFilter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,11 +56,10 @@ public class RecipesController {
 
     @GetMapping("/my-favorite-recipes")
     public ResponseEntity<Object> getUserFavoriteRecipe(
-            @RequestParam(name = "page", defaultValue = "1") int page,
-            @RequestParam(name = "pageSize", defaultValue = "8") int pageSize,
-            @ModelAttribute RecipeFilter filter
+            @PageableDefault(page = 1, size = 8, sort = "recipes.recipeName", direction = Direction.ASC) Pageable page,
+            @ModelAttribute RecipeFilterDTO filter
     ) {
-        Object response = recipeService.getDataByIdWithFilterAndSort(page, pageSize, filter);
+        Object response = recipeService.getDataByIdWithFilterAndSort(filter, page);
         if (response instanceof ErrorDTO) {
             return ResponseEntity.status(((ErrorDTO) response).getStatusCode())
                     .body(response);

@@ -5,6 +5,7 @@ import com.tujuhsembilan.bookrecipe.exception.classes.AlreadyDeletedException;
 import com.tujuhsembilan.bookrecipe.exception.classes.DataAccessException;
 import com.tujuhsembilan.bookrecipe.exception.classes.DataNotFoundException;
 import com.tujuhsembilan.bookrecipe.exception.classes.MinioUploadException;
+import com.tujuhsembilan.bookrecipe.exception.classes.UnauthorizedUserException;
 
 import lib.i18n.utility.MessageUtil;
 
@@ -66,6 +67,16 @@ public class ExceptionHandling {
         return new ErrorDTO(
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
                 messageUtil.get("application.error.upload.minio"),
+                ex.getMessage()
+        );
+    }
+
+    @ExceptionHandler(UnauthorizedUserException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public ErrorDTO handleUnauthorizedUserException(UnauthorizedUserException ex) {
+        return new ErrorDTO(
+                HttpStatus.UNAUTHORIZED.value(),
+                messageUtil.get("application.error.unauthorized-user"),
                 ex.getMessage()
         );
     }

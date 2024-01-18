@@ -2,7 +2,12 @@ package com.tujuhsembilan.bookrecipe.exception.classes;
 
 public class MinioUploadException extends RuntimeException {
 
-    public MinioUploadException(String message) {
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = -235831481930691230L;
+
+	public MinioUploadException(String message) {
         super(message);
     }
 

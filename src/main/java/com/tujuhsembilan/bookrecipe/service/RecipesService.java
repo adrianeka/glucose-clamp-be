@@ -16,6 +16,7 @@ import com.tujuhsembilan.bookrecipe.exception.classes.AlreadyDeletedException;
 import com.tujuhsembilan.bookrecipe.exception.classes.DataAccessException;
 import com.tujuhsembilan.bookrecipe.exception.classes.DataNotFoundException;
 import com.tujuhsembilan.bookrecipe.exception.classes.MinioUploadException;
+import com.tujuhsembilan.bookrecipe.exception.classes.UnauthorizedUserException;
 import com.tujuhsembilan.bookrecipe.exception.classes.Exception;
 import com.tujuhsembilan.bookrecipe.model.*;
 import com.tujuhsembilan.bookrecipe.repository.*;
@@ -290,8 +291,7 @@ public class RecipesService {
                 response.setStatusCode(HttpStatus.OK.value());
 
             } else if (principal instanceof String) {
-                return new ErrorDTO(HttpStatus.UNAUTHORIZED.value(), "Unauthorized",
-                        "User not authenticated");
+                throw new UnauthorizedUserException(messageUtil.get("application.error.unauthorized-user.detail"));
             }
 
         } catch (DataAccessException e) {

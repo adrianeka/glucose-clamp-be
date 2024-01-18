@@ -1,7 +1,12 @@
 package com.tujuhsembilan.bookrecipe.exception.classes;
 
 public class Exception extends RuntimeException {
-    public Exception(String message) {
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = -5986005101762809022L;
+
+	public Exception(String message) {
         super(message);
     }
 

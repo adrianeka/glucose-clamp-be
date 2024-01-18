@@ -1,6 +1,5 @@
 package com.tujuhsembilan.bookrecipe.controller.bookrecipe;
 
-import com.tujuhsembilan.bookrecipe.dto.ErrorDTO;
 import com.tujuhsembilan.bookrecipe.dto.request.*;
 import com.tujuhsembilan.bookrecipe.dto.response.MessageResponse;
 import com.tujuhsembilan.bookrecipe.dto.response.ResponseBodyDTO;

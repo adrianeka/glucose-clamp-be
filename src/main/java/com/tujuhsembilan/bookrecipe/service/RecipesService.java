@@ -1,7 +1,6 @@
 package com.tujuhsembilan.bookrecipe.service;
 
 import com.tujuhsembilan.bookrecipe.dto.CategoriesDTO;
-import com.tujuhsembilan.bookrecipe.dto.ErrorDTO;
 import com.tujuhsembilan.bookrecipe.dto.LevelsDTO;
 import com.tujuhsembilan.bookrecipe.dto.RecipesDTO;
 import com.tujuhsembilan.bookrecipe.dto.bookrecipe.CategoryFav;
@@ -261,10 +260,6 @@ public class RecipesService {
         try {
             Specification<FavoriteFoods> recipeSpec = FavoriteFoodSpesification.recipesSpecification(filter);
             Page<FavoriteFoods> favoriteFoods = favoriteRepo.findAll(recipeSpec, page);
-
-            if (favoriteFoods.isEmpty()) {
-                throw new DataNotFoundException(messageUtil.get("application.error.recipe.not-found"));
-            }
 
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             Object principal = authentication.getPrincipal();

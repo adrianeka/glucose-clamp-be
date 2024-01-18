@@ -9,35 +9,32 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class FavoriteFoodSpesification {
-    public static Specification<FavoriteFoods> recipesSpecification(RecipeFilterDTO myRecipeDTO){
+    public static Specification<FavoriteFoods> recipesSpecification(RecipeFilterDTO myRecipeDTO) {
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<Predicate>();
 
-            predicates.add( criteriaBuilder.equal(root.get("users").get("userId"), myRecipeDTO.getUserId()));
+            predicates.add(criteriaBuilder.equal(root.get("users").get("userId"), myRecipeDTO.getUserId()));
             predicates.add(criteriaBuilder.equal(root.get("isFavorite"), true));
 
             if (myRecipeDTO.getRecipeName() != null) {
-                String recipeNameValue = "%" + myRecipeDTO.getRecipeName() + "%";
-                Predicate recipeNamePredicates = criteriaBuilder.like(root.get("recipeName"), recipeNameValue);
-                predicates.add(recipeNamePredicates);
+                predicates.add(criteriaBuilder.equal(root.get("recipes").get("recipeId"),
+                        myRecipeDTO.getRecipeName()));
             }
 
-            if (myRecipeDTO.getLevel() != null) {
-                Predicate recipeLevelPredicates = criteriaBuilder.equal(root.get("levels").get("levelId"),
-                        myRecipeDTO.getLevel());
-                predicates.add(recipeLevelPredicates);
+            if (myRecipeDTO.getLevelId() != null) {
+                predicates.add(criteriaBuilder.equal(root.get("recipes").get("levels").get("levelId"),
+                        myRecipeDTO.getLevelId()));
             }
 
-            if (myRecipeDTO.getCategory() != null) {
-                Predicate recipeCategoryPredicates = criteriaBuilder.equal(root.get("categories").get("categoryId"),
-                        myRecipeDTO.getCategory());
-                predicates.add(recipeCategoryPredicates);
+            if (myRecipeDTO.getCategoryId() != null) {
+                predicates.add(criteriaBuilder.equal(root.get("recipes").get("categories").get("categoryId"),
+                        myRecipeDTO.getCategoryId()));
             }
 
-            if(myRecipeDTO.getTime() != null) {
-                if(myRecipeDTO.getTime() <= 30) {
+            if (myRecipeDTO.getTime() != null) {
+                if (myRecipeDTO.getTime() <= 30) {
                     predicates.add(criteriaBuilder.between(root.get("timeCook"), 0, 30));
-                } else if(myRecipeDTO.getTime() > 30 && myRecipeDTO.getTime() <= 60) {
+                } else if (myRecipeDTO.getTime() > 30 && myRecipeDTO.getTime() <= 60) {
                     predicates.add(criteriaBuilder.between(root.get("timeCook"), 31, 60));
                 } else {
                     predicates.add(criteriaBuilder.greaterThan(root.get("timeCook"), 60));

@@ -11,10 +11,10 @@ import lombok.Data;
 public class RecipeFilterDTO {
     @NotNull
     @NotBlank(message = "UserId Cannot Empty")
-    private int userId;
+    private Integer userId;
     private String recipeName;
-    private String level;
-    private String category;
+    private Integer levelId;
+    private Integer categoryId;
     private Integer time;
     private Integer sort;
 }

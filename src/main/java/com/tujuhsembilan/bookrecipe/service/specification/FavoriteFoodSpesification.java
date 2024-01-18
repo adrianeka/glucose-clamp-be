@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class FavoriteFoodSpesification {
-    public static Specification<FavoriteFoods> recipesSpecification(RecipeFilterDTO myRecipeDTO){
+    public static Specification<FavoriteFoods> recipesSpecification(RecipeFilterDTO myRecipeDTO) {
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<Predicate>();
 
@@ -21,16 +21,14 @@ public class FavoriteFoodSpesification {
                 predicates.add(recipeNamePredicates);
             }
 
-            if (myRecipeDTO.getLevel() != null) {
-                Predicate recipeLevelPredicates = criteriaBuilder.equal(root.get("recipes").get("levels").get("levelId"),
-                        myRecipeDTO.getLevel());
-                predicates.add(recipeLevelPredicates);
+            if (myRecipeDTO.getLevelId() != null) {
+                predicates.add(criteriaBuilder.equal(root.get("recipes").get("levels").get("levelId"),
+                        myRecipeDTO.getLevelId()));
             }
 
-            if (myRecipeDTO.getCategory() != null) {
-                Predicate recipeCategoryPredicates = criteriaBuilder.equal(root.get("recipes").get("categories").get("categoryId"),
-                        myRecipeDTO.getCategory());
-                predicates.add(recipeCategoryPredicates);
+            if (myRecipeDTO.getCategoryId() != null) {
+                predicates.add(criteriaBuilder.equal(root.get("recipes").get("categories").get("categoryId"),
+                        myRecipeDTO.getCategoryId()));
             }
 
             if(myRecipeDTO.getTime() != null) {

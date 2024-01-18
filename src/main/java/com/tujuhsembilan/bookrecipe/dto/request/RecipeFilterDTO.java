@@ -11,7 +11,7 @@ import lombok.Data;
 public class RecipeFilterDTO {
     @NotNull
     @NotBlank(message = "UserId Cannot Empty")
-    private Integer userId;
+    private int userId;
     private String recipeName;
     private Integer levelId;
     private Integer categoryId;

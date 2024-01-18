@@ -16,5 +16,4 @@ public class RecipeFilterDTO {
     private String level;
     private String category;
     private Integer time;
-    private Integer sort;
 }

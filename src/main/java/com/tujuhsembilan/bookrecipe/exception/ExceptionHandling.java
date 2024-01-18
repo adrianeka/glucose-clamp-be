@@ -77,4 +77,14 @@ public class ExceptionHandling {
         );
     }
 
+    @ExceptionHandler(UnknownAuthenticationException.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public ErrorDTO handleUnauthorizedUserException(UnknownAuthenticationException ex) {
+        return new ErrorDTO(
+                HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                messageUtil.get("application.error.unknown.principal.type"),
+                ex.getMessage()
+        );
+    }
+
 }

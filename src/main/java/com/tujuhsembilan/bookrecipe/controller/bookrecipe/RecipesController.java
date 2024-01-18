@@ -64,10 +64,6 @@ public class RecipesController {
             @ModelAttribute RecipeFilterDTO filter
     ) {
         Object response = recipeService.getDataByIdWithFilterAndSort(filter, page);
-        if (response instanceof ErrorDTO) {
-            return ResponseEntity.status(((ErrorDTO) response).getStatusCode())
-                    .body(response);
-        }
         return ResponseEntity.ok(response);
     }
 

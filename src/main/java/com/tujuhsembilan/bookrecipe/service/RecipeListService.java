@@ -14,6 +14,7 @@ import com.tujuhsembilan.bookrecipe.service.method.RecipeFilterMethod;
 import lib.i18n.utility.MessageUtil;
 import lib.minio.MinioSrvc;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -42,7 +43,7 @@ public class RecipeListService {
     @Autowired
     private MessageUtil messageUtil;
 
-    public ResponseEntity<Object> getAllRecipes(int pageSize, int pageNumber, RecipeFilterRequestDTO recipeFiltersDTO) {
+    public ResponseEntity<Object> getAllRecipes(Pageable page, RecipeFilterRequestDTO recipeFiltersDTO) {
         Map<String, Object> result = new HashMap<>();
         HttpStatus status = HttpStatus.CREATED;
         String message = "";
@@ -50,7 +51,7 @@ public class RecipeListService {
 
         try {
 
-            recipeFilterMethod.filterRecipe(recipeListRepo, favoriteFoodsRepo, result, status, pageSize, pageNumber,
+            recipeFilterMethod.filterRecipe(recipeListRepo, favoriteFoodsRepo, result, status, page,
                     recipeFiltersDTO,
                     minioService,
                     messageUtil);

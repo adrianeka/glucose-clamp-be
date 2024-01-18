@@ -15,5 +15,4 @@ public class RecipeFilterRequestDTO {
     private Integer levelId;
     private Integer categoryId;
     private String time;
-    private String sortBy;
 }

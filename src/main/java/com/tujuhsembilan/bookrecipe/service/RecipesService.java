@@ -30,7 +30,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -181,42 +181,11 @@ public class RecipesService {
         return new MessageResponse(responseMessage, statusCode, status);
     }
 
-    public ResponseEntity<Object> getResepSaya(MyRecipeRequestDTO myRecipesDTO, String sortBy, int pageSize, int pageNumber) {
-        Sort sortByNameAsc = Sort.by(Sort.Direction.ASC, "recipeName");
-        Sort sortByNameDesc = Sort.by(Sort.Direction.DESC, "recipeName");
-        Sort sortByTimeAsc = Sort.by(Sort.Direction.ASC, "timeCook");
-        Sort sortByTimeDesc = Sort.by(Sort.Direction.DESC, "timeCook");
-
-        int newPage = pageNumber - 1;
-
-        Sort choosenSort = null;
-
-        boolean isSortByEmpty = (sortBy == null);
-
-        if (!isSortByEmpty) {
-            switch (sortBy) {
-                case "nameAsc":
-                    choosenSort = sortByNameAsc;
-                    break;
-                case "nameDesc":
-                    choosenSort = sortByNameDesc;
-                    break;
-                case "timeAsc":
-                    choosenSort = sortByTimeAsc;
-                    break;
-                case "timeDesc":
-                    choosenSort = sortByTimeDesc;
-                    break;
-            }
-        } else {
-            choosenSort = sortByNameAsc;
-        }
-
-        PageRequest pageRequest = PageRequest.of(newPage, pageSize, choosenSort);
+    public ResponseEntity<Object> getResepSaya(MyRecipeRequestDTO myRecipesDTO, Pageable page) {
 
         Specification<Recipes> recipeSpec = RecipeSpesification.recipeFilter(myRecipesDTO);
 
-        Page<Recipes> recipes = recipesRepository.findAll(recipeSpec, pageRequest);
+        Page<Recipes> recipes = recipesRepository.findAll(recipeSpec, page);
             
         if(recipes.isEmpty()) {
         	throw new DataNotFoundException(messageUtil.get("application.error.recipe.not-found"));

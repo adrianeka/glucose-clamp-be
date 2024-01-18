@@ -1,7 +1,6 @@
 package com.tujuhsembilan.bookrecipe.service;
 
 import com.tujuhsembilan.bookrecipe.dto.CategoriesDTO;
-import com.tujuhsembilan.bookrecipe.dto.ErrorDTO;
 import com.tujuhsembilan.bookrecipe.dto.LevelsDTO;
 import com.tujuhsembilan.bookrecipe.dto.RecipesDTO;
 import com.tujuhsembilan.bookrecipe.dto.bookrecipe.CategoryFav;

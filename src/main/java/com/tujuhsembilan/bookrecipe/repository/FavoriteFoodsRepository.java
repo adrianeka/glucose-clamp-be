@@ -2,6 +2,7 @@ package com.tujuhsembilan.bookrecipe.repository;
 
 import com.tujuhsembilan.bookrecipe.model.FavoriteFoods;
 import com.tujuhsembilan.bookrecipe.model.FavoriteFoodsId;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
@@ -14,9 +15,9 @@ public interface FavoriteFoodsRepository extends JpaRepository<FavoriteFoods, Fa
     @Query("SELECT f.isFavorite FROM FavoriteFoods f WHERE f.id.userId = :userId and f.id.recipeId = :recipeId")
     Optional<Boolean> findIsFavorite(@Param("userId") int userId, @Param("recipeId") int recipeId);
 
-
     @Query("SELECT f FROM FavoriteFoods f WHERE f.id.recipeId = :recipeId and f.id.userId = :userId")
     Optional<FavoriteFoods> findMyFavorite(@Param("recipeId") int recipeId, @Param("userId") int userId);
-
-    long countByIsFavoriteAndUsersUserId(boolean isFavorite, int userId);
+    
+    @Query("SELECT COUNT(f) FROM FavoriteFoods f WHERE f.isFavorite = :isFavorite and f.id.userId = :userId")
+    long countFavorites(boolean isFavorite, int userId);
 }

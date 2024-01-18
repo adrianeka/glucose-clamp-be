@@ -27,7 +27,9 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -39,6 +41,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -258,8 +261,22 @@ public class RecipesService {
 
     public Object getDataByIdWithFilterAndSort(RecipeFilterDTO filter, Pageable page) {
         try {
+        	Sort sort = page.getSort();
+        	List<Sort.Order> orders = new ArrayList<>();
+
+        	sort.forEach(order -> {
+        	    String property = order.getProperty();
+        	    String prefixedProperty = "recipes." + property;  // Add your prefix here
+        	    Sort.Order newOrder = new Sort.Order(order.getDirection(), prefixedProperty);
+        	    orders.add(newOrder);
+        	});
+
+        	Sort newSort = Sort.by(orders);
+        	
+        	PageRequest request = PageRequest.of(page.getPageNumber(), page.getPageSize(), newSort);
+        	
             Specification<FavoriteFoods> recipeSpec = FavoriteFoodSpesification.recipesSpecification(filter);
-            Page<FavoriteFoods> favoriteFoods = favoriteRepo.findAll(recipeSpec, page);
+            Page<FavoriteFoods> favoriteFoods = favoriteRepo.findAll(recipeSpec, request);
 
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             Object principal = authentication.getPrincipal();
@@ -274,7 +291,7 @@ public class RecipesService {
                 }
 
                 return DisplayPaginationRecipeFav.builder()
-                        .total(favoriteRepo.countByIsFavoriteAndUsersUserId(true, filter.getUserId()))
+                        .total(favoriteRepo.countFavorites(true, filter.getUserId()))
                         .data(userFavList)
                         .message(messageUtil.get("application.success.load", "Resep Masakan Favorit"))
                         .status(HttpStatus.OK.name())

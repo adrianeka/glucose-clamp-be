@@ -53,7 +53,7 @@ public class RecipesController {
 
     @GetMapping("/my-favorite-recipes")
     public ResponseEntity<Object> getUserFavoriteRecipe(
-            @PageableDefault(page = 1, size = 8, sort = "recipes.recipeName", direction = Direction.ASC) Pageable page,
+            @PageableDefault(page = 1, size = 8, sort = "recipeName", direction = Direction.ASC) Pageable page,
             @ModelAttribute RecipeFilterDTO filter
     ) {
         Object response = recipeService.getDataByIdWithFilterAndSort(filter, page);

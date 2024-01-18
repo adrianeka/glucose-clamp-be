@@ -1,6 +1,8 @@
 package com.tujuhsembilan.bookrecipe.service;
 
 import com.tujuhsembilan.bookrecipe.dto.request.RecipeFilterRequestDTO;
+import com.tujuhsembilan.bookrecipe.dto.response.ResponseBodyDTO;
+import com.tujuhsembilan.bookrecipe.exception.classes.DataNotFoundException;
 import com.tujuhsembilan.bookrecipe.model.FavoriteFoods;
 import com.tujuhsembilan.bookrecipe.model.FavoriteFoodsId;
 import com.tujuhsembilan.bookrecipe.model.Recipes;
@@ -19,8 +21,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -44,8 +44,8 @@ public class RecipeListService {
     private MessageUtil messageUtil;
 
     public ResponseEntity<Object> getAllRecipes(Pageable page, RecipeFilterRequestDTO recipeFiltersDTO) {
-        Map<String, Object> result = new HashMap<>();
-        HttpStatus status = HttpStatus.CREATED;
+    	ResponseBodyDTO result = new ResponseBodyDTO();
+        HttpStatus status = HttpStatus.OK;
         String message = "";
         RecipeFilterMethod recipeFilterMethod = new RecipeFilterMethod();
 
@@ -60,71 +60,59 @@ public class RecipeListService {
             status = HttpStatus.INTERNAL_SERVER_ERROR;
             message = messageUtil.get("application.error.recipe.not-found");
 
-            result.put("error", e.getMessage());
-            result.put("message", message);
-            result.put("status", status);
-
+            throw new DataNotFoundException(message);
         }
         return ResponseEntity.status(status).body(result);
     }
 
     public ResponseEntity<Object> toggleFavorite(int recipeId, int userId) {
-        Map<String, Object> result = new HashMap<>();
         HttpStatus status = HttpStatus.CREATED;
         String message = messageUtil.get("application.success.add-favorite", recipeId);
 
-        try {
-            Optional<Recipes> recipesData = recipeRepo.findById(recipeId);
-            Optional<Users> usersData = userRepo.findById(userId);
+        Optional<Recipes> recipesData = recipeRepo.findById(recipeId);
+        Optional<Users> usersData = userRepo.findById(userId);
 
-            if (recipesData.isEmpty() && usersData.isEmpty()) {
-                status = HttpStatus.NOT_FOUND;
-                message = messageUtil.get("application.error.recipe.not-found", recipeId);
+        if (recipesData.isEmpty() && usersData.isEmpty()) {
+            message = messageUtil.get("application.error.recipe.not-found", recipeId);
+            throw new DataNotFoundException(message);
+        } else {
+        	Recipes recipe = recipesData.get();
+            Users user = usersData.get();
+            String recipeName = recipe.getRecipeName();
+            Optional<FavoriteFoods> favoriteFoods = favoriteFoodsRepo
+                    .findMyFavorite(recipeId, userId);
+
+            if (!favoriteFoods.isPresent()) {
+                FavoriteFoodsId favId = new FavoriteFoodsId();
+                FavoriteFoods favorite = new FavoriteFoods();
+                favId.setUserId(user.getUserId());
+                favId.setRecipeId(recipe.getRecipeId());
+                favorite.setIsFavorite(true);
+
+                favorite.setUsers(user);
+                favorite.setRecipes(recipe);
+                favorite.setId(favId);
+                favorite = favoriteFoodsRepo.save(favorite);
+                message = messageUtil.get("application.success.add-favorite", recipeName);
             } else {
-            	Recipes recipe = recipesData.get();
-                Users user = usersData.get();
-                String recipeName = recipe.getRecipeName();
-                Optional<FavoriteFoods> favoriteFoods = favoriteFoodsRepo
-                        .findMyFavorite(recipeId, userId);
-
-                if (!favoriteFoods.isPresent()) {
-                    FavoriteFoodsId favId = new FavoriteFoodsId();
-                    FavoriteFoods favorite = new FavoriteFoods();
-                    favId.setUserId(user.getUserId());
-                    favId.setRecipeId(recipe.getRecipeId());
-                    favorite.setIsFavorite(true);
-
-                    favorite.setUsers(user);
-                    favorite.setRecipes(recipe);
-                    favorite.setId(favId);
-                    favorite = favoriteFoodsRepo.save(favorite);
-                    message = messageUtil.get("application.success.add-favorite", recipeName);
+                if (favoriteFoods.get().getIsFavorite().booleanValue()) {
+                    favoriteFoods.get().setIsFavorite(false);
+                    favoriteFoodsRepo.save(favoriteFoods.get());
+                    message = messageUtil.get("application.success.delete-favorite", recipeName);
                 } else {
-                    if (favoriteFoods.get().getIsFavorite().booleanValue()) {
-                        favoriteFoods.get().setIsFavorite(false);
-                        favoriteFoodsRepo.save(favoriteFoods.get());
-                        message = messageUtil.get("application.success.delete-favorite", recipeName);
-                    } else {
-                        favoriteFoods.get().setIsFavorite(true);
-                        favoriteFoodsRepo.save(favoriteFoods.get());
-                        message = messageUtil.get("application.success.add-favorite", recipeName);
-                    }
+                    favoriteFoods.get().setIsFavorite(true);
+                    favoriteFoodsRepo.save(favoriteFoods.get());
+                    message = messageUtil.get("application.success.add-favorite", recipeName);
                 }
             }
-
-            result.put("total", recipeRepo.count());
-            result.put("data", null);
-            result.put("message", message);
-            result.put("status", status);
-            return ResponseEntity.status(status).body(result);
-
-        } catch (Exception e) {
-            message = messageUtil.get("application.error.internal");
-            status = HttpStatus.INTERNAL_SERVER_ERROR;
-
-            result.put("message", message);
-            result.put("status", status);
-            return ResponseEntity.status(status).body(result);
         }
+        ResponseBodyDTO result = ResponseBodyDTO.builder()
+        		.total(recipeRepo.count())
+        		.message(message)
+        		.statusCode(status.value())
+        		.status(status.name())
+        		.build();
+        
+        return ResponseEntity.status(status).body(result);
     }
 }

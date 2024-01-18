@@ -14,7 +14,11 @@ import java.util.List;
 
 public class FavoriteFoodSpecification implements Specification<FavoriteFoods> {
 
-    private RecipeFilter filter;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = -1763760009680597946L;
+	private RecipeFilter filter;
 
     public FavoriteFoodSpecification(RecipeFilter filter) {
         this.filter = filter;

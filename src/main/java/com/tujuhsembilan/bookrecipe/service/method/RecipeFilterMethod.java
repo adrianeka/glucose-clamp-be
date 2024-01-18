@@ -4,6 +4,7 @@ import com.tujuhsembilan.bookrecipe.dto.request.RecipeFilterRequestDTO;
 import com.tujuhsembilan.bookrecipe.dto.response.RecipeCategoryDTO;
 import com.tujuhsembilan.bookrecipe.dto.response.RecipeLevelDTO;
 import com.tujuhsembilan.bookrecipe.dto.response.RecipeResponseDTO;
+import com.tujuhsembilan.bookrecipe.dto.response.ResponseBodyDTO;
 import com.tujuhsembilan.bookrecipe.model.FavoriteFoods;
 import com.tujuhsembilan.bookrecipe.model.Recipes;
 import com.tujuhsembilan.bookrecipe.repository.FavoriteFoodsRepository;
@@ -19,7 +20,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -27,7 +27,7 @@ public class RecipeFilterMethod {
 
     public ResponseEntity<Object> filterRecipe(RecipeListRepository recipesListRepo,
             FavoriteFoodsRepository favoriteFoodsRepo,
-            Map<String, Object> result, HttpStatus status,
+            ResponseBodyDTO result, HttpStatus status,
             Pageable page, RecipeFilterRequestDTO recipeFiltersDTO,
             MinioSrvc minioService,
             MessageUtil messageUtil
@@ -47,10 +47,12 @@ public class RecipeFilterMethod {
                 recipe.getTimeCook(),
                 getIsFavorite(favoriteFoodsRepo, recipe.getRecipeId(), recipeFiltersDTO.getUserId())))
                 .collect(Collectors.toList());
-
-        result.put("total", totalData);
-        result.put("data", response);
-        result.put("message", messageUtil.get("application.success.load", "Resep Masakan Saya"));
+        
+        result.setTotal(totalData);
+        result.setData(response);
+        result.setMessage(messageUtil.get("application.success.load", "Resep Masakan Saya"));
+        result.setStatusCode(status.value());
+        result.setStatus(status.name());
 
         return ResponseEntity.status(status).body(result);
     }

@@ -22,7 +22,12 @@ import java.util.Set;
 @EntityListeners(AuditingEntityListener.class)
 public class Levels implements java.io.Serializable {
 
-    @Id
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = -2387804649277156000L;
+
+	@Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "generator_levels_level_id_seq")
     @SequenceGenerator(name="generator_levels_level_id_seq", sequenceName="levels_level_id_seq", schema = "public", allocationSize = 1)
     @Column(name = "level_id", unique = true, nullable = false)

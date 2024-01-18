@@ -20,7 +20,12 @@ import java.sql.Timestamp;
 @EntityListeners(AuditingEntityListener.class)
 public class FavoriteFoods implements java.io.Serializable {
 
-    @EmbeddedId
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = -3546210349609347528L;
+
+	@EmbeddedId
     private FavoriteFoodsId id;
 
     @MapsId("userId")

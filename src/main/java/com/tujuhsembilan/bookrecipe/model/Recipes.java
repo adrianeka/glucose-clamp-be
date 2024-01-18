@@ -24,7 +24,12 @@ import java.util.Set;
 @EntityListeners(AuditingEntityListener.class)
 public class Recipes implements java.io.Serializable {
 
-    @Id
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 90177031282210259L;
+
+	@Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "generator_recipes_recipe_id_seq")
     @SequenceGenerator(name="generator_recipes_recipe_id_seq", sequenceName="recipes_recipe_id_seq", schema = "public", allocationSize = 1)
     @Column(name = "recipe_id", unique = true, nullable = false)

@@ -16,5 +16,4 @@ public class RecipeFilterDTO {
     private Integer levelId;
     private Integer categoryId;
     private Integer time;
-    private Integer sort;
 }

@@ -11,6 +11,7 @@ import com.tujuhsembilan.bookrecipe.service.RecipeListService;
 import com.tujuhsembilan.bookrecipe.service.RecipesService;
 import com.tujuhsembilan.bookrecipe.service.specification.filter.RecipeFilter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lib.i18n.utility.MessageUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
@@ -33,6 +34,9 @@ public class RecipesController {
 
 	@Autowired
 	private RecipeListService recipeListService;
+
+    @Autowired
+    private MessageUtil messageUtil;
 
 	@GetMapping("/my-recipes")
 	public ResponseEntity<Object> getResepSaya(@ModelAttribute MyRecipeRequestDTO myRecipesDTO,
@@ -86,7 +90,7 @@ public class RecipesController {
         } catch (Exception e) {
             log.error("Error", e);
             return ResponseEntity.status(500)
-                    .body(new MessageResponse("Terjadi kesalahan server. Silakan coba kembali", 500, "ERROR"));
+                    .body(new MessageResponse(messageUtil.get("application.error.internal"), 500, "ERROR"));
         }
     }
 
@@ -103,7 +107,7 @@ public class RecipesController {
         } catch (Exception e) {
             log.error("Error", e);
             return ResponseEntity.status(500)
-                    .body(new MessageResponse("Terjadi kesalahan server. Silakan coba kembali", 500, "ERROR"));
+                    .body(new MessageResponse(messageUtil.get("application.error.internal"), 500, "ERROR"));
         }
     }
 

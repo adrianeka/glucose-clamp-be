@@ -8,6 +8,8 @@ import com.tujuhsembilan.bookrecipe.service.CategoriesService;
 import com.tujuhsembilan.bookrecipe.service.LevelsService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lib.i18n.utility.MessageUtil;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -28,6 +30,9 @@ public class RecipesMastersController {
     @Autowired
     private LevelsService levelsService;
 
+    @Autowired
+    private MessageUtil messageUtil;
+
     @Operation(
             summary = "Retrieve Category Option List",
             description = "Get List of Master Data Category")
@@ -37,7 +42,7 @@ public class RecipesMastersController {
                 .map(category -> new CategoriesDTO(category.getCategoryId(), category.getCategoryName()))
                 .collect(Collectors.toList());
 
-        ListResponse<CategoriesDTO> response = new ListResponse<>(categoryDTOs, "Pesan Sukses", HttpStatus.OK.value(), "Success");
+        ListResponse<CategoriesDTO> response = new ListResponse<>(categoryDTOs, messageUtil.get("application.success.get"), HttpStatus.OK.value(), "Success");
         return ResponseEntity.ok(response);
     }
 
@@ -52,7 +57,8 @@ public class RecipesMastersController {
                 .map(level -> new LevelsDTO(level.getLevelId(), level.getLevelName()))
                 .collect(Collectors.toList());
 
-        ListResponse<LevelsDTO> response = new ListResponse<>(levelDTOs, "Pesan Sukses", HttpStatus.OK.value(), "Success");
+        ListResponse<LevelsDTO> response = new ListResponse<>(levelDTOs, 
+                        messageUtil.get("application.success.get"), HttpStatus.OK.value(), "Success");
         return ResponseEntity.ok(response);
     }
 }

@@ -13,6 +13,9 @@ import com.tujuhsembilan.bookrecipe.service.specification.filter.RecipeFilter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort.Direction;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -33,10 +36,8 @@ public class RecipesController {
 
 	@GetMapping("/my-recipes")
 	public ResponseEntity<Object> getResepSaya(@ModelAttribute MyRecipeRequestDTO myRecipesDTO,
-			@RequestParam(required = false) String sortBy,
-			@RequestParam(required = false, defaultValue = "8") int pageSize,
-			@RequestParam(required = false, defaultValue = "1") int pageNumber) {
-		return recipeService.getResepSaya(myRecipesDTO, sortBy, pageSize, pageNumber);
+			@PageableDefault(page = 1, size = 8, sort = "recipeName", direction = Direction.ASC) Pageable page) {
+		return recipeService.getResepSaya(myRecipesDTO, page);
 	}
 
 	@PutMapping("/{recipeId}")
@@ -45,10 +46,10 @@ public class RecipesController {
 	}
 
 	@GetMapping("")
-	public ResponseEntity<Object> getAllRecipes(@RequestParam(required = false, defaultValue = "8") int pageSize,
-			@RequestParam(required = false, defaultValue = "1") int pageNumber,
+	public ResponseEntity<Object> getAllRecipes(
+			@PageableDefault(page = 1, size = 8, sort = "recipeName", direction = Direction.ASC) Pageable page,
 			@ModelAttribute RecipeFilterRequestDTO recipeFiltersDTO) {
-		return recipeListService.getAllRecipes(pageSize, pageNumber, recipeFiltersDTO);
+		return recipeListService.getAllRecipes(page, recipeFiltersDTO);
 	}
 
 	@PutMapping("/{recipeId}/favorites/{userId}")

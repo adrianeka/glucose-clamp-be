@@ -13,8 +13,7 @@ import com.tujuhsembilan.bookrecipe.service.specification.RecipeListSpecificatio
 import lib.i18n.utility.MessageUtil;
 import lib.minio.MinioSrvc;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,31 +28,13 @@ public class RecipeFilterMethod {
     public ResponseEntity<Object> filterRecipe(RecipeListRepository recipesListRepo,
             FavoriteFoodsRepository favoriteFoodsRepo,
             Map<String, Object> result, HttpStatus status,
-            int pageSize, int pageNumber, RecipeFilterRequestDTO recipeFiltersDTO,
+            Pageable page, RecipeFilterRequestDTO recipeFiltersDTO,
             MinioSrvc minioService,
             MessageUtil messageUtil
     		) {
 
-        Sort sorting = null;
-        boolean isSortByEmpty = recipeFiltersDTO.getSortBy() == null;
-
-        if (!isSortByEmpty) {
-            if (recipeFiltersDTO.getSortBy().equals("recipeName-ASC")) {
-                sorting = Sort.by(Sort.Order.asc("recipeName"));
-            } else if (recipeFiltersDTO.getSortBy().equals("recipeName-DESC")) {
-                sorting = Sort.by(Sort.Order.desc("recipeName"));
-            } else if (recipeFiltersDTO.getSortBy().equals("time-ASC")) {
-                sorting = Sort.by(Sort.Order.asc("timeCook"));
-            } else if (recipeFiltersDTO.getSortBy().equals("time-DESC")) {
-                sorting = Sort.by(Sort.Order.desc("timeCook"));
-            }
-        } else {
-            sorting = Sort.by(Sort.Order.asc("recipeName"));
-        }
-
-        PageRequest pageRequest = PageRequest.of(pageNumber - 1, pageSize, sorting);
         Specification<Recipes> spec = RecipeListSpecification.recipesFilterAll(recipeFiltersDTO);
-        Page<Recipes> recipesFiltered = recipesListRepo.findAll(spec, pageRequest);
+        Page<Recipes> recipesFiltered = recipesListRepo.findAll(spec, page);
 
         long totalData = recipesListRepo.count(spec);
 
@@ -77,7 +58,7 @@ public class RecipeFilterMethod {
     private Boolean getIsFavorite(FavoriteFoodsRepository favoriteFoodsRepo, Integer recipeId, Integer userId) {
         Optional<FavoriteFoods> favoriteFoods = favoriteFoodsRepo.findMyFavorite(recipeId, userId);
         if (favoriteFoods.isPresent()) {
-            if (favoriteFoods.get().getIsFavorite() == true) {
+            if (favoriteFoods.get().getIsFavorite().booleanValue()) {
                 return true;
             }
         }

@@ -6,8 +6,6 @@ import com.tujuhsembilan.bookrecipe.dto.response.ResponseBodyDTO;
 import com.tujuhsembilan.bookrecipe.service.RecipeListService;
 import com.tujuhsembilan.bookrecipe.service.RecipesService;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import lib.i18n.utility.MessageUtil;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort.Direction;
@@ -18,7 +16,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-@Slf4j
 @Tag(name = "Book Recipe", description = "Book Recipe Management APIs")
 @RestController
 @RequestMapping("/book-recipe")
@@ -29,9 +26,6 @@ public class RecipesController {
 
 	@Autowired
 	private RecipeListService recipeListService;
-
-    @Autowired
-    private MessageUtil messageUtil;
 
 	@GetMapping("/my-recipes")
 	public ResponseEntity<Object> getResepSaya(@ModelAttribute MyRecipeRequestDTO myRecipesDTO,
@@ -75,14 +69,8 @@ public class RecipesController {
             @RequestParam("userId") int userId,
             @RequestPart("request") CreateRecipeRequest request,
             @RequestPart(value = "file", required = false) MultipartFile file) {
-        try {
-            MessageResponse response = recipeService.create(request, file, userId);
-            return ResponseEntity.status(response.getStatusCode()).body(response);
-        } catch (Exception e) {
-            log.error("Error", e);
-            return ResponseEntity.status(500)
-                    .body(new MessageResponse(messageUtil.get("application.error.internal"), 500, "ERROR"));
-        }
+        MessageResponse response = recipeService.create(request, file, userId);
+        return ResponseEntity.status(response.getStatusCode()).body(response);
     }
 
     @PutMapping(
@@ -93,14 +81,8 @@ public class RecipesController {
             @RequestParam("userId") int userId,
             @RequestPart("request") UpdateRecipeRequest request,
             @RequestPart(value = "file", required = false) MultipartFile file) {
-        try {
-            MessageResponse response = recipeService.updateRecipeById(request, file, userId);
-            return ResponseEntity.status(response.getStatusCode()).body(response);
-        } catch (Exception e) {
-            log.error("Error", e);
-            return ResponseEntity.status(500)
-                    .body(new MessageResponse(messageUtil.get("application.error.internal"), 500, "ERROR"));
-        }
+        MessageResponse response = recipeService.updateRecipeById(request, file, userId);
+        return ResponseEntity.status(response.getStatusCode()).body(response);
     }
 
     @GetMapping("/book-recipes/{recipeId}")

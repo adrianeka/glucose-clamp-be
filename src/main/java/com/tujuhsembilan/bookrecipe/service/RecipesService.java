@@ -1,7 +1,6 @@
 package com.tujuhsembilan.bookrecipe.service;
 
 import com.tujuhsembilan.bookrecipe.dto.CategoriesDTO;
-import com.tujuhsembilan.bookrecipe.dto.ErrorDTO;
 import com.tujuhsembilan.bookrecipe.dto.LevelsDTO;
 import com.tujuhsembilan.bookrecipe.dto.RecipesDTO;
 import com.tujuhsembilan.bookrecipe.dto.bookrecipe.CategoryFav;
@@ -262,10 +261,6 @@ public class RecipesService {
             Specification<FavoriteFoods> recipeSpec = FavoriteFoodSpesification.recipesSpecification(filter);
             Page<FavoriteFoods> favoriteFoods = favoriteRepo.findAll(recipeSpec, page);
 
-            if (favoriteFoods.isEmpty()) {
-                throw new DataNotFoundException(messageUtil.get("application.error.recipe.not-found"));
-            }
-
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             Object principal = authentication.getPrincipal();
 
@@ -286,20 +281,15 @@ public class RecipesService {
                         .statusCode(HttpStatus.OK.value())
                         .build();
             } else if (principal instanceof String) {
-                return new ErrorDTO(HttpStatus.UNAUTHORIZED.value(), "Unauthorized", "User not authenticated");
+                throw new UnauthorizedUserException(messageUtil.get("application.error.unauthorized-user.detail"));
             }
 
         } catch (DataAccessException e) {
-            return new ErrorDTO(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Data Access Error", e.getMessage());
-        } catch (Exception e) {
-            e.printStackTrace();
-            return new ErrorDTO(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Unexpected Error",
-                    "cause :\n" + e.getCause() + "\n " + e.getMessage());
+            throw new DataAccessException(messageUtil.get("application.error.data-access"));
         }
 
-        // Default return if none of the conditions are met
-        return new ErrorDTO(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Unexpected Error",
-                "Unknown authentication principal type");
+        // Default throw if none of the conditions are met
+        throw new UnknownAuthenticationException(messageUtil.get("application.error.unknown.principal.type.detail"));
     }
 
 

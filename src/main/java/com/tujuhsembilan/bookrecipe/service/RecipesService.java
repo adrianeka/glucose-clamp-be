@@ -291,7 +291,7 @@ public class RecipesService {
                 }
 
                 return DisplayPaginationRecipeFav.builder()
-                        .total(favoriteRepo.countFavorites(true, filter.getUserId()))
+                        .total(favoriteRepo.count(recipeSpec))
                         .data(userFavList)
                         .message(messageUtil.get("application.success.load", "Resep Masakan Favorit"))
                         .status(HttpStatus.OK.name())

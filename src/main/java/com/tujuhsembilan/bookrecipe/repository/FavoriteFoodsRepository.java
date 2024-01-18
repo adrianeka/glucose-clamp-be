@@ -17,7 +17,4 @@ public interface FavoriteFoodsRepository extends JpaRepository<FavoriteFoods, Fa
 
     @Query("SELECT f FROM FavoriteFoods f WHERE f.id.recipeId = :recipeId and f.id.userId = :userId")
     Optional<FavoriteFoods> findMyFavorite(@Param("recipeId") int recipeId, @Param("userId") int userId);
-    
-    @Query("SELECT COUNT(f) FROM FavoriteFoods f WHERE f.isFavorite = :isFavorite and f.id.userId = :userId")
-    long countFavorites(boolean isFavorite, int userId);
 }

@@ -13,7 +13,10 @@ import com.tujuhsembilan.bookrecipe.dto.request.MyRecipeRequestDTO;
 import com.tujuhsembilan.bookrecipe.dto.request.UpdateRecipeRequest;
 import com.tujuhsembilan.bookrecipe.dto.response.*;
 import com.tujuhsembilan.bookrecipe.exception.classes.AlreadyDeletedException;
+import com.tujuhsembilan.bookrecipe.exception.classes.DataAccessException;
 import com.tujuhsembilan.bookrecipe.exception.classes.DataNotFoundException;
+import com.tujuhsembilan.bookrecipe.exception.classes.MinioUploadException;
+import com.tujuhsembilan.bookrecipe.exception.classes.Exception;
 import com.tujuhsembilan.bookrecipe.model.*;
 import com.tujuhsembilan.bookrecipe.repository.*;
 import com.tujuhsembilan.bookrecipe.security.service.UserDetailsImplement;
@@ -27,7 +30,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -100,9 +102,9 @@ public class RecipesService {
         } catch (IOException e) {
             String errorMessage = messageUtil.get("application.error.upload.minio");
             log.error(errorMessage, e);
-            return new MessageResponse(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                    HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase());
+            throw new MinioUploadException(errorMessage, e);
         }
+
         log.info(imageFilename);
 
         Recipes newRecipe = Recipes.builder()
@@ -165,8 +167,7 @@ public class RecipesService {
             } catch (IOException e) {
                 String errorMessage = messageUtil.get("application.error.upload.minio");
                 log.error(errorMessage, e);
-                return new MessageResponse(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                        HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase());
+                throw new MinioUploadException(errorMessage, e);
             }
         }
         
@@ -294,12 +295,8 @@ public class RecipesService {
             }
 
         } catch (DataAccessException e) {
-            return new ErrorDTO(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Data Access Error", e.getMessage());
-        } catch (Exception e) {
-            e.printStackTrace();
-            return new ErrorDTO(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Unexpected Error",
-                    "cause :\n" + e.getCause() + "\n " + e.getMessage());
-        }
+            throw new DataAccessException(messageUtil.get("application.error.data-access"));
+        } 
         return response;
     }
 
@@ -396,11 +393,7 @@ public class RecipesService {
             }
         } catch (Exception e) {
             log.error("Exception occurred while processing the request", e);
-            response.setTotal(0);
-            response.setData(null);
-            response.setMessage(messageUtil.get("application.error.internal"));
-            response.setStatusCode(500);
-            response.setStatus("error");
+            throw new Exception(messageUtil.get("application.error.internal"));
         }
 
         return response;

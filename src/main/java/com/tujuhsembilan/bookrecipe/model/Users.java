@@ -24,7 +24,12 @@ import java.util.Set;
 @EntityListeners(AuditingEntityListener.class)
 public class Users implements java.io.Serializable {
 
-    @Id
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = -5894679636266655135L;
+
+	@Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "generator_users_user_id_seq")
     @SequenceGenerator(name="generator_users_user_id_seq", sequenceName="users_user_id_seq", schema = "public", allocationSize = 1)
     @Column(name = "user_id", unique = true, nullable = false)

@@ -22,7 +22,12 @@ import java.util.Set;
 @EntityListeners(AuditingEntityListener.class)
 public class Categories implements java.io.Serializable {
 
-    @Id
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = -4700415331431971056L;
+
+	@Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "generator_categories_category_id_seq")
     @SequenceGenerator(name="generator_categories_category_id_seq", sequenceName="categories_category_id_seq", schema = "public", allocationSize = 1)
     @Column(name = "category_id", unique = true, nullable = false)

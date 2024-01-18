@@ -19,7 +19,12 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @Embeddable
 @EntityListeners(AuditingEntityListener.class)
 public class FavoriteFoodsId implements java.io.Serializable {
-    @Column(name = "user_id")
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 5786260781211770131L;
+
+	@Column(name = "user_id")
     private Integer userId;
 
     @Column(name = "recipe_id")

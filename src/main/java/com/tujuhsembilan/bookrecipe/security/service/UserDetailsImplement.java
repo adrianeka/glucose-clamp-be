@@ -17,7 +17,11 @@ import java.util.List;
 @AllArgsConstructor
 public class UserDetailsImplement implements UserDetails {
 
-    private int id;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1387410741020370012L;
+	private int id;
     private String username;
     private String password;
 

@@ -8,7 +8,6 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class UserFav {
     private int recipeId;
     private CategoryFav categories;
@@ -16,5 +15,6 @@ public class UserFav {
     private String recipeName;
     private String imageUrl;
     private int time;
-    private boolean isFavorite;
+    private Boolean isFavorite;
+
 }

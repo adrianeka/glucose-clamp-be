@@ -25,7 +25,7 @@ public class UpdateRecipeRequest {
 
     private LevelsDTO levels;
 
-    private Integer UserId;
+    private int UserId;
 
     @Size(min = 1, max = 255, message = "Panjang kolom tidak boleh melebihi 255 karakter")
     @Pattern(regexp = "^[a-zA-Z\\s]*$", message = "Kolom tidak boleh berisi special character/angka")

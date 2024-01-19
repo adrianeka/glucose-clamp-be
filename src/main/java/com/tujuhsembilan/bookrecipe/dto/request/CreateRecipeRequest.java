@@ -22,7 +22,7 @@ public class CreateRecipeRequest {
     @NotNull
     private LevelsDTO levels;
 
-    private Integer UserId;
+    private int UserId;
 
     @NotBlank(message = "Kolom recipeName tidak boleh kosong")
     @Size(min = 1, max = 255, message = "Panjang kolom tidak boleh melebihi 255 karakter")

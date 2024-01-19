@@ -68,7 +68,7 @@ public class RecipesController {
     public ResponseEntity<MessageResponse> createRecipe(
             @RequestPart("request") CreateRecipeRequest request,
             @RequestPart(value = "file", required = false) MultipartFile file) {
-        Integer userId = request.getUserId();
+        int userId = request.getUserId();
         MessageResponse response = recipeService.create(request, file, userId);
         return ResponseEntity.status(response.getStatusCode()).body(response);
     }
@@ -80,7 +80,7 @@ public class RecipesController {
     public ResponseEntity<MessageResponse> updateRecipe(
             @RequestPart("request") UpdateRecipeRequest request,
             @RequestPart(value = "file", required = false) MultipartFile file) {
-        Integer userId = request.getUserId();
+        int userId = request.getUserId();
         MessageResponse response = recipeService.updateRecipeById(request, file, userId);
         return ResponseEntity.status(response.getStatusCode()).body(response);
     }

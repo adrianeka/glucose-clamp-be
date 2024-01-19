@@ -273,7 +273,7 @@ public class RecipesService {
 
         	Sort newSort = Sort.by(orders);
         	
-        	PageRequest request = PageRequest.of(page.getPageNumber() - 1, page.getPageSize(), newSort);
+        	PageRequest request = PageRequest.of(page.getPageNumber(), page.getPageSize(), newSort);
         	
             Specification<FavoriteFoods> recipeSpec = FavoriteFoodSpesification.recipesSpecification(filter);
             Page<FavoriteFoods> favoriteFoods = favoriteRepo.findAll(recipeSpec, request);

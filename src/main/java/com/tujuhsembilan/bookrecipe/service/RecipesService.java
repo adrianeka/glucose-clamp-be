@@ -149,6 +149,17 @@ public class RecipesService {
         Levels levels = levelsRepository.findById(request.getLevels().getLevelId())
                 .orElseThrow(() -> new EntityNotFoundException(messageUtil.get("application.error.level.not-found", request.getLevels().getLevelId())));
         
+        Recipes existingUser = recipesRepository.findById(request.getRecipeId())
+                .orElseThrow(() -> new EntityNotFoundException(
+                        messageUtil.get("application.error.data-not-found", request.getRecipeId())));
+
+        // Verifikasi bahwa userId sesuai dengan userId di resep
+        if (existingUser.getUsers().getUserId() != userId) {
+            // UserId tidak sesuai, kembalikan pesan kesalahan atau lempar pengecualian
+            return new MessageResponse(messageUtil.get("application.error.recipe.access-forbidden"), HttpStatus.FORBIDDEN.value(),
+                    HttpStatus.FORBIDDEN.getReasonPhrase());
+        }
+        
         existingRecipe.setCategories(categories);
         existingRecipe.setLevels(levels);
         existingRecipe.setRecipeName(request.getRecipeName());

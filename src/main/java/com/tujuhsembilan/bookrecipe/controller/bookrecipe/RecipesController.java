@@ -66,9 +66,9 @@ public class RecipesController {
         produces = { MediaType.APPLICATION_JSON_VALUE }
     )    
     public ResponseEntity<MessageResponse> createRecipe(
-            @RequestParam("userId") int userId,
             @RequestPart("request") CreateRecipeRequest request,
             @RequestPart(value = "file", required = false) MultipartFile file) {
+        Integer userId = request.getUserId();
         MessageResponse response = recipeService.create(request, file, userId);
         return ResponseEntity.status(response.getStatusCode()).body(response);
     }
@@ -78,9 +78,9 @@ public class RecipesController {
         consumes = { MediaType.APPLICATION_JSON_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE }, 
         produces = { MediaType.APPLICATION_JSON_VALUE })
     public ResponseEntity<MessageResponse> updateRecipe(
-            @RequestParam("userId") int userId,
             @RequestPart("request") UpdateRecipeRequest request,
             @RequestPart(value = "file", required = false) MultipartFile file) {
+        Integer userId = request.getUserId();
         MessageResponse response = recipeService.updateRecipeById(request, file, userId);
         return ResponseEntity.status(response.getStatusCode()).body(response);
     }

@@ -16,5 +16,5 @@ public class MyRecipeResDTO {
 	private String recipeName;
 	private String imageUrl;
 	private int time;
-	private boolean isFavorite;
+	private Boolean isFavorite;
 }

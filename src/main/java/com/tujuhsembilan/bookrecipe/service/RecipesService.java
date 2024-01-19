@@ -338,7 +338,7 @@ public class RecipesService {
                     }
                     userFav.setImageUrl(imageUrl);
                     userFav.setTime(recipe.getTimeCook());
-                    userFav.setFavorite(favoriteFoods.getIsFavorite());
+                    userFav.setIsFavorite(favoriteFoods.getIsFavorite());
                     Categories categories = recipe.getCategories();
                     Levels levels = recipe.getLevels();
 

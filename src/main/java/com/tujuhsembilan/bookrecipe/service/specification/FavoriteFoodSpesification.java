@@ -13,8 +13,9 @@ public class FavoriteFoodSpesification {
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<Predicate>();
 
-            predicates.add( criteriaBuilder.equal(root.get("users").get("userId"), myRecipeDTO.getUserId()));
+            predicates.add( criteriaBuilder.equal(root.get("id").get("userId"), myRecipeDTO.getUserId()));
             predicates.add( criteriaBuilder.equal(root.get("isFavorite"), true));
+            predicates.add( criteriaBuilder.equal(root.get("recipes").get("isDeleted"), false));
 
             if (myRecipeDTO.getRecipeName() != null) {
                 String recipeNameValue = "%" + myRecipeDTO.getRecipeName() + "%";

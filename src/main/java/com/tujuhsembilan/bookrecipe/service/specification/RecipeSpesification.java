@@ -13,10 +13,10 @@ public class RecipeSpesification {
 		return (root, query, criteriaBuilder) -> {
 			List<Predicate> predicates = new ArrayList<Predicate>();
 			
-			Predicate idPredicate = criteriaBuilder.equal(root.get("id").get("userId"), myRecipeDTO.getUserId());
+			Predicate idPredicate = criteriaBuilder.equal(root.get("users").get("userId"), myRecipeDTO.getUserId());
 			predicates.add(idPredicate);
 			
-			Predicate isDeletedPredicate = criteriaBuilder.equal(root.get("recipes").get("isDeleted"), false);
+			Predicate isDeletedPredicate = criteriaBuilder.equal(root.get("isDeleted"), false);
 			predicates.add(isDeletedPredicate);
 			
 			if (myRecipeDTO.getRecipeName() != null) {

@@ -140,7 +140,7 @@ public class RecipesService {
                 .orElseThrow(() -> new EntityNotFoundException(messageUtil.get("application.error.user.not-found", userId)));
 
         Recipes existingRecipe = recipesRepository.findById(request.getRecipeId())
-                .orElseThrow(() -> new EntityNotFoundException(messageUtil.get("application.error.recipe.not-found", request.getRecipeId())));
+                .orElseThrow(() -> new EntityNotFoundException(messageUtil.get("application.error.data-not-found", request.getRecipeId())));
 
         Categories categories = categoriesRepository.findById(request.getCategories().getCategoryId())
                 .orElseThrow(() -> new EntityNotFoundException(
@@ -187,7 +187,7 @@ public class RecipesService {
         Page<Recipes> recipes = recipesRepository.findAll(recipeSpec, page);
             
         if(recipes.isEmpty()) {
-        	throw new DataNotFoundException(messageUtil.get("application.error.recipe.not-found"));
+        	throw new DataNotFoundException(messageUtil.get("application.error.data-not-found"));
         } else {
             long totalData = recipesRepository.count(recipeSpec);
             List<MyRecipeResDTO> response = recipes.stream().map(recipe -> new MyRecipeResDTO(
@@ -215,7 +215,7 @@ public class RecipesService {
     }
 
     private boolean getFavFood(int recipeId, int userId) {
-        Optional<Boolean> favFood = favoriteRepo.findIsFavorite(recipeId, userId);
+        Optional<Boolean> favFood = favoriteRepo.findIsFavorite(userId, recipeId);
 
         if (favFood.isPresent()) {
             return favFood.get();
@@ -287,7 +287,7 @@ public class RecipesService {
                         .collect(Collectors.toList());
 
                 if (userFavList.isEmpty()) {
-                    throw new DataNotFoundException(messageUtil.get("application.error.recipe.not-found"));
+                    throw new DataNotFoundException(messageUtil.get("application.error.data-not-found"));
                 }
 
                 return DisplayPaginationRecipeFav.builder()
@@ -348,7 +348,7 @@ public class RecipesService {
                     return userFav;
                 })
                 .orElseGet(() -> {
-                    log.error(messageUtil.get("application.error.recipe.not-found"));
+                    log.error(messageUtil.get("application.error.data-not-found"));
                     return new UserFav();
                 });
     }
@@ -387,7 +387,7 @@ public class RecipesService {
                 dataRecipe.setTimeCook(recipesDTO.getTimeCook());
                 dataRecipe.setIngridient(recipesDTO.getIngridient());
                 dataRecipe.setHowToCook(recipesDTO.getHowToCook());
-                dataRecipe.setIsFavorite(getFavFood(userId, recipesDTO.getRecipeId()));
+                dataRecipe.setIsFavorite(getFavFood(recipesDTO.getRecipeId(), userId));
 
                 response.setTotal(1);
                 response.setData(dataRecipe);
@@ -397,7 +397,7 @@ public class RecipesService {
             } else {
                 response.setTotal(0);
                 response.setData(null);
-                response.setMessage(messageUtil.get("application.error.recipe.not-found"));
+                response.setMessage(messageUtil.get("application.error.data-not-found"));
                 response.setStatusCode(404);
                 response.setStatus("error");
             }

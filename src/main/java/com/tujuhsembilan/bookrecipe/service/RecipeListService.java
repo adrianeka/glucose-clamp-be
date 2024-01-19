@@ -57,7 +57,7 @@ public class RecipeListService {
 
         } catch (Exception e) {
             status = HttpStatus.INTERNAL_SERVER_ERROR;
-            message = messageUtil.get("application.error.recipe.not-found");
+            message = messageUtil.get("application.error.data-not-found");
 
             throw new DataNotFoundException(message);
         }
@@ -72,7 +72,7 @@ public class RecipeListService {
         Optional<Users> usersData = userRepo.findById(userId);
 
         if (recipesData.isEmpty() && usersData.isEmpty()) {
-            message = messageUtil.get("application.error.recipe.not-found", recipeId);
+            message = messageUtil.get("application.error.data-not-found", recipeId);
             throw new DataNotFoundException(message);
         } else {
         	Recipes recipe = recipesData.get();
@@ -106,7 +106,7 @@ public class RecipeListService {
             }
         }
         ResponseBodyDTO result = ResponseBodyDTO.builder()
-        		.total(recipeRepo.count())
+        		.total(1)
         		.message(message)
         		.statusCode(status.value())
         		.status(status.name())

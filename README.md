@@ -33,17 +33,14 @@
 
 <!-- SWAGGER -->
 ### Swagger
-- Swagger UI : `http://localhost:8080/api/bookrecipe-documentation`
-- Swagger Docs : `http://localhost:8080/api/bookrecipe-api-docs`
+- Swagger UI : `{url}/api/bookrecipe-documentation`
+- Swagger Docs : `{url}/api/bookrecipe-api-docs`
 
 <!-- HEALTH CHECK -->
 ### Health Check
 
-- Spring-boot Health Check feature is a part of Spring-boot Actuator.
-
-- API server status: `GET` `{url}/api/actuator/health`.
-
-- (`localhost:8080/api/actuator/health`).
+- Spring-boot Health Check feature is a part of Spring-boot Actuator
+- API server status : `{url}/api/actuator/health`
 
 <!-- USAGE EXAMPLES -->
 ### Usage

@@ -1,5 +1,8 @@
 package com.tujuhsembilan.bookrecipe.config;
 
+import io.swagger.v3.oas.models.security.SecurityRequirement;
+import io.swagger.v3.oas.models.security.SecurityScheme;
+import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.info.License;
@@ -12,23 +15,51 @@ import java.util.List;
 
 @Configuration
 public class OpenAPIConfig {
-    @Value("${tujuhsembilan.openapi.dev-url}")
-    private String devUrl;
+    private final String url;
+    private final String moduleName;
+    private final String moduleDesc;
+    private final String apiVersion;
+
+    public OpenAPIConfig(
+            @Value("${tujuhsembilan.openapi.url}") String url,
+            @Value("${tujuhsembilan.openapi.module-name}") String moduleName,
+            @Value("${tujuhsembilan.openapi.module-desc}") String moduleDesc,
+            @Value("${tujuhsembilan.openapi.api-version}") String apiVersion) {
+        this.url = url;
+        this.moduleName = moduleName;
+        this.moduleDesc = moduleDesc;
+        this.apiVersion = apiVersion;
+    }
 
     @Bean
     public OpenAPI myOpenAPI() {
-        Server devServer = new Server();
-        devServer.setUrl(devUrl);
-        devServer.setDescription("Server URL in Development environment");
+        Server server = new Server();
+        server.setUrl(url);
+        server.setDescription("Server URL");
+
+        final String securitySchemeName = "bearerAuth";
+
+        Components components = new Components()
+                .addSecuritySchemes(securitySchemeName,
+                new SecurityScheme()
+                        .name(securitySchemeName)
+                        .type(SecurityScheme.Type.HTTP)
+                        .scheme("bearer")
+                        .bearerFormat("JWT")
+        );
 
         License mitLicense = new License().name("MIT License").url("https://choosealicense.com/licenses/mit/");
 
         Info info = new Info()
-                .title("Book Recipe API")
-                .version("1.0")
-                .description("This API exposes endpoints to manage Book Recipe for 79 Multi Tech Case Study.")
+                .title(moduleName)
+                .version(apiVersion)
+                .description(moduleDesc)
                 .license(mitLicense);
 
-        return new OpenAPI().info(info).servers(List.of(devServer));
+        return new OpenAPI()
+                .addSecurityItem(new SecurityRequirement().addList(securitySchemeName))
+                .components(components)
+                .info(info)
+                .servers(List.of(server));
     }
 }

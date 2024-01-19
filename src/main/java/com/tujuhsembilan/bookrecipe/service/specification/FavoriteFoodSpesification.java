@@ -14,7 +14,7 @@ public class FavoriteFoodSpesification {
             List<Predicate> predicates = new ArrayList<Predicate>();
 
             predicates.add( criteriaBuilder.equal(root.get("users").get("userId"), myRecipeDTO.getUserId()));
-            predicates.add(criteriaBuilder.equal(root.get("isFavorite"), true));
+            predicates.add( criteriaBuilder.equal(root.get("isFavorite"), true));
 
             if (myRecipeDTO.getRecipeName() != null) {
                 String recipeNameValue = "%" + myRecipeDTO.getRecipeName() + "%";

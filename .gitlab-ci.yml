@@ -1,4 +1,4 @@
 include:
-  - project: 'multi-tech-case-study/book-recipe/cicd-config'
+  - project: 'internal-apps/multi-tech-case-study/book-recipe/cicd-config'
     ref: main
     file: 'ci-pipeline-be.yml'

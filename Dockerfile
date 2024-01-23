@@ -1,6 +1,6 @@
 FROM harbor.cloudias79.com/devops-tools/maven:3.8.5-openjdk-18 as builder
 WORKDIR /usr/src/app
-COPY . ./
+COPY . .
 RUN mvn clean package -DskipTest
 
 FROM harbor.cloudias79.com/devops-tools/openjdk:11-jre-slim

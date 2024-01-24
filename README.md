@@ -16,7 +16,7 @@
 
 1. Clone the repo
    ```sh
-   git clone https://gitlab.cloudias79.com/multi-tech-case-study/book-recipe/book-recipe-be.git
+   git clone https://gitlab.cloudias79.com/internal-apps/multi-tech-case-study/book-recipe/book-recipe-be.git
    ```
 2. Install Maven packages
    ```sh

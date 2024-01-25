@@ -1,4 +1,3 @@
-<!-- ABOUT THE PROJECT -->
 # About The Project
 
 ## Book Recipe - Studi Kasus Multi Teknologi

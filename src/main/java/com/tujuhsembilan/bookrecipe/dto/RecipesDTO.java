@@ -23,7 +23,7 @@ public class RecipesDTO {
     private String recipeName;
     private String imageFilename;
     private Integer timeCook;
-    private String ingridient;
+    private String ingredient;
     private String howToCook;
     private Boolean isDeleted;
     private String createdBy;

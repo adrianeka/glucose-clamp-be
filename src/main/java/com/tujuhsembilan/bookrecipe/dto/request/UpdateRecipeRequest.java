@@ -38,7 +38,7 @@ public class UpdateRecipeRequest {
     private Integer timeCook;
 
     @Size(min = 1)
-    private String ingridient;
+    private String ingredient;
 
     @Size(min = 1)
     private String howToCook;

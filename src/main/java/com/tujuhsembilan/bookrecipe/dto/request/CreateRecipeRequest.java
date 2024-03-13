@@ -36,9 +36,9 @@ public class CreateRecipeRequest {
     @Max(value = 999, message = "Kolom hanya boleh berisi angka 1-999")
     private Integer timeCook;
 
-    @NotBlank(message = "Kolom ingridient tidak boleh kosong")
+    @NotBlank(message = "Kolom ingredient tidak boleh kosong")
     @Size(min = 1)
-    private String ingridient;
+    private String ingredient;
 
     @NotBlank(message = "Kolom howToCook tidak boleh kosong")
     @Size(min = 1)

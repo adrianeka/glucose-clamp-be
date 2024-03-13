@@ -112,7 +112,7 @@ public class RecipesService {
                 .recipeName(request.getRecipeName())
                 .imageFilename(imageFilename)
                 .timeCook(request.getTimeCook())
-                .ingredient(request.getIngridient())
+                .ingredient(request.getIngredient())
                 .howToCook(request.getHowToCook())
                 .createdBy(createdByUser.getUsername())
                 .modifiedBy(createdByUser.getUsername())
@@ -164,7 +164,7 @@ public class RecipesService {
         existingRecipe.setLevels(levels);
         existingRecipe.setRecipeName(request.getRecipeName());
         existingRecipe.setTimeCook(request.getTimeCook());
-        existingRecipe.setIngredient(request.getIngridient());
+        existingRecipe.setIngredient(request.getIngredient());
         existingRecipe.setHowToCook(request.getHowToCook());
         existingRecipe.setModifiedBy(modifiedByUser.getUsername());
         existingRecipe.setModifiedTime(new Timestamp(System.currentTimeMillis()));
@@ -396,7 +396,7 @@ public class RecipesService {
                 dataRecipe.setRecipeName(recipesDTO.getRecipeName());
                 dataRecipe.setImageFilename(getImageURL(recipesDTO.getImageFilename()));
                 dataRecipe.setTimeCook(recipesDTO.getTimeCook());
-                dataRecipe.setIngridient(recipesDTO.getIngridient());
+                dataRecipe.setIngredient(recipesDTO.getIngredient());
                 dataRecipe.setHowToCook(recipesDTO.getHowToCook());
                 dataRecipe.setIsFavorite(getFavFood(recipesDTO.getRecipeId(), userId));
 

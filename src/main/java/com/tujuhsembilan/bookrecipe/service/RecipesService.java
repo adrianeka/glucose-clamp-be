@@ -112,7 +112,7 @@ public class RecipesService {
                 .recipeName(request.getRecipeName())
                 .imageFilename(imageFilename)
                 .timeCook(request.getTimeCook())
-                .ingridient(request.getIngridient())
+                .ingredient(request.getIngridient())
                 .howToCook(request.getHowToCook())
                 .createdBy(createdByUser.getUsername())
                 .modifiedBy(createdByUser.getUsername())
@@ -164,7 +164,7 @@ public class RecipesService {
         existingRecipe.setLevels(levels);
         existingRecipe.setRecipeName(request.getRecipeName());
         existingRecipe.setTimeCook(request.getTimeCook());
-        existingRecipe.setIngridient(request.getIngridient());
+        existingRecipe.setIngredient(request.getIngridient());
         existingRecipe.setHowToCook(request.getHowToCook());
         existingRecipe.setModifiedBy(modifiedByUser.getUsername());
         existingRecipe.setModifiedTime(new Timestamp(System.currentTimeMillis()));

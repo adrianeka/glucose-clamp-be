@@ -22,12 +22,12 @@ import java.util.Set;
 @AllArgsConstructor
 @Entity
 @EntityListeners(AuditingEntityListener.class)
-public class Recipes implements java.io.Serializable {
+public class Recipes implements java.io.Serializable{
 
-    /**
+	/**
 	 * 
 	 */
-	private static final long serialVersionUID = 90177031282210259L;
+	private static final long serialVersionUID = 1873449508321388125L;
 
 	@Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "generator_recipes_recipe_id_seq")
@@ -56,8 +56,8 @@ public class Recipes implements java.io.Serializable {
     @Column(name = "time_cook")
     private Integer timeCook;
 
-    @Column(name = "ingridient")
-    private String ingridient;
+    @Column(name = "ingredient")
+    private String ingredient;
 
     @Column(name = "how_to_cook")
     private String howToCook;

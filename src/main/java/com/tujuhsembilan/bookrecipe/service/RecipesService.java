@@ -380,7 +380,7 @@ public class RecipesService {
 
             Optional<Recipes> recipeOptional = recipesRepository.findById(recipeId);
 
-            if (recipeOptional.isPresent()) {
+            if (recipeOptional.isPresent() && recipeOptional.get().getIsDeleted() == false) {
                 Recipes recipe = recipeOptional.get();
                 RecipesDTO recipesDTO = modelMapper.map(recipe, RecipesDTO.class);
                 RecipesDTO dataRecipe = new RecipesDTO();

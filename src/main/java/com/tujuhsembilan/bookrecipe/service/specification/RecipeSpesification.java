@@ -20,8 +20,9 @@ public class RecipeSpesification {
 			predicates.add(isDeletedPredicate);
 			
 			if (myRecipeDTO.getRecipeName() != null) {
-				String recipeNameValue = "%" + myRecipeDTO.getRecipeName() + "%";
-				Predicate recipeNamePredicates = criteriaBuilder.like(root.get("recipeName"), recipeNameValue);
+				String recipeNameValue = "%" + myRecipeDTO.getRecipeName().toLowerCase() + "%";
+				Predicate recipeNamePredicates = criteriaBuilder.like(criteriaBuilder.lower(root.get("recipeName")), 
+				recipeNameValue);
 				predicates.add(recipeNamePredicates);
 			}
 			

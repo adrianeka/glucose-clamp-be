@@ -18,9 +18,9 @@ public class RecipeListSpecification {
 
 
             if (recipeFiltersDTO.getRecipeName() != null) {
-                String recipeNameValue = "%" + recipeFiltersDTO.getRecipeName() + "%";
-                Predicate recipeNamePredicates = criteriaBuilder.like(
-                        root.get("recipeName"),
+                String recipeNameValue = "%" + recipeFiltersDTO.getRecipeName().toLowerCase() + "%";
+                Predicate recipeNamePredicates = criteriaBuilder.like(criteriaBuilder.lower(
+                        root.get("recipeName")),
                         recipeNameValue);
                 predicates.add(recipeNamePredicates);
             }

@@ -385,7 +385,6 @@ public class RecipesService {
 
             Optional<Recipes> recipeOptional = recipesRepository.findById(recipeId);
 
-            // Check if the recipe exists and is not deleted (Sandy)
             if (recipeOptional.isPresent() && recipeOptional.get().getIsDeleted() == false) {
                 Recipes recipe = recipeOptional.get();
                 RecipesDTO recipesDTO = modelMapper.map(recipe, RecipesDTO.class);

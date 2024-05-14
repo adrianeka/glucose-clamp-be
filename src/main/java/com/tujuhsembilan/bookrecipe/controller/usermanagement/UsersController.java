@@ -23,16 +23,12 @@ public class UsersController {
     @Autowired
     private UsersService usersService;
 
-    @PostMapping(
-        path = "/users/sign-up",
-        consumes = MediaType.APPLICATION_JSON_VALUE,
-        produces = MediaType.APPLICATION_JSON_VALUE
-    )
-    public MessageResponse register(@RequestBody RegisterRequest request){
+    @PostMapping(path = "/users/sign-up", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public MessageResponse register(@RequestBody RegisterRequest request) {
         return usersService.register(request);
     }
 
-    @PostMapping("/users/signin")
+    @PostMapping("/users/sign-in")
     public ResponseEntity<Object> signIn(@Valid @RequestBody LoginRequest loginRequest) {
         ApiDataResponseBuilder result = usersService.signIn(loginRequest);
 

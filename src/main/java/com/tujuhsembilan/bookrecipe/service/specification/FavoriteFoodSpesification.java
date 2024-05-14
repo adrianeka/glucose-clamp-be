@@ -17,7 +17,6 @@ public class FavoriteFoodSpesification {
             predicates.add(criteriaBuilder.equal(root.get("isFavorite"), true));
             predicates.add(criteriaBuilder.equal(root.get("recipes").get("isDeleted"), false));
 
-            // Enhance search to accept case insensitive (Sandy)
             if (myRecipeDTO.getRecipeName() != null) {
                 String recipeNameValue = "%" + myRecipeDTO.getRecipeName().toLowerCase() + "%";
                 Predicate recipeNamePredicates = criteriaBuilder.like(

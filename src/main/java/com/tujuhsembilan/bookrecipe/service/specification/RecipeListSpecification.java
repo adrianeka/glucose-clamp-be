@@ -16,7 +16,6 @@ public class RecipeListSpecification {
             Predicate isDeletedPredicate = criteriaBuilder.equal(root.get("isDeleted"), false);
             predicates.add(isDeletedPredicate);
 
-            // Enhance search to accept case insensitive (Sandy)
             if (recipeFiltersDTO.getRecipeName() != null) {
                 String recipeNameValue = "%" + recipeFiltersDTO.getRecipeName().toLowerCase() + "%";
                 Predicate recipeNamePredicates = criteriaBuilder.like(criteriaBuilder.lower(

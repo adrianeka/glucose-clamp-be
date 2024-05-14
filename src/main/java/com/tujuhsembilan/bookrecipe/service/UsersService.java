@@ -20,6 +20,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -34,13 +35,13 @@ public class UsersService {
 
     @Autowired
     private UsersRepository userRepository;
-    
+
     @Autowired
     private Validator validator;
-    
+
     @Autowired
     private MessageUtil messageUtil;
-    
+
     @Autowired
     AuthenticationManager authenticationManager;
 
@@ -53,10 +54,10 @@ public class UsersService {
     final HttpStatus statusOK = HttpStatus.OK;
 
     @Transactional
-    public MessageResponse register(RegisterRequest request){
+    public MessageResponse register(RegisterRequest request) {
         Set<ConstraintViolation<RegisterRequest>> constraintViolations = validator.validate(request);
 
-        if(!constraintViolations.isEmpty()){
+        if (!constraintViolations.isEmpty()) {
             ConstraintViolation<RegisterRequest> firstViolation = constraintViolations.iterator().next();
             String errorMessage = firstViolation.getMessage();
             return new MessageResponse(errorMessage, HttpStatus.BAD_REQUEST.value(), "ERROR");
@@ -64,72 +65,76 @@ public class UsersService {
 
         log.info("Received registration request: {}", request);
 
-        if(userRepository.existsByUsername(request.getUsername())){
+        if (userRepository.existsByUsername(request.getUsername())) {
             String errorMessage = messageUtil.get("application.error.already-exist.user");
             return new MessageResponse(errorMessage, HttpStatus.BAD_REQUEST.value(), "ERROR");
         }
 
-
         if (!request.getPassword().equals(request.getRetypePassword())) {
             String errorMessage = messageUtil.get("application.error.password-not-match.user");
             return new MessageResponse(errorMessage, HttpStatus.BAD_REQUEST.value(), "ERROR");
-        }  
+        }
 
-
-        if(request.getPassword().length() < 6){
+        if (request.getPassword().length() < 6) {
             String errorMessage = messageUtil.get("application.error.password-validation.user");
             return new MessageResponse(errorMessage, HttpStatus.BAD_REQUEST.value(), "ERROR");
         }
 
         Users user = Users.builder()
-            .username(request.getUsername())
-            .fullname(request.getFullname())
-            .password(BCrypt.hashpw(request.getPassword(), BCrypt.gensalt()))
-            .role("User")
-            .isDeleted(false)
-            .build();
+                .username(request.getUsername())
+                .fullname(request.getFullname())
+                .password(BCrypt.hashpw(request.getPassword(), BCrypt.gensalt()))
+                .role("User")
+                .isDeleted(false)
+                .build();
 
         userRepository.save(user);
 
         log.info("Received user: {}", user);
-        
+
         String successMessage = messageUtil.get("application.success.add.user", request.getUsername());
         return new MessageResponse(successMessage, HttpStatus.OK.value(), "OK");
 
     }
 
-    public ApiDataResponseBuilder signIn(LoginRequest loginRequest){
+    public ApiDataResponseBuilder signIn(LoginRequest loginRequest) {
+        if (Boolean.FALSE.equals(userRepository.existsByUsername(loginRequest.getUsername()))) {
+            return ApiDataResponseBuilder.builder()
+                    .message(messageUtil.get("application.error.auth.user.not-found"))
+                    .statusCode(HttpStatus.UNAUTHORIZED.value())
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .build();
+        }
         try {
             Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
+                    new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
 
             SecurityContextHolder.getContext().setAuthentication(authentication);
             String jwt = jwtUtils.generateJwtToken(authentication);
-            
-            UserDetailsImplement userDetails = (UserDetailsImplement) authentication.getPrincipal();    
+
+            UserDetailsImplement userDetails = (UserDetailsImplement) authentication.getPrincipal();
             Optional<String> roles = userDetails.getAuthorities().stream()
-                .map(item -> item.getAuthority())
-                .findFirst();
+                    .map(item -> item.getAuthority())
+                    .findFirst();
 
-
             return ApiDataResponseBuilder.builder()
-                .data(new JwtResponse(jwt, userDetails.getId(), userDetails.getUsername(), roles.get()))
-                .message(messageUtil.get("application.success.auth.user"))
-                .statusCode(statusOK.value())
-                .status(statusOK)
-                .build();   
-        } catch (AuthenticationException e){
+                    .data(new JwtResponse(jwt, userDetails.getId(), userDetails.getUsername(), roles.get()))
+                    .message(messageUtil.get("application.success.auth.user"))
+                    .statusCode(statusOK.value())
+                    .status(statusOK)
+                    .build();
+        } catch (AuthenticationException e) {
             return ApiDataResponseBuilder.builder()
-                .message(messageUtil.get("application.error.auth.user"))
-                .statusCode(HttpStatus.UNAUTHORIZED.value())
-                .status(HttpStatus.UNAUTHORIZED)
-                .build();
-        }catch (Exception e) {
+                    .message(messageUtil.get("application.error.auth.user"))
+                    .statusCode(HttpStatus.UNAUTHORIZED.value())
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .build();
+        } catch (Exception e) {
             return ApiDataResponseBuilder.builder()
-                .message(messageUtil.get("application.error.internal"))
-                .statusCode(HttpStatus.INTERNAL_SERVER_ERROR.value())
-                .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .build();
+                    .message(messageUtil.get("application.error.internal"))
+                    .statusCode(HttpStatus.INTERNAL_SERVER_ERROR.value())
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .build();
         }
     }
 }

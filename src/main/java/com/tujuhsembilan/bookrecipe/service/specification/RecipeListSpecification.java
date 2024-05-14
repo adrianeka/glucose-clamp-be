@@ -14,28 +14,28 @@ public class RecipeListSpecification {
             List<Predicate> predicates = new ArrayList<Predicate>();
 
             Predicate isDeletedPredicate = criteriaBuilder.equal(root.get("isDeleted"), false);
-			predicates.add(isDeletedPredicate);
+            predicates.add(isDeletedPredicate);
 
-
+            // Enhance search to accept case insensitive (Sandy)
             if (recipeFiltersDTO.getRecipeName() != null) {
-                String recipeNameValue = "%" + recipeFiltersDTO.getRecipeName() + "%";
-                Predicate recipeNamePredicates = criteriaBuilder.like(
-                        root.get("recipeName"),
+                String recipeNameValue = "%" + recipeFiltersDTO.getRecipeName().toLowerCase() + "%";
+                Predicate recipeNamePredicates = criteriaBuilder.like(criteriaBuilder.lower(
+                        root.get("recipeName")),
                         recipeNameValue);
                 predicates.add(recipeNamePredicates);
             }
 
             if (recipeFiltersDTO.getLevelId() != null) {
                 Predicate levelPredicate = criteriaBuilder.equal(
-                            root.get("levels").get("levelId"), recipeFiltersDTO.getLevelId());
-                    predicates.add(levelPredicate);
+                        root.get("levels").get("levelId"), recipeFiltersDTO.getLevelId());
+                predicates.add(levelPredicate);
             }
 
             if (recipeFiltersDTO.getCategoryId() != null) {
                 Predicate categoryPredicate = criteriaBuilder.equal(
-                            root.get("categories").get("categoryId"),
-                            recipeFiltersDTO.getCategoryId());
-                    predicates.add(categoryPredicate);
+                        root.get("categories").get("categoryId"),
+                        recipeFiltersDTO.getCategoryId());
+                predicates.add(categoryPredicate);
             }
 
             if (recipeFiltersDTO.getTime() != null) {
@@ -48,7 +48,6 @@ public class RecipeListSpecification {
                     predicates.add(criteriaBuilder.greaterThan(root.get("timeCook"), 60));
                 }
             }
-            
 
             return criteriaBuilder.and(predicates.toArray(new Predicate[predicates.size()]));
 

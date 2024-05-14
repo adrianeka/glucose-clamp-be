@@ -74,7 +74,7 @@ public class RecipesService {
     @Lazy
     @Autowired
     private MinioSrvc minioService;
-    
+
     @Autowired
     private MessageUtil messageUtil;
 
@@ -84,15 +84,16 @@ public class RecipesService {
 
         Users createdByUser = usersRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException(
-                		messageUtil.get("application.error.user.not-found", userId)));
+                        messageUtil.get("application.error.user.not-found", userId)));
 
         Categories categories = categoriesRepository.findById(request.getCategories().getCategoryId())
                 .orElseThrow(() -> new EntityNotFoundException(
-                		messageUtil.get("application.error.category.not-found", request.getCategories().getCategoryId())));
+                        messageUtil.get("application.error.category.not-found",
+                                request.getCategories().getCategoryId())));
 
         Levels levels = levelsRepository.findById(request.getLevels().getLevelId())
                 .orElseThrow(() -> new EntityNotFoundException(
-                		messageUtil.get("application.error.level.not-found", request.getLevels().getLevelId())));
+                        messageUtil.get("application.error.level.not-found", request.getLevels().getLevelId())));
 
         String imageFilename;
         try {
@@ -137,18 +138,22 @@ public class RecipesService {
         validationService.validate(request);
 
         Users modifiedByUser = usersRepository.findById(userId)
-                .orElseThrow(() -> new EntityNotFoundException(messageUtil.get("application.error.user.not-found", userId)));
+                .orElseThrow(
+                        () -> new EntityNotFoundException(messageUtil.get("application.error.user.not-found", userId)));
 
         Recipes existingRecipe = recipesRepository.findById(request.getRecipeId())
-                .orElseThrow(() -> new EntityNotFoundException(messageUtil.get("application.error.data-not-found", request.getRecipeId())));
+                .orElseThrow(() -> new EntityNotFoundException(
+                        messageUtil.get("application.error.data-not-found", request.getRecipeId())));
 
         Categories categories = categoriesRepository.findById(request.getCategories().getCategoryId())
                 .orElseThrow(() -> new EntityNotFoundException(
-                		messageUtil.get("application.error.category.not-found", request.getCategories().getCategoryId())));
-        				
+                        messageUtil.get("application.error.category.not-found",
+                                request.getCategories().getCategoryId())));
+
         Levels levels = levelsRepository.findById(request.getLevels().getLevelId())
-                .orElseThrow(() -> new EntityNotFoundException(messageUtil.get("application.error.level.not-found", request.getLevels().getLevelId())));
-        
+                .orElseThrow(() -> new EntityNotFoundException(
+                        messageUtil.get("application.error.level.not-found", request.getLevels().getLevelId())));
+
         Recipes existingUser = recipesRepository.findById(request.getRecipeId())
                 .orElseThrow(() -> new EntityNotFoundException(
                         messageUtil.get("application.error.data-not-found", request.getRecipeId())));
@@ -156,10 +161,11 @@ public class RecipesService {
         // Verifikasi bahwa userId sesuai dengan userId di resep
         if (existingUser.getUsers().getUserId() != userId) {
             // UserId tidak sesuai, kembalikan pesan kesalahan atau lempar pengecualian
-            return new MessageResponse(messageUtil.get("application.error.recipe.access-forbidden"), HttpStatus.FORBIDDEN.value(),
+            return new MessageResponse(messageUtil.get("application.error.recipe.access-forbidden"),
+                    HttpStatus.FORBIDDEN.value(),
                     HttpStatus.FORBIDDEN.getReasonPhrase());
         }
-        
+
         existingRecipe.setCategories(categories);
         existingRecipe.setLevels(levels);
         existingRecipe.setRecipeName(request.getRecipeName());
@@ -179,7 +185,7 @@ public class RecipesService {
                 throw new MinioUploadException(errorMessage, e);
             }
         }
-        
+
         recipesRepository.save(existingRecipe);
 
         String responseMessage = messageUtil.get("application.success.update.resep", request.getRecipeName());
@@ -196,32 +202,32 @@ public class RecipesService {
         Specification<Recipes> recipeSpec = RecipeSpesification.recipeFilter(myRecipesDTO);
 
         Page<Recipes> recipes = recipesRepository.findAll(recipeSpec, page);
-            
-        if(recipes.isEmpty()) {
-        	throw new DataNotFoundException(messageUtil.get("application.error.data-not-found"));
+
+        if (recipes.isEmpty()) {
+            throw new DataNotFoundException(messageUtil.get("application.error.data-not-found"));
         } else {
             long totalData = recipesRepository.count(recipeSpec);
             List<MyRecipeResDTO> response = recipes.stream().map(recipe -> new MyRecipeResDTO(
-                            recipe.getRecipeId(),
-                            new MyRecipeCategoriesDTO(recipe.getCategories().getCategoryId(),
-                                    recipe.getCategories().getCategoryName()),
-                            new MyRecipesLevelsDTO(recipe.getLevels().getLevelId(), recipe.getLevels().getLevelName()),
-                            recipe.getRecipeName(),
-                            getImageURL(recipe.getImageFilename()),
-                            recipe.getTimeCook(),
-                            getFavFood(recipe.getRecipeId(), recipe.getUsers().getUserId())))
+                    recipe.getRecipeId(),
+                    new MyRecipeCategoriesDTO(recipe.getCategories().getCategoryId(),
+                            recipe.getCategories().getCategoryName()),
+                    new MyRecipesLevelsDTO(recipe.getLevels().getLevelId(), recipe.getLevels().getLevelName()),
+                    recipe.getRecipeName(),
+                    getImageURL(recipe.getImageFilename()),
+                    recipe.getTimeCook(),
+                    getFavFood(recipe.getRecipeId(), recipe.getUsers().getUserId())))
                     .collect(Collectors.toList());
-            
+
             ResponseBodyDTO responseBody = ResponseBodyDTO.builder()
-            		.total(totalData)
-            		.data(response)
-            		.message(messageUtil.get("application.success.load", "Resep Saya"))
-            		.statusCode(HttpStatus.OK.value())
-            		.status(HttpStatus.OK.name())
-            		.build();
+                    .total(totalData)
+                    .data(response)
+                    .message(messageUtil.get("application.success.load", "Resep Saya"))
+                    .statusCode(HttpStatus.OK.value())
+                    .status(HttpStatus.OK.name())
+                    .build();
 
             return new ResponseEntity<>(responseBody, HttpStatus.OK);
-       }
+        }
 
     }
 
@@ -246,46 +252,48 @@ public class RecipesService {
     }
 
     public ResponseEntity<Object> deleteResepSaya(int recipeId, int userId) {
-    	Recipes resepSaya = recipesRepository.findByMyRecipe(recipeId, userId).orElseThrow(() -> new DataNotFoundException(messageUtil.get("application.error.not-found.resep-saya")));
-    	
+        Recipes resepSaya = recipesRepository.findByMyRecipe(recipeId, userId).orElseThrow(
+                () -> new DataNotFoundException(messageUtil.get("application.error.not-found.resep-saya")));
+
         String message = "";
         Integer jumlahResepDihapus = 0;
 
-        if(resepSaya.getIsDeleted()) {
-        	throw new AlreadyDeletedException(messageUtil.get("application.error.already-deleted.resep", resepSaya.getRecipeName()));
+        if (resepSaya.getIsDeleted()) {
+            throw new AlreadyDeletedException(
+                    messageUtil.get("application.error.already-deleted.resep", resepSaya.getRecipeName()));
         } else {
-        	jumlahResepDihapus = 1;
+            jumlahResepDihapus = 1;
             resepSaya.setIsDeleted(true);
             recipesRepository.save(resepSaya);
             message = messageUtil.get("application.success.delete.resep", resepSaya.getRecipeName());
         }
-        
+
         ResponseBodyDTO responseBody = ResponseBodyDTO.builder()
-        		.total(jumlahResepDihapus)
-        		.message(message)
-        		.statusCode(HttpStatus.OK.value())
-        		.status(HttpStatus.OK.name())
-        		.build();
+                .total(jumlahResepDihapus)
+                .message(message)
+                .statusCode(HttpStatus.OK.value())
+                .status(HttpStatus.OK.name())
+                .build();
 
         return new ResponseEntity<>(responseBody, HttpStatus.OK);
     }
 
     public Object getDataByIdWithFilterAndSort(RecipeFilterDTO filter, Pageable page) {
         try {
-        	Sort sort = page.getSort();
-        	List<Sort.Order> orders = new ArrayList<>();
+            Sort sort = page.getSort();
+            List<Sort.Order> orders = new ArrayList<>();
 
-        	sort.forEach(order -> {
-        	    String property = order.getProperty();
-        	    String prefixedProperty = "recipes." + property;  // Add your prefix here
-        	    Sort.Order newOrder = new Sort.Order(order.getDirection(), prefixedProperty);
-        	    orders.add(newOrder);
-        	});
+            sort.forEach(order -> {
+                String property = order.getProperty();
+                String prefixedProperty = "recipes." + property; // Add your prefix here
+                Sort.Order newOrder = new Sort.Order(order.getDirection(), prefixedProperty);
+                orders.add(newOrder);
+            });
 
-        	Sort newSort = Sort.by(orders);
-        	
-        	PageRequest request = PageRequest.of(page.getPageNumber(), page.getPageSize(), newSort);
-        	
+            Sort newSort = Sort.by(orders);
+
+            PageRequest request = PageRequest.of(page.getPageNumber(), page.getPageSize(), newSort);
+
             Specification<FavoriteFoods> recipeSpec = FavoriteFoodSpesification.recipesSpecification(filter);
             Page<FavoriteFoods> favoriteFoods = favoriteRepo.findAll(recipeSpec, request);
 
@@ -319,9 +327,6 @@ public class RecipesService {
         // Default throw if none of the conditions are met
         throw new UnknownAuthenticationException(messageUtil.get("application.error.unknown.principal.type.detail"));
     }
-
-
-
 
     private UserFav mapFavoriteFoodsToUserFav(FavoriteFoods favoriteFoods) {
         return Optional.ofNullable(favoriteFoods)
@@ -380,11 +385,12 @@ public class RecipesService {
 
             Optional<Recipes> recipeOptional = recipesRepository.findById(recipeId);
 
-            if (recipeOptional.isPresent()) {
+            // Check if the recipe exists and is not deleted (Sandy)
+            if (recipeOptional.isPresent() && recipeOptional.get().getIsDeleted() == false) {
                 Recipes recipe = recipeOptional.get();
                 RecipesDTO recipesDTO = modelMapper.map(recipe, RecipesDTO.class);
                 RecipesDTO dataRecipe = new RecipesDTO();
-                
+
                 dataRecipe.setRecipeId(recipesDTO.getRecipeId());
 
                 CategoriesDTO categoriesDTO = recipesDTO.getCategories();

@@ -13,13 +13,15 @@ public class FavoriteFoodSpesification {
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<Predicate>();
 
-            predicates.add( criteriaBuilder.equal(root.get("id").get("userId"), myRecipeDTO.getUserId()));
-            predicates.add( criteriaBuilder.equal(root.get("isFavorite"), true));
-            predicates.add( criteriaBuilder.equal(root.get("recipes").get("isDeleted"), false));
+            predicates.add(criteriaBuilder.equal(root.get("id").get("userId"), myRecipeDTO.getUserId()));
+            predicates.add(criteriaBuilder.equal(root.get("isFavorite"), true));
+            predicates.add(criteriaBuilder.equal(root.get("recipes").get("isDeleted"), false));
 
+            // Enhance search to accept case insensitive (Sandy)
             if (myRecipeDTO.getRecipeName() != null) {
-                String recipeNameValue = "%" + myRecipeDTO.getRecipeName() + "%";
-                Predicate recipeNamePredicates = criteriaBuilder.like(root.get("recipes").get("recipeName"), recipeNameValue);
+                String recipeNameValue = "%" + myRecipeDTO.getRecipeName().toLowerCase() + "%";
+                Predicate recipeNamePredicates = criteriaBuilder.like(
+                        criteriaBuilder.lower(root.get("recipes").get("recipeName")), recipeNameValue);
                 predicates.add(recipeNamePredicates);
             }
 
@@ -33,10 +35,10 @@ public class FavoriteFoodSpesification {
                         myRecipeDTO.getCategoryId()));
             }
 
-            if(myRecipeDTO.getTime() != null) {
-                if(myRecipeDTO.getTime() <= 30) {
+            if (myRecipeDTO.getTime() != null) {
+                if (myRecipeDTO.getTime() <= 30) {
                     predicates.add(criteriaBuilder.between(root.get("recipes").get("timeCook"), 0, 30));
-                } else if(myRecipeDTO.getTime() > 30 && myRecipeDTO.getTime() <= 60) {
+                } else if (myRecipeDTO.getTime() > 30 && myRecipeDTO.getTime() <= 60) {
                     predicates.add(criteriaBuilder.between(root.get("recipes").get("timeCook"), 31, 60));
                 } else {
                     predicates.add(criteriaBuilder.greaterThan(root.get("recipes").get("timeCook"), 60));

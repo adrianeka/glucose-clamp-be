@@ -6,7 +6,7 @@
 
 * Java 17
 * Springboot 3.1.7
-* Maven 3.5.0
+* Maven 3.5.0 dan dibawah 4.0.0
 * PostgreSQL
 * Other dependencies such as JWT, Lombok, MinIO
 

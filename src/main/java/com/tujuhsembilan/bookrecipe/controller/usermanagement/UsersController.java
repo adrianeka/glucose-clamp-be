@@ -28,7 +28,7 @@ public class UsersController {
         return usersService.register(request);
     }
 
-    @PostMapping("/users/sign-in")
+    @PostMapping("/users/signin")
     public ResponseEntity<Object> signIn(@Valid @RequestBody LoginRequest loginRequest) {
         ApiDataResponseBuilder result = usersService.signIn(loginRequest);
 

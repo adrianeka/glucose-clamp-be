@@ -1,6 +1,6 @@
 # About The Project
 
-## Book Recipe - Studi Kasus Multi Teknologi
+## Glucose Clamp - Backend
 
 ### Built With
 
@@ -8,14 +8,14 @@
 * Springboot 3.1.7
 * Maven 3.5.0 dan dibawah 4.0.0
 * PostgreSQL
-* Other dependencies such as JWT, Lombok, MinIO
+* Other dependencies such as JWT, Lombok
 
 <!-- GETTING STARTED -->
 ### Getting Started
 
 1. Clone the repo
    ```sh
-   git clone https://gitlab.cloudias79.com/internal-apps/multi-tech-case-study/book-recipe/book-recipe-be.git
+   git clone https://github.com/adrianeka/glucose-clamp-be.git
    ```
 2. Install Maven packages
    ```sh
@@ -32,8 +32,8 @@
 
 <!-- SWAGGER -->
 ### Swagger
-- Swagger UI : `{url}/api/bookrecipe-documentation`
-- Swagger Docs : `{url}/api/bookrecipe-api-docs`
+- Swagger UI : `{url}/api/glucoseclamp-documentation`
+- Swagger Docs : `{url}/api/glucoseclamp-api-docs`
 
 <!-- HEALTH CHECK -->
 ### Health Check

@@ -13,10 +13,10 @@
         <property name="hibernate.hbm2ddl.auto">none</property>
         <property name="hibernate.search.autoregister_listeners">true</property>
         <property name="hibernate.validator.apply_to_ddl">false</property>
-        <mapping class="com.tujuhsembilan.bookrecipe.newmodel.Levels"/>
-        <mapping class="com.tujuhsembilan.bookrecipe.newmodel.FavoriteFoods"/>
-        <mapping class="com.tujuhsembilan.bookrecipe.newmodel.Recipes"/>
-        <mapping class="com.tujuhsembilan.bookrecipe.newmodel.Users"/>
-        <mapping class="com.tujuhsembilan.bookrecipe.newmodel.Categories"/>
+        <mapping class="com.tujuhsembilan.glucoseclamp.newmodel.Levels"/>
+        <mapping class="com.tujuhsembilan.glucoseclamp.newmodel.FavoriteFoods"/>
+        <mapping class="com.tujuhsembilan.glucoseclamp.newmodel.Recipes"/>
+        <mapping class="com.tujuhsembilan.glucoseclamp.newmodel.Users"/>
+        <mapping class="com.tujuhsembilan.glucoseclamp.newmodel.Categories"/>
     </session-factory>
 </hibernate-configuration>

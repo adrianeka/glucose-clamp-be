@@ -7,20 +7,22 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-import com.tujuhsembilan.glucoseclamp.model.Users;
-import com.tujuhsembilan.glucoseclamp.repository.UsersRepository;
+import com.tujuhsembilan.glucoseclamp.model.User;
+import com.tujuhsembilan.glucoseclamp.repository.UserRepository;
 
 @Service
 public class UserDetailsServiceImplement implements UserDetailsService {
+    
     @Autowired
-    UsersRepository usersRepository;
+    UserRepository usersRepository;
 
     @Override
     @Transactional
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        Users user = usersRepository.findByUsername(username).get();
+        // UPDATE: Menggunakan orElseThrow agar lebih aman jika user tidak ditemukan di database
+        User user = usersRepository.findByUsernameAndDeletedAtIsNull(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User Not Found with username: " + username));
+                
         return UserDetailsImplement.build(user);
     }
-
-
 }

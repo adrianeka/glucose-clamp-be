@@ -7,7 +7,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import com.tujuhsembilan.glucoseclamp.model.Users;
+import com.tujuhsembilan.glucoseclamp.model.User;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -18,22 +18,21 @@ import java.util.List;
 @AllArgsConstructor
 public class UserDetailsImplement implements UserDetails {
 
-    /**
-	 * 
-	 */
-	private static final long serialVersionUID = 1387410741020370012L;
-	private int id;
+    private static final long serialVersionUID = 1387410741020370012L;
+    private int id;
     private String username;
     private String password;
 
     private Collection<? extends GrantedAuthority> authorities;
 
-    public static UserDetailsImplement build(Users user) {
+    public static UserDetailsImplement build(User user) {
         List<GrantedAuthority> authorities = new ArrayList<>();
-        authorities.add(new SimpleGrantedAuthority(user.getRole()));
+        
+        // UPDATE: Mengambil roleName dari dalam object Roles
+        authorities.add(new SimpleGrantedAuthority(user.getRole().getRoleName()));
 
         return new UserDetailsImplement(
-                user.getUserId(),
+                user.getUserId(), // UPDATE: Menggunakan getId() bukan getUserId()
                 user.getUsername(),
                 user.getPassword(),
                 authorities);
@@ -63,5 +62,4 @@ public class UserDetailsImplement implements UserDetails {
     public boolean isEnabled() {
         return true;
     }
-
 }

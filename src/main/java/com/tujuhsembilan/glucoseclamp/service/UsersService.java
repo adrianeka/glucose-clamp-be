@@ -21,8 +21,10 @@ import com.tujuhsembilan.glucoseclamp.dto.request.RegisterRequest;
 import com.tujuhsembilan.glucoseclamp.dto.response.ApiDataResponseBuilder;
 import com.tujuhsembilan.glucoseclamp.dto.response.JwtResponse;
 import com.tujuhsembilan.glucoseclamp.dto.response.MessageResponse;
-import com.tujuhsembilan.glucoseclamp.model.Users;
-import com.tujuhsembilan.glucoseclamp.repository.UsersRepository;
+import com.tujuhsembilan.glucoseclamp.model.Role;
+import com.tujuhsembilan.glucoseclamp.model.User;
+import com.tujuhsembilan.glucoseclamp.repository.RoleRepository;
+import com.tujuhsembilan.glucoseclamp.repository.UserRepository;
 import com.tujuhsembilan.glucoseclamp.security.jwt.JwtUtils;
 import com.tujuhsembilan.glucoseclamp.security.service.UserDetailsImplement;
 
@@ -34,7 +36,10 @@ import java.util.Set;
 public class UsersService {
 
     @Autowired
-    private UsersRepository userRepository;
+    private UserRepository userRepository;
+
+    @Autowired
+    private RoleRepository rolesRepository;
 
     @Autowired
     private Validator validator;
@@ -43,13 +48,13 @@ public class UsersService {
     private MessageUtil messageUtil;
 
     @Autowired
-    AuthenticationManager authenticationManager;
+    private AuthenticationManager authenticationManager;
 
     @Autowired
-    PasswordEncoder encoder;
+    private PasswordEncoder encoder;
 
     @Autowired
-    JwtUtils jwtUtils;
+    private JwtUtils jwtUtils;
 
     final HttpStatus statusOK = HttpStatus.OK;
 
@@ -62,8 +67,6 @@ public class UsersService {
             String errorMessage = firstViolation.getMessage();
             return new MessageResponse(errorMessage, HttpStatus.BAD_REQUEST.value(), "ERROR");
         }
-
-        log.info("Received registration request: {}", request);
 
         if (userRepository.existsByUsername(request.getUsername())) {
             String errorMessage = messageUtil.get("application.error.already-exist.user");
@@ -80,21 +83,21 @@ public class UsersService {
             return new MessageResponse(errorMessage, HttpStatus.BAD_REQUEST.value(), "ERROR");
         }
 
-        Users user = Users.builder()
+        // Mencari entitas Role default dari master data database
+        Role defaultRole = rolesRepository.findByRoleNameAndDeletedAtIsNull("Operator_Analyzer")
+                .orElseThrow(() -> new RuntimeException("Default Role tidak ditemukan di database."));
+
+        User user = User.builder()
                 .username(request.getUsername())
-                .fullname(request.getFullname())
+                .name(request.getFullname())
                 .password(BCrypt.hashpw(request.getPassword(), BCrypt.gensalt()))
-                .role("User")
-                .isDeleted(false)
+                .role(defaultRole) // Memasukkan entitas Roles, bukan String lagi
                 .build();
 
         userRepository.save(user);
 
-        log.info("Received user: {}", user);
-
         String successMessage = messageUtil.get("application.success.add.user", request.getUsername());
         return new MessageResponse(successMessage, HttpStatus.OK.value(), "OK");
-
     }
 
     public ApiDataResponseBuilder signIn(LoginRequest loginRequest) {

@@ -12,8 +12,8 @@ import java.time.LocalDate;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(exclude = {"patient", "session", "assignedByUser"}, callSuper = true)
-@ToString(exclude = {"patient", "session", "assignedByUser"})
+@EqualsAndHashCode(exclude = {"session", "assignedByUser"}, callSuper = true)
+@ToString(exclude = {"session", "assignedByUser"})
 @Builder
 public class Anamnesis extends BaseEntity {
     
@@ -22,10 +22,6 @@ public class Anamnesis extends BaseEntity {
     @SequenceGenerator(name = "anamnesis_id_seq", sequenceName = "anamnesis_id_seq", allocationSize = 1)
     @Column(name = "anamnesis_id")
     private Integer anamnesisId;
-    
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "patient_id", nullable = false)
-    private Patient patient;
     
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "session_id", nullable = false, unique = true)

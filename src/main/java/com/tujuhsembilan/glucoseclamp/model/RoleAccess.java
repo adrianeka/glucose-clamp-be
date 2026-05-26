@@ -25,18 +25,22 @@ public class RoleAccess extends BaseEntity {
     private Role role;
     
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "access_menu_id", nullable = false)
+    @JoinColumn(name = "menu_id", nullable = false)
     private AccessMenu accessMenu;
     
+    @Builder.Default
     @Column(name = "can_view")
     private Boolean canView = false;
     
+    @Builder.Default
     @Column(name = "can_add")
     private Boolean canAdd = false;
     
+    @Builder.Default
     @Column(name = "can_edit")
     private Boolean canEdit = false;
     
+    @Builder.Default
     @Column(name = "can_delete")
     private Boolean canDelete = false;
 }

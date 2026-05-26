@@ -11,8 +11,8 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(exclude = {"sessions", "anthropometries", "anamneses"}, callSuper = true)
-@ToString(exclude = {"sessions", "anthropometries", "anamneses"})
+@EqualsAndHashCode(exclude = {"sessions", "anamneses"}, callSuper = true)
+@ToString(exclude = {"sessions", "anamneses"})
 @Builder
 public class Patient extends BaseEntity {
     
@@ -40,10 +40,4 @@ public class Patient extends BaseEntity {
     
     @OneToMany(mappedBy = "patient")
     private List<Session> sessions;
-    
-    @OneToMany(mappedBy = "patient")
-    private List<Anthropometry> anthropometries;
-    
-    @OneToMany(mappedBy = "patient")
-    private List<Anamnesis> anamneses;
 }

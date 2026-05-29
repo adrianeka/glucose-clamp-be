@@ -1,6 +1,7 @@
 package com.tujuhsembilan.glucoseclamp.model;
 
 import com.tujuhsembilan.glucoseclamp.model.base.BaseEntity;
+import com.tujuhsembilan.glucoseclamp.model.base.ActivityStatus;
 import lombok.*;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
@@ -38,7 +39,8 @@ public class Activity extends BaseEntity {
     private String activityDesc;
     
     @Column(name = "activity_status", length = 50)
-    private String activityStatus;
+    @Enumerated(EnumType.STRING)
+    private ActivityStatus activityStatus;
     
     @OneToMany(mappedBy = "activity")
     private List<BloodSample> bloodSamples;

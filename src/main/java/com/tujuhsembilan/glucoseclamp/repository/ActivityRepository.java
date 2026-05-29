@@ -17,4 +17,6 @@ public interface ActivityRepository extends JpaRepository<Activity, String> {
     List<Activity> findBySessionIdAndDeletedAtIsNull(Integer sessionId);
     @Query("SELECT a FROM Activity a WHERE a.actor.userId = ?1 AND a.deletedAt IS NULL")
     List<Activity> findByActorIdAndDeletedAtIsNull(Integer actorId);
+
+    Optional<Activity> findTopByDeletedAtIsNullOrderByActivityIdDesc();
 }

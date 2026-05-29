@@ -1,6 +1,7 @@
 package com.tujuhsembilan.glucoseclamp.model;
 
 import com.tujuhsembilan.glucoseclamp.model.base.BaseEntity;
+import com.tujuhsembilan.glucoseclamp.model.base.SessionStatus;
 import lombok.*;
 import jakarta.persistence.*;
 import java.time.LocalDate;
@@ -43,8 +44,9 @@ public class Session extends BaseEntity {
     @Column(name = "fasting_hour")
     private Integer fastingHour;
     
+    @Enumerated(EnumType.STRING)
     @Column(name = "session_status", length = 50)
-    private String sessionStatus;
+    private SessionStatus sessionStatus;
     
     @OneToMany(mappedBy = "session")
     private List<SessionDevice> sessionDevices;

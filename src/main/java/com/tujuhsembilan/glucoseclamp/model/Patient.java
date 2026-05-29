@@ -11,8 +11,8 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(exclude = {"sessions", "anamneses"}, callSuper = true)
-@ToString(exclude = {"sessions", "anamneses"})
+@EqualsAndHashCode(exclude = {"sessions"}, callSuper = true)
+@ToString(exclude = {"sessions"})
 @Builder
 public class Patient extends BaseEntity {
     

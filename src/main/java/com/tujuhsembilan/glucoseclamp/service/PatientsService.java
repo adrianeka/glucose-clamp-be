@@ -3,12 +3,14 @@ package com.tujuhsembilan.glucoseclamp.service;
 import com.tujuhsembilan.glucoseclamp.dto.request.PatientRequest;
 import com.tujuhsembilan.glucoseclamp.dto.request.PatientUpdateRequest;
 import com.tujuhsembilan.glucoseclamp.dto.response.ApiDataResponseBuilder;
+import com.tujuhsembilan.glucoseclamp.dto.response.PatientResponse;
 import com.tujuhsembilan.glucoseclamp.dto.request.PatientStatusUpdateRequest;
 import com.tujuhsembilan.glucoseclamp.model.Patient;
 import com.tujuhsembilan.glucoseclamp.model.base.EntityStatus;
 import com.tujuhsembilan.glucoseclamp.repository.PatientRepository;
 import com.tujuhsembilan.glucoseclamp.security.service.UserDetailsImplement;
 import lombok.extern.slf4j.Slf4j;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -29,6 +31,9 @@ public class PatientsService {
 
     @Autowired
     private PatientRepository patientRepository;
+
+    @Autowired
+    private ModelMapper modelMapper;
 
     private Integer getCurrentUserId() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -58,7 +63,7 @@ public class PatientsService {
 
     public ApiDataResponseBuilder getAllPatients(int pageNumber, int pageSize) {
         Pageable pageable = PageRequest.of(pageNumber - 1, pageSize);
-        Page<Patient> result = patientRepository.findAllActive(pageable);
+        Page<PatientResponse> result = patientRepository.findAllActive(pageable).map(this::mapToResponse);
 
         return ApiDataResponseBuilder.builder()
                 .data(result)
@@ -80,7 +85,7 @@ public class PatientsService {
         }
 
         return ApiDataResponseBuilder.builder()
-                .data(patient)
+            .data(mapToResponse(patient))
                 .message("Berhasil mendapatkan data pasien")
                 .statusCode(HttpStatus.OK.value())
                 .status(HttpStatus.OK)
@@ -122,7 +127,7 @@ public class PatientsService {
         log.info("Patient berhasil ditambahkan: {} oleh user {}", patient.getPatientId(), currentUserId);
 
         return ApiDataResponseBuilder.builder()
-                .data(patient)
+        .data(mapToResponse(patient))
                 .message("Pasien berhasil ditambahkan")
                 .statusCode(HttpStatus.OK.value())
                 .status(HttpStatus.OK)
@@ -154,7 +159,7 @@ public class PatientsService {
         patientRepository.save(patient);
 
         return ApiDataResponseBuilder.builder()
-                .data(patient)
+        .data(mapToResponse(patient))
                 .message("Data pasien berhasil diupdate")
                 .statusCode(HttpStatus.OK.value())
                 .status(HttpStatus.OK)
@@ -190,7 +195,7 @@ public class PatientsService {
         patientRepository.save(patient);
 
         return ApiDataResponseBuilder.builder()
-                .data(patient)
+            .data(mapToResponse(patient))
                 .message("Status pasien berhasil diupdate")
                 .statusCode(HttpStatus.OK.value())
                 .status(HttpStatus.OK)
@@ -219,10 +224,19 @@ public class PatientsService {
         log.info("Patient {} berhasil dihapus (soft delete) oleh user {}", patientId, currentUserId);
 
         return ApiDataResponseBuilder.builder()
+                .data(mapToResponse(patient))
                 .message("Pasien berhasil dihapus")
                 .statusCode(HttpStatus.OK.value())
                 .status(HttpStatus.OK)
                 .build();
+    }
+
+    private PatientResponse mapToResponse(Patient patient) {
+        PatientResponse response = modelMapper.map(patient, PatientResponse.class);
+        response.setStatus(patient.getStatus() == null ? null : patient.getStatus().name());
+        response.setCreatedAt(patient.getCreatedAt() == null ? null : patient.getCreatedAt().toString());
+        response.setUpdatedAt(patient.getUpdatedAt() == null ? null : patient.getUpdatedAt().toString());
+        return response;
     }
 }
 

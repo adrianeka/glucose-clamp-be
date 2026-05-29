@@ -4,11 +4,13 @@ import com.tujuhsembilan.glucoseclamp.dto.request.DeviceRequest;
 import com.tujuhsembilan.glucoseclamp.dto.request.DeviceStatusUpdateRequest;
 import com.tujuhsembilan.glucoseclamp.dto.request.DeviceUpdateRequest;
 import com.tujuhsembilan.glucoseclamp.dto.response.ApiDataResponseBuilder;
+import com.tujuhsembilan.glucoseclamp.dto.response.DeviceResponse;
 import com.tujuhsembilan.glucoseclamp.model.Device;
 import com.tujuhsembilan.glucoseclamp.model.base.EntityStatus;
 import com.tujuhsembilan.glucoseclamp.repository.DeviceRepository;
 import com.tujuhsembilan.glucoseclamp.security.service.UserDetailsImplement;
 import lombok.extern.slf4j.Slf4j;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -31,6 +33,9 @@ public class DevicesService {
     @Autowired
     private DeviceRepository deviceRepository;
 
+    @Autowired
+    private ModelMapper modelMapper;
+
     private Integer getCurrentUserId() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserDetailsImplement userDetails = (UserDetailsImplement) authentication.getPrincipal();
@@ -39,7 +44,7 @@ public class DevicesService {
 
     public ApiDataResponseBuilder getAllDevices(int pageNumber, int pageSize) {
         Pageable pageable = PageRequest.of(pageNumber - 1, pageSize);
-        Page<Device> result = deviceRepository.findAllActive(pageable);
+        Page<DeviceResponse> result = deviceRepository.findAllActive(pageable).map(this::mapToResponse);
 
         return ApiDataResponseBuilder.builder()
                 .data(result)
@@ -61,7 +66,7 @@ public class DevicesService {
         }
 
         return ApiDataResponseBuilder.builder()
-                .data(device)
+            .data(mapToResponse(device))
                 .message("Berhasil mendapatkan data perangkat")
                 .statusCode(HttpStatus.OK.value())
                 .status(HttpStatus.OK)
@@ -104,7 +109,7 @@ public class DevicesService {
         log.info("Device berhasil ditambahkan: {} oleh user {}", device.getDeviceId(), currentUserId);
 
         return ApiDataResponseBuilder.builder()
-                .data(device)
+        .data(mapToResponse(device))
                 .message("Perangkat berhasil ditambahkan")
                 .statusCode(HttpStatus.CREATED.value())
                 .status(HttpStatus.CREATED)
@@ -138,7 +143,7 @@ public class DevicesService {
         deviceRepository.save(device);
 
         return ApiDataResponseBuilder.builder()
-                .data(device)
+        .data(mapToResponse(device))
                 .message("Perangkat berhasil diupdate")
                 .statusCode(HttpStatus.OK.value())
                 .status(HttpStatus.OK)
@@ -167,6 +172,7 @@ public class DevicesService {
         log.info("Device {} berhasil dihapus (soft) oleh user {}", id, currentUserId);
 
         return ApiDataResponseBuilder.builder()
+            .data(mapToResponse(device))
                 .message("Perangkat berhasil dihapus")
                 .statusCode(HttpStatus.OK.value())
                 .status(HttpStatus.OK)
@@ -202,7 +208,7 @@ public class DevicesService {
         deviceRepository.save(device);
 
         return ApiDataResponseBuilder.builder()
-                .data(device)
+                .data(mapToResponse(device))
                 .message("Status perangkat berhasil diupdate")
                 .statusCode(HttpStatus.OK.value())
                 .status(HttpStatus.OK)
@@ -210,7 +216,9 @@ public class DevicesService {
     }
 
     public ApiDataResponseBuilder searchDevices(String keyword) {
-        List<Device> result = deviceRepository.searchByKeyword(keyword == null ? "" : keyword);
+        List<DeviceResponse> result = deviceRepository.searchByKeyword(keyword == null ? "" : keyword).stream()
+                .map(this::mapToResponse)
+                .toList();
 
         return ApiDataResponseBuilder.builder()
                 .data(result)
@@ -218,5 +226,11 @@ public class DevicesService {
                 .statusCode(HttpStatus.OK.value())
                 .status(HttpStatus.OK)
                 .build();
+    }
+
+    private DeviceResponse mapToResponse(Device device) {
+        DeviceResponse response = modelMapper.map(device, DeviceResponse.class);
+        response.setStatus(device.getStatus() == null ? null : device.getStatus().name());
+        return response;
     }
 }

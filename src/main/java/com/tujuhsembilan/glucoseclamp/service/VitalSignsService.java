@@ -12,6 +12,7 @@ import com.tujuhsembilan.glucoseclamp.repository.UserRepository;
 import com.tujuhsembilan.glucoseclamp.repository.VitalSignRepository;
 import com.tujuhsembilan.glucoseclamp.security.service.UserDetailsImplement;
 import lombok.extern.slf4j.Slf4j;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -44,6 +45,9 @@ public class VitalSignsService {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private ModelMapper modelMapper;
+
     private Integer getCurrentUserId() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserDetailsImplement userDetails = (UserDetailsImplement) authentication.getPrincipal();
@@ -52,21 +56,10 @@ public class VitalSignsService {
 
     public ApiDataResponseBuilder getAllVitalSigns(int pageNumber, int pageSize) {
         Pageable pageable = PageRequest.of(Math.max(0, pageNumber - 1), pageSize);
-        Page<VitalSign> result = vitalSignRepository.findAllActive(pageable);
-
-        List<VitalSignResponse> content = result.getContent().stream()
-                .map(this::mapToResponse)
-                .collect(Collectors.toList());
-
-        Map<String, Object> pageData = new HashMap<>();
-        pageData.put("content", content);
-        pageData.put("pageNumber", result.getNumber() + 1);
-        pageData.put("pageSize", result.getSize());
-        pageData.put("totalElements", result.getTotalElements());
-        pageData.put("totalPages", result.getTotalPages());
+        Page<VitalSignResponse> result = vitalSignRepository.findAllActive(pageable).map(this::mapToResponse);
 
         return ApiDataResponseBuilder.builder()
-            .data(pageData)
+            .data(result)
                 .message("Berhasil mendapatkan data tanda vital")
                 .statusCode(HttpStatus.OK.value())
                 .status(HttpStatus.OK)
@@ -202,6 +195,7 @@ public class VitalSignsService {
         log.info("VitalSign {} berhasil dihapus (soft) oleh user {}", id, currentUser);
 
         return ApiDataResponseBuilder.builder()
+            .data(mapToResponse(vital))
             .message("Vital sign berhasil dihapus")
             .statusCode(HttpStatus.OK.value())
             .status(HttpStatus.OK)
@@ -278,24 +272,24 @@ public class VitalSignsService {
     }
 
     private VitalSignResponse mapToResponse(VitalSign vital) {
-        return VitalSignResponse.builder()
-                .vitalId(vital.getVitalId())
-                .sessionId(vital.getSession() == null ? null : vital.getSession().getSessionId())
-                .measuredAt(vital.getMeasuredAt())
-                .systolic(vital.getSystolic())
-                .diastolic(vital.getDiastolic())
-                .pulse(vital.getPulse())
-                .respiratoryRate(vital.getRespiratoryRate())
-                .temperatureC(vital.getTemperatureC())
-                .spo2(vital.getSpo2())
-                .assignedBy(vital.getAssignedByUser() == null ? null : vital.getAssignedByUser().getUserId())
-                .createdAt(vital.getCreatedAt())
-                .createdBy(vital.getCreatedBy())
-                .updatedAt(vital.getUpdatedAt())
-                .updatedBy(vital.getUpdatedBy())
-                .deletedAt(vital.getDeletedAt())
-                .deletedBy(vital.getDeletedBy())
-                .status(vital.getStatus())
-                .build();
+        // 1. Simpan konfigurasi matching strategy bawaan aplikasi Anda dulu
+        var isiStrategyLama = modelMapper.getConfiguration().getMatchingStrategy();
+        
+        // 2. Paksa ModelMapper menggunakan mode STRICT agar tidak menebak field asal-asalan
+        modelMapper.getConfiguration().setMatchingStrategy(org.modelmapper.convention.MatchingStrategies.STRICT);
+
+        try {
+            // 3. Lakukan mapping otomatis untuk field yang aman (systolic, diastolic, pulse, dll)
+            VitalSignResponse response = modelMapper.map(vital, VitalSignResponse.class);
+            
+            // 4. Petakan secara manual field relasi yang ambigu secara eksplisit
+            response.setSessionId(vital.getSession() == null ? null : vital.getSession().getSessionId());
+            response.setAssignedBy(vital.getAssignedByUser() == null ? null : vital.getAssignedByUser().getUserId());
+            
+            return response;
+        } finally {
+            // 5. Kembalikan konfigurasi strategy ke semula agar tidak mengganggu service lain
+            modelMapper.getConfiguration().setMatchingStrategy(isiStrategyLama);
+        }
     }
 }

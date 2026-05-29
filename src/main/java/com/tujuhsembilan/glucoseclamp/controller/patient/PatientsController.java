@@ -40,6 +40,16 @@ public class PatientsController {
         return ResponseEntity.status(result.getStatus()).body(result);
     }
 
+    @GetMapping(path = "/search", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Object> searchPatientsByKeyword(
+            @RequestParam String keyword,
+            @RequestParam(defaultValue = "1") int pageNumber,
+            @RequestParam(defaultValue = "10") int pageSize
+    ) {
+        ApiDataResponseBuilder result = patientsService.searchPatientsByKeyword(keyword, pageNumber, pageSize);
+        return ResponseEntity.status(result.getStatus()).body(result);
+    }
+
     @GetMapping(path = "/{patientId}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Object> getPatientById(@PathVariable String patientId) {
         ApiDataResponseBuilder result = patientsService.getPatientById(patientId);

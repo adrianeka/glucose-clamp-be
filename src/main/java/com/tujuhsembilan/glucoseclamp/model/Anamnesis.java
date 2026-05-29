@@ -27,14 +27,14 @@ public class Anamnesis extends BaseEntity {
     @JoinColumn(name = "session_id", nullable = false, unique = true)
     private Session session;
     
-    @Column(name = "tanggal")
-    private LocalDate tanggal;
+    @Column(name = "date")
+    private LocalDate date;
     
-    @Column(name = "keluhan_utama", length = 500)
-    private String keluhanUtama;
+    @Column(name = "chief_complaint", length = 500)
+    private String chiefComplaint;
     
-    @Column(name = "riwayat_penyakit", length = 1000)
-    private String riwayatPenyakit;
+    @Column(name = "medical_history", length = 1000)
+    private String medicalHistory;
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "assigned_by")

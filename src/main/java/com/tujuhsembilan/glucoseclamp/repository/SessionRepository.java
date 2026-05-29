@@ -29,7 +29,7 @@ public interface SessionRepository extends JpaRepository<Session, Integer> {
                 s.endTime,
                 s.sessionStatus,
                 COALESCE((SELECT COUNT(a) FROM Activity a WHERE a.session = s AND a.deletedAt IS NULL), 0),
-                COALESCE((SELECT COUNT(a2) FROM Activity a2 WHERE a2.session = s AND a2.deletedAt IS NULL AND a2.activityStatus = com.tujuhsembilan.glucoseclamp.model.base.ActivityStatus.DONE), 0)
+                COALESCE((SELECT COUNT(a2) FROM Activity a2 WHERE a2.session = s AND a2.deletedAt IS NULL AND a2.activityStatus = com.tujuhsembilan.glucoseclamp.model.base.ActivityStatus.COMPLETED), 0)
             )
             FROM Session s
             JOIN s.patient p

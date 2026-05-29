@@ -103,6 +103,6 @@ public class SessionTrackingService {
     }
 
     private boolean isCompletedActivity(Activity activity) {
-                return activity != null && activity.getActivityStatus() == ActivityStatus.DONE;
+                return activity != null && activity.getActivityStatus() == ActivityStatus.COMPLETED;
     }
 }

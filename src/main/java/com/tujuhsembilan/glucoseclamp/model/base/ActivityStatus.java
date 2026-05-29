@@ -4,10 +4,9 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum ActivityStatus {
-    SCHEDULED,
+    INQUEUE,
     IN_PROGRESS,
-    DONE,
-    SKIPPED;
+    COMPLETED;
 
     @JsonValue
     public String getValue() {

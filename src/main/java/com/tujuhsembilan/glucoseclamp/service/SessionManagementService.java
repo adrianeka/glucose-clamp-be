@@ -302,7 +302,7 @@ public class SessionManagementService {
         activity.setTime(buildActivityTime(session.getStartTime(), scheduledMinute));
         activity.setActivityType(type);
         activity.setActivityDesc(activityDesc);
-        activity.setActivityStatus(ActivityStatus.SCHEDULED);
+        activity.setActivityStatus(ActivityStatus.INQUEUE);
         activity.setCreatedBy(actorId);
         activity.setUpdatedBy(actorId);
         return activity;

@@ -66,8 +66,12 @@ public class DevicesController {
     }
 
     @GetMapping(path = "/search", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Object> searchDevices(@RequestParam(required = false) String keyword) {
-        ApiDataResponseBuilder result = devicesService.searchDevices(keyword);
+    public ResponseEntity<Object> searchDevices(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(defaultValue = "1") int pageNumber,
+            @RequestParam(defaultValue = "10") int pageSize
+    ) {
+        ApiDataResponseBuilder result = devicesService.searchDevices(keyword, pageNumber, pageSize);
         return ResponseEntity.status(result.getStatus()).body(result);
     }
 }

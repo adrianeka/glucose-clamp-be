@@ -20,4 +20,7 @@ public interface VitalSignRepository extends JpaRepository<VitalSign, Integer> {
     Optional<VitalSign> findByIdAndDeletedAtIsNull(Integer vitalId);
     @Query("SELECT v FROM VitalSign v WHERE v.session.sessionId = ?1 AND v.deletedAt IS NULL")
     List<VitalSign> findBySessionIdAndDeletedAtIsNull(Integer sessionId);
+
+    @Query("SELECT v FROM VitalSign v WHERE v.deletedAt IS NULL AND (LOWER(CONCAT('', v.systolic)) LIKE LOWER(CONCAT('%', ?1, '%')) OR LOWER(CONCAT('', v.diastolic)) LIKE LOWER(CONCAT('%', ?1, '%')) OR LOWER(CONCAT('', v.pulse)) LIKE LOWER(CONCAT('%', ?1, '%'))) ")
+    Page<VitalSign> searchByKeyword(String keyword, Pageable pageable);
 }

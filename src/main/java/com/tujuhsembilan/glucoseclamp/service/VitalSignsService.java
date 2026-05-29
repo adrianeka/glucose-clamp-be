@@ -26,11 +26,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -238,33 +235,14 @@ public class VitalSignsService {
             .build();
     }
 
-    public ApiDataResponseBuilder searchVitalSigns(String keyword) {
-        List<VitalSign> all = vitalSignRepository.findAllActive();
-        if (keyword == null || keyword.isBlank()) {
-            List<VitalSignResponse> data = all.stream().map(this::mapToResponse).collect(Collectors.toList());
-            return ApiDataResponseBuilder.builder()
-                .data(data)
-                .message("Berhasil mencari tanda vital")
-                .statusCode(HttpStatus.OK.value())
-                .status(HttpStatus.OK)
-                .build();
-        }
-
-        String kw = keyword.toLowerCase();
-        List<VitalSign> filtered = all.stream().filter(v -> {
-            try {
-                return (v.getSystolic() != null && v.getSystolic().toString().contains(kw)) ||
-                        (v.getDiastolic() != null && v.getDiastolic().toString().contains(kw)) ||
-                        (v.getPulse() != null && v.getPulse().toString().contains(kw));
-            } catch (Exception ex) {
-                return false;
-            }
-        }).collect(Collectors.toList());
-
-        List<VitalSignResponse> data = filtered.stream().map(this::mapToResponse).collect(Collectors.toList());
+    public ApiDataResponseBuilder searchVitalSigns(String keyword, int pageNumber, int pageSize) {
+        Pageable pageable = PageRequest.of(Math.max(0, pageNumber - 1), pageSize);
+        Page<VitalSignResponse> result = (keyword == null || keyword.isBlank())
+                ? vitalSignRepository.findAllActive(pageable).map(this::mapToResponse)
+                : vitalSignRepository.searchByKeyword(keyword.trim(), pageable).map(this::mapToResponse);
 
         return ApiDataResponseBuilder.builder()
-                .data(data)
+                .data(result)
                 .message("Berhasil mencari tanda vital")
                 .statusCode(HttpStatus.OK.value())
                 .status(HttpStatus.OK)

@@ -216,9 +216,18 @@ public class DevicesService {
     }
 
     public ApiDataResponseBuilder searchDevices(String keyword) {
-        List<DeviceResponse> result = deviceRepository.searchByKeyword(keyword == null ? "" : keyword).stream()
-                .map(this::mapToResponse)
-                .toList();
+        return searchDevices(keyword, 1, 10);
+    }
+
+    public ApiDataResponseBuilder searchDevices(String keyword, int pageNumber, int pageSize) {
+        Pageable pageable = PageRequest.of(pageNumber - 1, pageSize);
+
+        Page<DeviceResponse> result;
+        if (keyword == null || keyword.isBlank()) {
+            result = deviceRepository.findAllActive(pageable).map(this::mapToResponse);
+        } else {
+            result = deviceRepository.searchByKeyword(keyword.trim(), pageable).map(this::mapToResponse);
+        }
 
         return ApiDataResponseBuilder.builder()
                 .data(result)

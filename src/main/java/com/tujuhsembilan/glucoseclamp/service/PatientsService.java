@@ -92,6 +92,28 @@ public class PatientsService {
                 .build();
     }
 
+    public ApiDataResponseBuilder searchPatientsByKeyword(String keyword, int pageNumber, int pageSize) {
+        if (keyword == null || keyword.trim().isEmpty()) {
+            return ApiDataResponseBuilder.builder()
+                .message("Keyword pencarian tidak boleh kosong")
+                .statusCode(HttpStatus.BAD_REQUEST.value())
+                .status(HttpStatus.BAD_REQUEST)
+                .build();
+        }
+
+        Pageable pageable = PageRequest.of(pageNumber - 1, pageSize);
+        Page<PatientResponse> result = patientRepository.searchByKeyword(keyword.trim(), pageable)
+            .map(this::mapToResponse);
+
+        return ApiDataResponseBuilder.builder()
+        .data(result)
+        .message("Berhasil mendapatkan data pasien")
+        .statusCode(HttpStatus.OK.value())
+        .status(HttpStatus.OK)
+        .build();
+    }
+            
+
     @Transactional
     public ApiDataResponseBuilder addPatient(PatientRequest request) {
         if (patientRepository.findByMedicalRecordNoAndDeletedAtIsNull(request.getMedicalRecordNo()).isPresent()) {

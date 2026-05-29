@@ -14,9 +14,9 @@ import lombok.NoArgsConstructor;
 @Builder
 public class ProtocolDetailRequest {
 
-    @JsonProperty("protocols_detail_id")
-    @NotBlank(message = "protocols_detail_id is required")
-    private String protocolsDetailId;
+    @JsonProperty("protocol_detail_id")
+    @NotBlank(message = "protocol_detail_id is required")
+    private String protocolDetailId;
 
     @JsonProperty("protocol_id")
     private String protocolId;

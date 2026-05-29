@@ -90,7 +90,7 @@ public class ProtocolDetailsService {
 
     @Transactional
     public ApiDataResponseBuilder addProtocolDetail(ProtocolDetailRequest request) {
-        if (protocolDetailRepository.findById(request.getProtocolsDetailId()).isPresent()) {
+        if (protocolDetailRepository.findById(request.getProtocolDetailId()).isPresent()) {
             return ApiDataResponseBuilder.builder()
                     .message("Protocol Detail ID sudah digunakan")
                     .statusCode(HttpStatus.BAD_REQUEST.value())
@@ -111,7 +111,7 @@ public class ProtocolDetailsService {
         LocalDateTime now = LocalDateTime.now();
 
         ProtocolDetail detail = ProtocolDetail.builder()
-                .protocolDetailId(request.getProtocolsDetailId())
+                .protocolDetailId(request.getProtocolDetailId())
                 .protocol(protocolOpt.get())
                 .phaseCode(request.getPhaseCode())
                 .timeInterval(request.getTimeInterval())
@@ -293,7 +293,7 @@ public class ProtocolDetailsService {
 
     public ProtocolDetailResponse mapToResponse(ProtocolDetail detail) {
         return ProtocolDetailResponse.builder()
-                .protocolsDetailId(detail.getProtocolDetailId())
+                .protocolDetailId(detail.getProtocolDetailId())
                 .protocolId(detail.getProtocol() != null ? detail.getProtocol().getProtocolId() : null)
                 .phaseCode(detail.getPhaseCode())
                 .timeInterval(detail.getTimeInterval())

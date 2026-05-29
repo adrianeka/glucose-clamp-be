@@ -100,12 +100,24 @@ public class ProtocolsService {
                     .build();
         }
 
-        if (protocolRepository.findByProtocolCodeAndDeletedAtIsNull(request.getProtocolCode()).isPresent()) {
+        if (protocolRepository.findByProtocolCode(request.getProtocolCode()).isPresent()) {
             return ApiDataResponseBuilder.builder()
                     .message("Protocol Code sudah digunakan")
                     .statusCode(HttpStatus.BAD_REQUEST.value())
                     .status(HttpStatus.BAD_REQUEST)
                     .build();
+        }
+
+        if (request.getProtocolDetails() != null) {
+            for (ProtocolDetailRequest detailReq : request.getProtocolDetails()) {
+                if (protocolDetailRepository.findById(detailReq.getProtocolDetailId()).isPresent()) {
+                    return ApiDataResponseBuilder.builder()
+                            .message("Protocol Detail ID " + detailReq.getProtocolDetailId() + " sudah digunakan")
+                            .statusCode(HttpStatus.BAD_REQUEST.value())
+                            .status(HttpStatus.BAD_REQUEST)
+                            .build();
+                }
+            }
         }
 
         Integer currentUserId = getCurrentUserId();
@@ -135,7 +147,7 @@ public class ProtocolsService {
         if (request.getProtocolDetails() != null) {
             for (ProtocolDetailRequest detailReq : request.getProtocolDetails()) {
                 ProtocolDetail detail = ProtocolDetail.builder()
-                        .protocolDetailId(detailReq.getProtocolsDetailId())
+                        .protocolDetailId(detailReq.getProtocolDetailId())
                         .protocol(protocol)
                         .phaseCode(detailReq.getPhaseCode())
                         .timeInterval(detailReq.getTimeInterval())
@@ -180,7 +192,7 @@ public class ProtocolsService {
         LocalDateTime now = LocalDateTime.now();
 
         if (request.getProtocolCode() != null && !request.getProtocolCode().equals(protocol.getProtocolCode())) {
-            if (protocolRepository.findByProtocolCodeAndDeletedAtIsNull(request.getProtocolCode()).isPresent()) {
+            if (protocolRepository.findByProtocolCode(request.getProtocolCode()).isPresent()) {
                 return ApiDataResponseBuilder.builder()
                         .message("Protocol Code sudah digunakan")
                         .statusCode(HttpStatus.BAD_REQUEST.value())
@@ -214,7 +226,7 @@ public class ProtocolsService {
             }
 
             for (ProtocolDetailRequest detailReq : request.getProtocolDetails()) {
-                Optional<ProtocolDetail> existingOpt = protocolDetailRepository.findById(detailReq.getProtocolsDetailId());
+                Optional<ProtocolDetail> existingOpt = protocolDetailRepository.findById(detailReq.getProtocolDetailId());
                 ProtocolDetail detail;
                 if (existingOpt.isPresent()) {
                     detail = existingOpt.get();
@@ -231,7 +243,7 @@ public class ProtocolsService {
                     detail.setDeletedBy(null);
                 } else {
                     detail = ProtocolDetail.builder()
-                            .protocolDetailId(detailReq.getProtocolsDetailId())
+                            .protocolDetailId(detailReq.getProtocolDetailId())
                             .protocol(protocol)
                             .phaseCode(detailReq.getPhaseCode())
                             .timeInterval(detailReq.getTimeInterval())
@@ -408,7 +420,7 @@ public class ProtocolsService {
 
     public ProtocolDetailResponse mapDetailToResponse(ProtocolDetail detail) {
         return ProtocolDetailResponse.builder()
-                .protocolsDetailId(detail.getProtocolDetailId())
+                .protocolDetailId(detail.getProtocolDetailId())
                 .protocolId(detail.getProtocol() != null ? detail.getProtocol().getProtocolId() : null)
                 .phaseCode(detail.getPhaseCode())
                 .timeInterval(detail.getTimeInterval())

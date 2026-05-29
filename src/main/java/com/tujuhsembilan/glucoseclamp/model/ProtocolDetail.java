@@ -5,7 +5,7 @@ import lombok.*;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "protocols_detail")
+@Table(name = "protocol_details")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -15,7 +15,7 @@ import jakarta.persistence.*;
 public class ProtocolDetail extends BaseEntity {
     
     @Id
-    @Column(name = "protocols_detail_id", length = 50)
+    @Column(name = "protocol_detail_id", length = 50)
     private String protocolDetailId;
     
     @ManyToOne(fetch = FetchType.LAZY)

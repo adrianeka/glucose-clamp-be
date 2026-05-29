@@ -14,8 +14,8 @@ import java.time.LocalDateTime;
 @Builder
 public class ProtocolDetailResponse {
 
-    @JsonProperty("protocols_detail_id")
-    private String protocolsDetailId;
+    @JsonProperty("protocol_detail_id")
+    private String protocolDetailId;
 
     @JsonProperty("protocol_id")
     private String protocolId;

@@ -27,6 +27,8 @@ public interface ProtocolRepository extends JpaRepository<Protocol, String> {
     @Query("SELECT p FROM Protocol p WHERE p.protocolCode = ?1 AND p.deletedAt IS NULL")
     Optional<Protocol> findByProtocolCodeAndDeletedAtIsNull(String protocolCode);
 
+    Optional<Protocol> findByProtocolCode(String protocolCode);
+
     @Query("SELECT p FROM Protocol p WHERE p.deletedAt IS NULL " +
            "AND (:search IS NULL OR :search = '' " +
            "  OR LOWER(p.protocolId) LIKE LOWER(CONCAT('%', :search, '%')) " +
@@ -35,6 +37,10 @@ public interface ProtocolRepository extends JpaRepository<Protocol, String> {
            "  OR LOWER(p.insulinDoseRule) LIKE LOWER(CONCAT('%', :search, '%')) " +
            "  OR LOWER(p.insulinDoseUnit) LIKE LOWER(CONCAT('%', :search, '%')) " +
            "  OR LOWER(p.glucoseTargetUnit) LIKE LOWER(CONCAT('%', :search, '%')) " +
+           "  OR CAST(p.version AS string) LIKE CONCAT('%', :search, '%') " +
+           "  OR CAST(p.durationHours AS string) LIKE CONCAT('%', :search, '%') " +
+           "  OR CAST(p.glucoseTargetMin AS string) LIKE CONCAT('%', :search, '%') " +
+           "  OR CAST(p.glucoseTargetMax AS string) LIKE CONCAT('%', :search, '%') " +
            ") " +
            "AND (CAST(:startDate AS timestamp) IS NULL OR p.createdAt >= :startDate) " +
            "AND (CAST(:endDate AS timestamp) IS NULL OR p.createdAt <= :endDate)")

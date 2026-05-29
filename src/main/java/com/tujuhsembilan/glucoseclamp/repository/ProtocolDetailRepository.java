@@ -34,6 +34,7 @@ public interface ProtocolDetailRepository extends JpaRepository<ProtocolDetail, 
            "  OR LOWER(pd.phaseCode) LIKE LOWER(CONCAT('%', :search, '%')) " +
            "  OR LOWER(pd.protocol.protocolId) LIKE LOWER(CONCAT('%', :search, '%')) " +
            "  OR LOWER(pd.protocol.protocolName) LIKE LOWER(CONCAT('%', :search, '%')) " +
+           "  OR CAST(pd.timeInterval AS string) LIKE CONCAT('%', :search, '%') " +
            ") " +
            "AND (CAST(:startDate AS timestamp) IS NULL OR pd.createdAt >= :startDate) " +
            "AND (CAST(:endDate AS timestamp) IS NULL OR pd.createdAt <= :endDate)")

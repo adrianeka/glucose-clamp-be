@@ -20,8 +20,6 @@ public interface PatientRepository extends JpaRepository<Patient, String> {
     Optional<Patient> findByMedicalRecordNoAndDeletedAtIsNull(String medicalRecordNo);
     @Query("SELECT p FROM Patient p WHERE p.name LIKE %?1% AND p.deletedAt IS NULL")
     List<Patient> findByNameContainingAndDeletedAtIsNull(String name);
-    @Query("SELECT p FROM Patient p WHERE p.deletedAt IS NULL AND (LOWER(p.patientId) LIKE LOWER(CONCAT('%', ?1, '%')) OR LOWER(p.medicalRecordNo) LIKE LOWER(CONCAT('%', ?1, '%')) OR LOWER(p.name) LIKE LOWER(CONCAT('%', ?1, '%')) OR LOWER(COALESCE(p.numberPhone, '')) LIKE LOWER(CONCAT('%', ?1, '%')))")
-    Page<Patient> searchByKeyword(String keyword, Pageable pageable);
     @Query(value = "SELECT * FROM patients WHERE deleted_at IS NULL ORDER BY patient_id DESC LIMIT 1", nativeQuery = true)
     Optional<Patient> findTopByOrderByPatientIdDesc();
 }

@@ -23,5 +23,5 @@ public interface DeviceRepository extends JpaRepository<Device, Integer> {
     List<Device> findByDeviceTypeAndDeletedAtIsNull(String deviceType);
 
     @Query("SELECT d FROM Device d WHERE d.deletedAt IS NULL AND (LOWER(d.deviceType) LIKE LOWER(CONCAT('%', ?1, '%')) OR LOWER(d.deviceBrand) LIKE LOWER(CONCAT('%', ?1, '%')) OR LOWER(d.serialNumber) LIKE LOWER(CONCAT('%', ?1, '%'))) ")
-    Page<Device> searchByKeyword(String keyword, Pageable pageable);
+    List<Device> searchByKeyword(String keyword);
 }

@@ -63,12 +63,8 @@ public class VitalSignsController {
     }
 
     @GetMapping(path = "/search", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Object> search(
-            @RequestParam(required = false) String keyword,
-            @RequestParam(defaultValue = "1") int pageNumber,
-            @RequestParam(defaultValue = "10") int pageSize
-    ) {
-        ApiDataResponseBuilder result = vitalSignsService.searchVitalSigns(keyword, pageNumber, pageSize);
+    public ResponseEntity<Object> search(@RequestParam(required = false) String keyword) {
+        ApiDataResponseBuilder result = vitalSignsService.searchVitalSigns(keyword);
         return ResponseEntity.status(result.getStatus()).body(result);
     }
 }

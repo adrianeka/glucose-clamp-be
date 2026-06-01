@@ -1,25 +1,34 @@
 package com.tujuhsembilan.glucoseclamp.service;
 
 import com.tujuhsembilan.glucoseclamp.dto.request.SessionCreateRequest;
+import com.tujuhsembilan.glucoseclamp.dto.request.SessionCompleteRequest;
 import com.tujuhsembilan.glucoseclamp.dto.request.SessionUpdateRequest;
 import com.tujuhsembilan.glucoseclamp.dto.response.ApiDataResponseBuilder;
+import com.tujuhsembilan.glucoseclamp.dto.response.MessageResponse;
 import com.tujuhsembilan.glucoseclamp.dto.response.SessionCreateResponse;
 import com.tujuhsembilan.glucoseclamp.dto.response.SessionSummaryResponse;
 import com.tujuhsembilan.glucoseclamp.model.Activity;
+import com.tujuhsembilan.glucoseclamp.model.ProtocolDetail;
+import com.tujuhsembilan.glucoseclamp.model.Device;
 import com.tujuhsembilan.glucoseclamp.model.Patient;
 import com.tujuhsembilan.glucoseclamp.model.Protocol;
-import com.tujuhsembilan.glucoseclamp.model.ProtocolDetail;
 import com.tujuhsembilan.glucoseclamp.model.Session;
+import com.tujuhsembilan.glucoseclamp.model.SessionDevice;
 import com.tujuhsembilan.glucoseclamp.model.User;
 import com.tujuhsembilan.glucoseclamp.model.base.ActivityStatus;
+import com.tujuhsembilan.glucoseclamp.model.base.EntityStatus;
 import com.tujuhsembilan.glucoseclamp.model.base.SessionStatus;
-import com.tujuhsembilan.glucoseclamp.repository.ActivityRepository;
+import com.tujuhsembilan.glucoseclamp.repository.AnamnesisRepository;
+import com.tujuhsembilan.glucoseclamp.repository.AnthropometryRepository;
+import com.tujuhsembilan.glucoseclamp.repository.DeviceRepository;
 import com.tujuhsembilan.glucoseclamp.repository.PatientRepository;
-import com.tujuhsembilan.glucoseclamp.repository.ProtocolDetailRepository;
 import com.tujuhsembilan.glucoseclamp.repository.ProtocolRepository;
+import com.tujuhsembilan.glucoseclamp.repository.SessionDeviceRepository;
 import com.tujuhsembilan.glucoseclamp.repository.SessionRepository;
+import com.tujuhsembilan.glucoseclamp.repository.VitalSignRepository;
+import com.tujuhsembilan.glucoseclamp.repository.UserRepository;
 import com.tujuhsembilan.glucoseclamp.security.service.CurrentUserService;
-import lombok.RequiredArgsConstructor;
+// Removed Lombok constructor annotation to avoid IDE/compiler mismatch issues
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -27,26 +36,61 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Duration;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
 public class SessionManagementService {
 
     private final SessionRepository sessionRepository;
     private final PatientRepository patientRepository;
     private final ProtocolRepository protocolRepository;
-    private final ProtocolDetailRepository protocolDetailRepository;
-    private final ActivityRepository activityRepository;
+    private final DeviceRepository deviceRepository;
+    private final SessionDeviceRepository sessionDeviceRepository;
+    private final VitalSignRepository vitalSignRepository;
+    private final AnamnesisRepository anamnesisRepository;
+    private final AnthropometryRepository anthropometryRepository;
+    private final UserRepository userRepository;
     private final CurrentUserService currentUserService;
+    private final ActivityService activityService;
+
+    public SessionManagementService(
+            SessionRepository sessionRepository,
+            PatientRepository patientRepository,
+            ProtocolRepository protocolRepository,
+            DeviceRepository deviceRepository,
+            SessionDeviceRepository sessionDeviceRepository,
+            VitalSignRepository vitalSignRepository,
+            AnamnesisRepository anamnesisRepository,
+            AnthropometryRepository anthropometryRepository,
+            UserRepository userRepository,
+                CurrentUserService currentUserService,
+                ActivityService activityService
+    ) {
+        this.sessionRepository = sessionRepository;
+        this.patientRepository = patientRepository;
+        this.protocolRepository = protocolRepository;
+        this.deviceRepository = deviceRepository;
+        this.sessionDeviceRepository = sessionDeviceRepository;
+        this.vitalSignRepository = vitalSignRepository;
+        this.anamnesisRepository = anamnesisRepository;
+        this.anthropometryRepository = anthropometryRepository;
+        this.userRepository = userRepository;
+        this.currentUserService = currentUserService;
+        this.activityService = activityService;
+    }
 
     public ApiDataResponseBuilder getAllSessions(int pageNumber, int pageSize) {
         Pageable pageable = PageRequest.of(pageNumber - 1, pageSize);
@@ -59,11 +103,30 @@ public class SessionManagementService {
                 .status(HttpStatus.OK)
                 .build();
     }
-    
+
+    public MessageResponse startSession(Integer sessionId) {
+        Optional<Session> sessionOptional = sessionRepository.findByIdAndDeletedAtIsNull(sessionId);
+        if (sessionOptional.isEmpty()) {
+            return new MessageResponse("Data session tidak ditemukan", HttpStatus.NOT_FOUND.value(), "NOT_FOUND");
+        }
+
+        Session session = sessionOptional.get();
+        if (session.getSessionStatus() != SessionStatus.IN_QUEUE) {
+            return new MessageResponse("Session ini tidak bisa dimulai", HttpStatus.CONFLICT.value(), "CONFLICT");
+        }
+
+        session.setSessionStatus(SessionStatus.IN_PROGRESS);
+        session.setUpdatedBy(currentUserService.getCurrentUserId());
+        sessionRepository.save(session);
+
+        return new MessageResponse("Session berhasil dimulai", HttpStatus.OK.value(), "OK");
+    }
+
     @Transactional
     public ApiDataResponseBuilder create(SessionCreateRequest request) {
         Integer actorId = currentUserService.getCurrentUserId();
         User actor = currentUserService.getCurrentUserEntity();
+
         Optional<Patient> patientOptional = patientRepository.findByIdAndDeletedAtIsNull(request.getPatientId());
         if (patientOptional.isEmpty()) {
             return ApiDataResponseBuilder.builder()
@@ -82,120 +145,362 @@ public class SessionManagementService {
                     .build();
         }
 
+        if (request.getDeviceIds() == null || request.getDeviceIds().isEmpty()) {
+            return ApiDataResponseBuilder.builder()
+                    .message("Device minimal 1 harus diisi")
+                    .statusCode(HttpStatus.BAD_REQUEST.value())
+                    .status(HttpStatus.BAD_REQUEST)
+                    .build();
+        }
+
+        List<Device> devices = new ArrayList<>();
+        for (Integer deviceId : request.getDeviceIds()) {
+            Optional<Device> deviceOptional = deviceRepository.findByIdAndDeletedAtIsNull(deviceId);
+            if (deviceOptional.isEmpty()) {
+                return ApiDataResponseBuilder.builder()
+                        .message("Device tidak ditemukan: " + deviceId)
+                        .statusCode(HttpStatus.BAD_REQUEST.value())
+                        .status(HttpStatus.BAD_REQUEST)
+                        .build();
+            }
+            devices.add(deviceOptional.get());
+        }
+
         Session session = new Session();
         session.setPatient(patientOptional.get());
         session.setProtocol(protocolOptional.get());
         session.setVisitDate(request.getVisitDate());
-        session.setStartTime(request.getStartTime());
-        session.setEndTime(request.getEndTime());
+        session.setStartTime(normalizeToSeconds(request.getStartTime()));
         session.setFastingHour(request.getFastingHour());
         session.setSessionStatus(SessionStatus.IN_QUEUE);
         session.setCreatedBy(actorId);
         session.setUpdatedBy(actorId);
-        session.setStatus(session.getStatus());
+        sessionRepository.save(session);
 
-        Session savedSession = sessionRepository.save(session);
+        List<SessionDevice> sessionDevices = new ArrayList<>();
+        for (Device device : devices) {
+            sessionDevices.add(SessionDevice.builder()
+                    .session(session)
+                    .device(device)
+                    .assignedAt(java.time.LocalDateTime.now())
+                    .assignedByUser(actor)
+                    .build());
+        }
+        sessionDeviceRepository.saveAll(sessionDevices);
 
-        List<Activity> activities = generateActivitiesForSession(savedSession, actor, actorId);
-        activityRepository.saveAll(activities);
+        List<Activity> activities = activityService.generateActivitiesForSession(session, actor, actorId);
+        activityService.saveActivities(activities);
 
-        SessionCreateResponse response = buildSessionCreateResponse(savedSession, activities);
+        LocalDateTime estimatedEndTime = activities.stream()
+                .map(Activity::getTime)
+                .filter(java.util.Objects::nonNull)
+                .max(LocalDateTime::compareTo)
+                .map(this::normalizeToSeconds)
+                .orElse(session.getStartTime());
+
+        session.setEndTime(estimatedEndTime);
+        sessionRepository.save(session);
+
+        com.tujuhsembilan.glucoseclamp.model.VitalSign vital = com.tujuhsembilan.glucoseclamp.model.VitalSign.builder().build();
+        vital.setSession(session);
+        vital.setMeasuredAt(parseFlexibleDateTime(request.getVitalSignRequest().getMeasuredAt()));
+        vital.setSystolic(request.getVitalSignRequest().getSystolic());
+        vital.setDiastolic(request.getVitalSignRequest().getDiastolic());
+        vital.setPulse(request.getVitalSignRequest().getPulse());
+        vital.setRespiratoryRate(request.getVitalSignRequest().getRespiratoryRate());
+        vital.setTemperatureC(request.getVitalSignRequest().getTemperatureC());
+        vital.setSpo2(request.getVitalSignRequest().getSpo2());
+        if (request.getVitalSignRequest().getAssignedBy() != null) {
+            userRepository.findByIdAndDeletedAtIsNull(request.getVitalSignRequest().getAssignedBy()).ifPresent(vital::setAssignedByUser);
+        }
+        vital.setCreatedBy(actorId);
+        vital.setUpdatedBy(actorId);
+        vitalSignRepository.save(vital);
+
+        com.tujuhsembilan.glucoseclamp.model.Anamnesis anamnesis = com.tujuhsembilan.glucoseclamp.model.Anamnesis.builder().build();
+        anamnesis.setSession(session);
+        anamnesis.setDate(java.time.LocalDate.parse(request.getAnamnesisRequest().getDate()));
+        anamnesis.setChiefComplaint(request.getAnamnesisRequest().getChiefComplaint());
+        anamnesis.setMedicalHistory(request.getAnamnesisRequest().getMedicalHistory());
+        if (request.getAnamnesisRequest().getAssignedBy() != null) {
+            userRepository.findByIdAndDeletedAtIsNull(request.getAnamnesisRequest().getAssignedBy()).ifPresent(anamnesis::setAssignedByUser);
+        }
+        anamnesis.setCreatedBy(actorId);
+        anamnesis.setUpdatedBy(actorId);
+        anamnesisRepository.save(anamnesis);
+
+        com.tujuhsembilan.glucoseclamp.model.Anthropometry anthropometry = com.tujuhsembilan.glucoseclamp.model.Anthropometry.builder().build();
+        anthropometry.setSession(session);
+        anthropometry.setMeasuredAt(parseFlexibleDateTime(request.getAnthropometryRequest().getMeasuredAt()));
+        anthropometry.setWeightKg(request.getAnthropometryRequest().getWeightKg());
+        anthropometry.setHeightCm(request.getAnthropometryRequest().getHeightCm());
+        anthropometry.setBmi(request.getAnthropometryRequest().getBmi());
+        anthropometry.setWaistCircumferenceCm(request.getAnthropometryRequest().getWaistCircumferenceCm());
+        if (request.getAnthropometryRequest().getAssignedBy() != null) {
+            userRepository.findByIdAndDeletedAtIsNull(request.getAnthropometryRequest().getAssignedBy()).ifPresent(anthropometry::setAssignedByUser);
+        }
+        anthropometry.setCreatedBy(actorId);
+        anthropometry.setUpdatedBy(actorId);
+        anthropometryRepository.save(anthropometry);
+
+        SessionCreateResponse response = buildSessionCreateResponse(session, activities);
+        response.setVitalId(vital.getVitalId());
+        response.setAnamnesisId(anamnesis.getAnamnesisId());
+        response.setAnthropometryId(anthropometry.getAnthroId());
+        response.setSessionDeviceIds(sessionDevices.stream()
+                .map(SessionDevice::getSessionDeviceId)
+                .collect(java.util.stream.Collectors.toList()));
+        response.setEndTime(estimatedEndTime);
 
         return ApiDataResponseBuilder.builder()
                 .data(response)
-                .message("Session berhasil dibuat dan activity berhasil digenerate dari protocol detail")
+                .message("Session berhasil dibuat, device dan measurements berhasil disimpan")
                 .statusCode(HttpStatus.CREATED.value())
                 .status(HttpStatus.CREATED)
                 .build();
     }
 
-        @Transactional
-        public ApiDataResponseBuilder update(Integer sessionId, SessionUpdateRequest request) {
+    @Transactional
+    public ApiDataResponseBuilder complete(Integer sessionId, SessionCompleteRequest request) {
+        Optional<Session> sessionOptional = sessionRepository.findByIdAndDeletedAtIsNull(sessionId);
+        if (sessionOptional.isEmpty()) {
+            return ApiDataResponseBuilder.builder()
+                    .message("Session tidak ditemukan")
+                    .statusCode(HttpStatus.NOT_FOUND.value())
+                    .status(HttpStatus.NOT_FOUND)
+                    .build();
+        }
+
+        Session session = sessionOptional.get();
+        if (session.getSessionStatus() != SessionStatus.IN_PROGRESS) {
+            return ApiDataResponseBuilder.builder()
+                    .message("Session hanya bisa di-complete saat status IN PROGRESS")
+                    .statusCode(HttpStatus.CONFLICT.value())
+                    .status(HttpStatus.CONFLICT)
+                    .build();
+        }
+
+        session.setEndTime(normalizeToSeconds(request.getEndTime()));
+        session.setSessionStatus(SessionStatus.COMPLETED);
+        session.setUpdatedBy(currentUserService.getCurrentUserId());
+        sessionRepository.save(session);
+
+        return ApiDataResponseBuilder.builder()
+                .data(buildSessionCompleteResponse(session))
+                .message("Session berhasil di-complete")
+                .statusCode(HttpStatus.OK.value())
+                .status(HttpStatus.OK)
+                .build();
+    }
+
+    @Transactional
+    public ApiDataResponseBuilder update(Integer sessionId, SessionUpdateRequest request) {
         Integer actorId = currentUserService.getCurrentUserId();
         User actor = currentUserService.getCurrentUserEntity();
 
-        Session session = sessionRepository.findByIdAndDeletedAtIsNull(sessionId)
-            .orElse(null);
+        Session session = sessionRepository.findByIdAndDeletedAtIsNull(sessionId).orElse(null);
         if (session == null) {
             return ApiDataResponseBuilder.builder()
-                .message("Session tidak ditemukan")
-                .statusCode(HttpStatus.NOT_FOUND.value())
-                .status(HttpStatus.NOT_FOUND)
-                .build();
+                    .message("Session tidak ditemukan")
+                    .statusCode(HttpStatus.NOT_FOUND.value())
+                    .status(HttpStatus.NOT_FOUND)
+                    .build();
         }
 
         if (session.getSessionStatus() != SessionStatus.IN_QUEUE) {
             return ApiDataResponseBuilder.builder()
-                .message("Session hanya bisa diedit saat status masih IN QUEUE")
-                .statusCode(HttpStatus.CONFLICT.value())
-                .status(HttpStatus.CONFLICT)
-                .build();
+                    .message("Session hanya bisa diedit saat status masih IN QUEUE")
+                    .statusCode(HttpStatus.CONFLICT.value())
+                    .status(HttpStatus.CONFLICT)
+                    .build();
         }
 
         Optional<Protocol> protocolOptional = protocolRepository.findByIdAndDeletedAtIsNull(request.getProtocolId());
         if (protocolOptional.isEmpty()) {
             return ApiDataResponseBuilder.builder()
-                .message("Protocol tidak ditemukan")
-                .statusCode(HttpStatus.BAD_REQUEST.value())
-                .status(HttpStatus.BAD_REQUEST)
-                .build();
+                    .message("Protocol tidak ditemukan")
+                    .statusCode(HttpStatus.BAD_REQUEST.value())
+                    .status(HttpStatus.BAD_REQUEST)
+                    .build();
         }
 
+        boolean protocolChanged = !session.getProtocol().getProtocolId().equals(request.getProtocolId());
         session.setProtocol(protocolOptional.get());
         session.setVisitDate(request.getVisitDate());
-        session.setStartTime(request.getStartTime());
-        session.setEndTime(request.getEndTime());
+        LocalDateTime oldStart = normalizeToSeconds(session.getStartTime());
+        LocalDateTime newStart = normalizeToSeconds(request.getStartTime());
         session.setFastingHour(request.getFastingHour());
         session.setUpdatedBy(actorId);
+
+        if (protocolChanged) {
+            session.setStartTime(newStart);
+            session.setEndTime(normalizeToSeconds(request.getEndTime()));
+            sessionRepository.save(session);
+
+            activityService.softDeleteActivitiesForSession(sessionId, actorId);
+            List<Activity> activities = activityService.generateActivitiesForSession(session, actor, actorId);
+            activityService.saveActivities(activities);
+
+            return ApiDataResponseBuilder.builder()
+                    .data(buildSessionCreateResponse(session, activities))
+                    .message("Session berhasil diperbarui dan activity berhasil diregenerate karena perubahan protocol")
+                    .statusCode(HttpStatus.OK.value())
+                    .status(HttpStatus.OK)
+                    .build();
+        }
+
+        if (newStart != null && !newStart.equals(oldStart)) {
+            Duration delta = Duration.between(oldStart, newStart);
+            List<Activity> activitiesToUpdate = activityService.shiftPendingActivitiesForSession(sessionId, delta, actorId);
+
+            LocalDateTime estimatedEndTime = activityService.findActiveActivitiesForSession(sessionId).stream()
+                    .map(Activity::getTime)
+                    .filter(java.util.Objects::nonNull)
+                    .max(LocalDateTime::compareTo)
+                    .map(this::normalizeToSeconds)
+                    .orElse(newStart);
+
+            session.setStartTime(newStart);
+            session.setEndTime(estimatedEndTime);
+            sessionRepository.save(session);
+
+            return ApiDataResponseBuilder.builder()
+                    .data(buildSessionCreateResponse(session, activitiesToUpdate))
+                    .message("Session berhasil diperbarui dan aktivitas digeser sesuai startTime baru")
+                    .statusCode(HttpStatus.OK.value())
+                    .status(HttpStatus.OK)
+                    .build();
+        }
+
+        session.setStartTime(newStart);
+        session.setEndTime(normalizeToSeconds(request.getEndTime()));
         sessionRepository.save(session);
 
-        softDeleteActivitiesForSession(sessionId, actorId);
+        return ApiDataResponseBuilder.builder()
+                .data(buildSessionCreateResponse(session, new ArrayList<>()))
+                .message("Session berhasil diperbarui")
+                .statusCode(HttpStatus.OK.value())
+                .status(HttpStatus.OK)
+                .build();
+    }
 
-        List<Activity> activities = generateActivitiesForSession(session, actor, actorId);
-        activityRepository.saveAll(activities);
+    @Transactional
+    public ApiDataResponseBuilder updateSessionStatus(Integer sessionId, com.tujuhsembilan.glucoseclamp.dto.request.SessionStatusUpdateRequest request) {
+        if (EntityStatus.DELETED.equals(request.getStatus())) {
+            return ApiDataResponseBuilder.builder()
+                    .message("Status tidak valid")
+                    .statusCode(HttpStatus.BAD_REQUEST.value())
+                    .status(HttpStatus.BAD_REQUEST)
+                    .build();
+        }
 
-        SessionCreateResponse response = buildSessionCreateResponse(session, activities);
+        Session session = sessionRepository.findByIdAndDeletedAtIsNull(sessionId).orElse(null);
+        if (session == null) {
+            return ApiDataResponseBuilder.builder()
+                    .message("Session tidak ditemukan")
+                    .statusCode(HttpStatus.NOT_FOUND.value())
+                    .status(HttpStatus.NOT_FOUND)
+                    .build();
+        }
+
+        Integer currentUserId = currentUserService.getCurrentUserId();
+
+        session.setStatus(request.getStatus());
+        session.setUpdatedBy(currentUserId);
+        sessionRepository.save(session);
+
+        // Cascade status to relationships
+        activityService.updateActivityStatusForSession(sessionId, request.getStatus(), currentUserId);
+
+        List<SessionDevice> devices = sessionDeviceRepository.findBySessionIdAndDeletedAtIsNull(sessionId);
+        devices.forEach(d -> { d.setStatus(request.getStatus()); d.setUpdatedBy(currentUserId); });
+        sessionDeviceRepository.saveAll(devices);
+
+        List<com.tujuhsembilan.glucoseclamp.model.VitalSign> vitals = vitalSignRepository.findBySessionIdAndDeletedAtIsNull(sessionId);
+        vitals.forEach(v -> { v.setStatus(request.getStatus()); v.setUpdatedBy(currentUserId); });
+        vitalSignRepository.saveAll(vitals);
+
+        anamnesisRepository.findBySessionIdAndDeletedAtIsNull(sessionId).ifPresent(a -> {
+            a.setStatus(request.getStatus());
+            a.setUpdatedBy(currentUserId);
+            anamnesisRepository.save(a);
+        });
+
+        anthropometryRepository.findBySessionIdAndDeletedAtIsNull(sessionId).ifPresent(a -> {
+            a.setStatus(request.getStatus());
+            a.setUpdatedBy(currentUserId);
+            anthropometryRepository.save(a);
+        });
 
         return ApiDataResponseBuilder.builder()
-            .data(response)
-            .message("Session berhasil diperbarui dan activity berhasil diregenerate")
-            .statusCode(HttpStatus.OK.value())
-            .status(HttpStatus.OK)
-            .build();
-        }
-
-    private LocalDateTime buildActivityTime(LocalDateTime startTime, Integer timeInterval) {
-        int interval = timeInterval == null ? 0 : timeInterval;
-        return startTime.plusMinutes(interval);
+                .message("Status session dan relasinya berhasil diupdate")
+                .statusCode(HttpStatus.OK.value())
+                .status(HttpStatus.OK)
+                .build();
     }
 
-    private List<Activity> generateActivitiesForSession(Session session, User actor, Integer actorId) {
-        List<ProtocolDetail> protocolDetails = loadProtocolDetails(session.getProtocol().getProtocolId());
-        ActivityGenerationState generationState = buildActivityGenerationState(protocolDetails);
-
-        List<Activity> activities = new ArrayList<>();
-        for (ProtocolDetail detail : protocolDetails) {
-            activities.addAll(buildActivitiesForDetail(session, actor, actorId, detail, generationState));
+    @Transactional
+    public ApiDataResponseBuilder deleteSession(Integer sessionId) {
+        Session session = sessionRepository.findByIdAndDeletedAtIsNull(sessionId).orElse(null);
+        if (session == null) {
+            return ApiDataResponseBuilder.builder()
+                    .message("Session tidak ditemukan")
+                    .statusCode(HttpStatus.NOT_FOUND.value())
+                    .status(HttpStatus.NOT_FOUND)
+                    .build();
         }
-        return activities;
-    }
 
-    private List<ProtocolDetail> loadProtocolDetails(String protocolId) {
-        return protocolDetailRepository
-                .findByProtocolIdAndDeletedAtIsNull(protocolId)
-                .stream()
-                .sorted(Comparator.comparing(ProtocolDetail::getProtocolDetailId))
-                .collect(Collectors.toList());
-    }
+        Integer currentUserId = currentUserService.getCurrentUserId();
+        LocalDateTime now = LocalDateTime.now();
 
-    private void softDeleteActivitiesForSession(Integer sessionId, Integer actorId) {
-        List<Activity> existingActivities = activityRepository.findBySessionIdAndDeletedAtIsNull(sessionId);
-        for (Activity activity : existingActivities) {
-            activity.setDeletedAt(java.time.LocalDateTime.now());
-            activity.setDeletedBy(actorId);
-            activity.setUpdatedBy(actorId);
-        }
-        activityRepository.saveAll(existingActivities);
+        session.setDeletedAt(now);
+        session.setDeletedBy(currentUserId);
+        session.setStatus(EntityStatus.DELETED);
+        session.setUpdatedBy(currentUserId);
+        sessionRepository.save(session);
+
+        // Cascade soft delete to relationships
+        activityService.softDeleteActivitiesForSession(sessionId, currentUserId);
+
+        List<SessionDevice> devices = sessionDeviceRepository.findBySessionIdAndDeletedAtIsNull(sessionId);
+        devices.forEach(d -> {
+            d.setDeletedAt(now);
+            d.setDeletedBy(currentUserId);
+            d.setStatus(EntityStatus.DELETED);
+            d.setUpdatedBy(currentUserId);
+        });
+        sessionDeviceRepository.saveAll(devices);
+
+        List<com.tujuhsembilan.glucoseclamp.model.VitalSign> vitals = vitalSignRepository.findBySessionIdAndDeletedAtIsNull(sessionId);
+        vitals.forEach(v -> {
+            v.setDeletedAt(now);
+            v.setDeletedBy(currentUserId);
+            v.setStatus(EntityStatus.DELETED);
+            v.setUpdatedBy(currentUserId);
+        });
+        vitalSignRepository.saveAll(vitals);
+
+        anamnesisRepository.findBySessionIdAndDeletedAtIsNull(sessionId).ifPresent(a -> {
+            a.setDeletedAt(now);
+            a.setDeletedBy(currentUserId);
+            a.setStatus(EntityStatus.DELETED);
+            a.setUpdatedBy(currentUserId);
+            anamnesisRepository.save(a);
+        });
+
+        anthropometryRepository.findBySessionIdAndDeletedAtIsNull(sessionId).ifPresent(a -> {
+            a.setDeletedAt(now);
+            a.setDeletedBy(currentUserId);
+            a.setStatus(EntityStatus.DELETED);
+            a.setUpdatedBy(currentUserId);
+            anthropometryRepository.save(a);
+        });
+
+        return ApiDataResponseBuilder.builder()
+                .message("Session dan relasinya berhasil dihapus")
+                .statusCode(HttpStatus.OK.value())
+                .status(HttpStatus.OK)
+                .build();
     }
 
     private SessionCreateResponse buildSessionCreateResponse(Session session, List<Activity> activities) {
@@ -203,192 +508,37 @@ public class SessionManagementService {
                 .map(Activity::getActivityId)
                 .collect(Collectors.toList());
 
-        return new SessionCreateResponse(
-                session.getSessionId(),
-                session.getPatient().getPatientId(),
-                session.getProtocol().getProtocolId(),
-                activityIds.size(),
-                activityIds);
+        SessionCreateResponse resp = new SessionCreateResponse();
+        resp.setSessionId(session.getSessionId());
+        resp.setPatientId(session.getPatient().getPatientId());
+        resp.setProtocolId(session.getProtocol().getProtocolId());
+        resp.setGeneratedActivityCount(activityIds.size());
+        resp.setActivityIds(activityIds);
+        resp.setEndTime(session.getEndTime());
+        return resp;
     }
 
-    private ActivityGenerationState buildActivityGenerationState(List<ProtocolDetail> protocolDetails) {
-        ActivityGenerationState generationState = new ActivityGenerationState();
-        try {
-            var lastOpt = activityRepository.findTopByDeletedAtIsNullOrderByActivityIdDesc();
-            if (lastOpt.isPresent()) {
-                String lastId = lastOpt.get().getActivityId();
-                if (lastId != null && lastId.length() >= 7) {
-                    try {
-                        int lastSeq = Integer.parseInt(lastId.substring(4, 7));
-                        generationState.setActivitySequence(lastSeq);
-                    } catch (NumberFormatException ignored) {
-                    }
-                }
-            }
-        } catch (Exception ignored) {
-        }
-
-        int cum = 0;
-        Integer minBaseline = null;
-        for (ProtocolDetail d : protocolDetails) {
-            generationState.detailOffsetMap.put(d.getProtocolDetailId(), cum);
-            String phase = d.getPhaseCode() == null ? "" : d.getPhaseCode().trim();
-            if ("baseline".equalsIgnoreCase(phase)) {
-                if (minBaseline == null || cum < minBaseline) minBaseline = cum;
-            }
-            if (Boolean.TRUE.equals(d.getInsulinInject()) && generationState.injectionOffsetMinutes == null) {
-                generationState.injectionOffsetMinutes = cum;
-            }
-            int interval = d.getTimeInterval() == null ? 0 : d.getTimeInterval();
-            cum += interval;
-        }
-        generationState.minBaselineOffset = minBaseline == null ? 0 : minBaseline;
-        return generationState;
+    private SessionCreateResponse buildSessionCompleteResponse(Session session) {
+        SessionCreateResponse resp = new SessionCreateResponse();
+        resp.setSessionId(session.getSessionId());
+        resp.setPatientId(session.getPatient().getPatientId());
+        resp.setProtocolId(session.getProtocol().getProtocolId());
+        resp.setEndTime(session.getEndTime());
+        return resp;
     }
 
-    private List<Activity> buildActivitiesForDetail(Session session, User actor, Integer actorId, ProtocolDetail detail, ActivityGenerationState generationState) {
-        List<Activity> activities = new ArrayList<>();
-        String phaseCode = detail.getPhaseCode() == null ? "" : detail.getPhaseCode().trim();
-        boolean isBaselinePhase = "baseline".equalsIgnoreCase(phaseCode);
-        // compute offsets
-        Integer detailOffset = generationState.detailOffsetMap.get(detail.getProtocolDetailId());
-        if (detailOffset == null) detailOffset = generationState.elapsedMinutes;
-        Integer minutesBeforeInjection = null;
-        if (generationState.injectionOffsetMinutes != null) {
-            minutesBeforeInjection = detailOffset - generationState.injectionOffsetMinutes;
+    private LocalDateTime parseFlexibleDateTime(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
         }
-        // schedule time so that earliest baseline maps to session.startTime
-        int timeOffsetFromStart = detailOffset - generationState.minBaselineOffset;
-
-        if (Boolean.TRUE.equals(detail.getInsulinInject())) {
-            int baselineNumber = generationState.nextBaselineNumber();
-            String basalCode = buildBaselineCode(minutesBeforeInjection);
-            activities.add(buildActivity(session, actor, actorId, detail, timeOffsetFromStart, basalCode, buildBaselineSampleDescription(baselineNumber, minutesBeforeInjection), generationState, "BLOOD_RAW"));
-            // insulin injection at T0
-            activities.add(buildActivity(session, actor, actorId, detail, timeOffsetFromStart, "T0", buildInsulinInjectDescription(), generationState, "INSULIN_CHECK"));
-        } else if (Boolean.TRUE.equals(detail.getBloodRaw())) {
-            if (isBaselinePhase) {
-                int baselineNumber = generationState.nextBaselineNumber();
-                String basalCode = buildBaselineCode(minutesBeforeInjection);
-                activities.add(buildActivity(session, actor, actorId, detail, timeOffsetFromStart, basalCode, buildBaselineSampleDescription(baselineNumber, minutesBeforeInjection), generationState, "BLOOD_RAW"));
-            } else {
-                int glucoseNumber = generationState.nextGlucoseNumber();
-                String gdCode = "GD" + glucoseNumber;
-                activities.add(buildActivity(session, actor, actorId, detail, timeOffsetFromStart, gdCode, buildGlucoseSampleDescription(glucoseNumber), generationState, "BLOOD_RAW"));
-            }
+        if (value.contains("T")) {
+            return normalizeToSeconds(LocalDateTime.parse(value));
         }
-
-        if (Boolean.TRUE.equals(detail.getInsulinCheck())) {
-            int pkcNumber = generationState.nextInsulinCheckNumber();
-            String pkcCode = "PKC-" + pkcNumber;
-            activities.add(buildActivity(session, actor, actorId, detail, timeOffsetFromStart, pkcCode, buildInsulinCheckDescription(pkcNumber), generationState, "INSULIN_CHECK"));
-        }
-
-        if (activities.isEmpty()) {
-            activities.add(buildActivity(session, actor, actorId, detail, timeOffsetFromStart, "MON", buildMonitoringDescription(detail), generationState, "MONITORING"));
-        }
-
-        int interval = detail.getTimeInterval() == null ? 0 : detail.getTimeInterval();
-        generationState.elapsedMinutes += interval;
-        return activities;
+        return normalizeToSeconds(LocalDateTime.parse(value, DateTimeFormatter.ofPattern("yyyy-MM-dd H:mm:ss")));
     }
 
-    private Activity buildActivity(Session session, User actor, Integer actorId, ProtocolDetail detail, Integer scheduledMinute, String codePart, String activityDesc, ActivityGenerationState generationState, String type) {
-        Activity activity = new Activity();
-        int seq = generationState.nextActivitySequence();
-        activity.setActivityId(buildActivityId(seq, codePart, session.getSessionId()));
-        activity.setSession(session);
-        activity.setActor(actor);
-        activity.setTime(buildActivityTime(session.getStartTime(), scheduledMinute));
-        activity.setActivityType(type);
-        activity.setActivityDesc(activityDesc);
-        activity.setActivityStatus(ActivityStatus.INQUEUE);
-        activity.setCreatedBy(actorId);
-        activity.setUpdatedBy(actorId);
-        return activity;
+    private LocalDateTime normalizeToSeconds(LocalDateTime dateTime) {
+        return dateTime == null ? null : dateTime.truncatedTo(ChronoUnit.SECONDS);
     }
 
-    private String buildActivityId(int sequence, String codePart, Integer sessionId) {
-        String seqPart = String.format("%03d", sequence);
-        String sid = sessionId == null ? "0" : String.valueOf(sessionId);
-        return String.format("ACT-%s-%s-%s", seqPart, codePart, sid);
-    }
-
-    private String buildBaselineSampleDescription(int baselineNumber, Integer minutesBeforeInsulin) {
-        if (minutesBeforeInsulin == null) {
-            minutesBeforeInsulin = 0;
-        }
-        if (minutesBeforeInsulin < 0) {
-            int abs = Math.abs(minutesBeforeInsulin);
-            return "Pengambilan darah untuk kadar glukosa darah basal ke-" + baselineNumber
-                    + " " + abs + " menit sebelum penyuntikan insulin - T-" + abs;
-        } else if (minutesBeforeInsulin == 0) {
-            return "Pengambilan darah untuk kadar glukosa darah basal ke-" + baselineNumber + " pada waktu penyuntikan insulin - T0";
-        } else {
-            return "Pengambilan darah untuk kadar glukosa darah basal ke-" + baselineNumber
-                    + " " + minutesBeforeInsulin + " menit setelah penyuntikan insulin - T+" + minutesBeforeInsulin;
-        }
-    }
-
-    private String buildBaselineCode(Integer scheduledMinute) {
-        if (scheduledMinute == null) return "T0";
-        if (scheduledMinute < 0) {
-            return "T-" + Math.abs(scheduledMinute);
-        } else if (scheduledMinute == 0) {
-            return "T0";
-        } else {
-            return "T+" + scheduledMinute;
-        }
-    }
-
-    private String buildInsulinInjectDescription() {
-        return "Injeksi insulin 0,5 U/kgBB SC";
-    }
-
-    private String buildGlucoseSampleDescription(int glucoseNumber) {
-        return "Pengambilan sampel darah untuk kadar glukosa darah - GD" + glucoseNumber;
-    }
-
-    private String buildInsulinCheckDescription(int insulinCheckNumber) {
-        return "Pengambilan darah untuk pemeriksaan kadar insulin (PK) & C-Peptide - PK-C" + insulinCheckNumber;
-    }
-
-    private String buildMonitoringDescription(ProtocolDetail detail) {
-        return detail.getPhaseCode() == null ? "Monitoring jadwal aktivitas" : detail.getPhaseCode() + " - Monitoring jadwal aktivitas";
-    }
-
-    private static class ActivityGenerationState {
-        private int elapsedMinutes = 0;
-        private int baselineNumber = 0;
-        private int glucoseNumber = 0;
-        private int insulinCheckNumber = 0;
-        private Map<String, Integer> detailOffsetMap = new HashMap<>();
-        private Integer injectionOffsetMinutes = null;
-        private Integer minBaselineOffset = null;
-        private int activitySequence = 0;
-
-        private int nextBaselineNumber() {
-            baselineNumber += 1;
-            return baselineNumber;
-        }
-
-        private int nextGlucoseNumber() {
-            glucoseNumber += 1;
-            return glucoseNumber;
-        }
-
-        private int nextInsulinCheckNumber() {
-            insulinCheckNumber += 1;
-            return insulinCheckNumber;
-        }
-
-        private int nextActivitySequence() {
-            activitySequence += 1;
-            return activitySequence;
-        }
-
-        private void setActivitySequence(int seq) {
-            this.activitySequence = seq;
-        }
-    }
 }

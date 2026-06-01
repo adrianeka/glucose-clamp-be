@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -55,11 +56,11 @@ public class SessionTrackingService {
         int totalActivities = activities.size();
         int progressPercentage = totalActivities == 0 ? 0 : (int) Math.round((completedActivities * 100.0) / totalActivities);
 
-        SessionActivityItemResponse nextActivity = activities.stream()
-                .filter(activity -> !isCompletedActivity(activity))
-                .findFirst()
+        List<Activity> nextPendingActivities = findNextPendingActivities(activities);
+        List<SessionActivityItemResponse> nextActivityResponses = nextPendingActivities.stream()
                 .map(this::toActivityItemResponse)
-                .orElse(null);
+                .collect(Collectors.toList());
+        SessionActivityItemResponse nextActivity = nextActivityResponses.stream().findFirst().orElse(null);
 
         SessionStatus sessionStatus = session.getSessionStatus();
                 if (sessionStatus == SessionStatus.IN_QUEUE && completedActivities > 0) {
@@ -69,21 +70,21 @@ public class SessionTrackingService {
             sessionStatus = SessionStatus.COMPLETED;
         }
 
-        SessionTimelineResponse response = new SessionTimelineResponse(
-                session.getSessionId(),
-                session.getPatient().getPatientId(),
-                session.getPatient().getName(),
-                session.getProtocol().getProtocolId(),
-                session.getProtocol().getProtocolName(),
-                session.getVisitDate(),
-                session.getStartTime(),
-                session.getEndTime(),
-                sessionStatus,
-                totalActivities,
-                completedActivities,
-                progressPercentage,
-                nextActivity,
-                activityResponses);
+        SessionTimelineResponse response = new SessionTimelineResponse();
+        response.setSessionId(session.getSessionId());
+        response.setPatientId(session.getPatient().getPatientId());
+        response.setPatientName(session.getPatient().getName());
+        response.setProtocolId(session.getProtocol().getProtocolId());
+        response.setProtocolName(session.getProtocol().getProtocolName());
+        response.setVisitDate(session.getVisitDate());
+        response.setStartTime(session.getStartTime());
+        response.setEndTime(session.getEndTime());
+        response.setSessionStatus(sessionStatus);
+        response.setTotalActivities(totalActivities);
+        response.setCompletedActivities(completedActivities);
+        response.setProgressPercentage(progressPercentage);
+        response.setNextActivities(nextActivityResponses);
+        response.setActivities(activityResponses);
 
         return ApiDataResponseBuilder.builder()
                 .data(response)
@@ -105,4 +106,20 @@ public class SessionTrackingService {
     private boolean isCompletedActivity(Activity activity) {
                 return activity != null && activity.getActivityStatus() == ActivityStatus.COMPLETED;
     }
+
+        private List<Activity> findNextPendingActivities(List<Activity> activities) {
+                Optional<Activity> firstPending = activities.stream()
+                                .filter(activity -> !isCompletedActivity(activity))
+                                .findFirst();
+
+                if (firstPending.isEmpty()) {
+                        return List.of();
+                }
+
+                var nextTime = firstPending.get().getTime();
+                return activities.stream()
+                                .filter(activity -> !isCompletedActivity(activity))
+                                .filter(activity -> Objects.equals(activity.getTime(), nextTime))
+                                .collect(Collectors.toList());
+        }
 }

@@ -9,16 +9,22 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class SessionUpdateRequest {
+
+    @Schema(description = "ID protokol yang digunakan", example = "PR-24H")  
     @NotBlank(message = "Protocol ID wajib diisi")
     private String protocolId;
 
+    @Schema(description = "Waktu pengukuran dalam format ISO (YYYY-MM-DD) atau 'YYYY-MM-DD'", example = "2026-05-22")
     @NotNull(message = "Visit date wajib diisi")
     private LocalDate visitDate;
 
+    @Schema(description = "Waktu mulai sesi dalam format ISO (YYYY-MM-DDTHH:mm:ss) atau 'YYYY-MM-DD HH:mm:ss'", example = "2026-05-21T09:10:00")
     @NotNull(message = "Start time wajib diisi")
     private LocalDateTime startTime;
 

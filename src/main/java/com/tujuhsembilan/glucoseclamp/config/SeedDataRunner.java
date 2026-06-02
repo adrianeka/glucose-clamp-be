@@ -37,6 +37,8 @@ public class SeedDataRunner implements CommandLineRunner {
         seedActivities();
         seedDevices();
         seedProtocolDetails();
+        seedBloodSamples();
+        seedLabResults();
         syncSequences();
     }
 
@@ -87,7 +89,19 @@ public class SeedDataRunner implements CommandLineRunner {
                 row("ACT-007-GD1-101", 101, 3, ts("2026-05-21 08:40:00"), "BLOOD_DRAW", "GD1", "COMPLETED", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
                 row("ACT-008-GD2-101", 101, 3, ts("2026-05-21 08:50:00"), "BLOOD_DRAW", "GD2", "COMPLETED", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
                 row("ACT-009-GD3-101", 101, 3, ts("2026-05-21 09:00:00"), "BLOOD_DRAW", "GD3", "COMPLETED", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row("ACT-010-PK-C 2-101", 101, 3, ts("2026-05-21 09:00:00"), "INSULIN_CHECK", "PK-C 2", "COMPLETED", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE")
+                row("ACT-010-PK-C 2-101", 101, 3, ts("2026-05-21 09:00:00"), "INSULIN_CHECK", "PK-C 2", "COMPLETED", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("ACT-001", 101, 3, ts("2026-05-21 08:00:00"), "BLOOD_DRAW", "T-30", "COMPLETED", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("ACT-002", 101, 3, ts("2026-05-21 08:00:00"), "INSULIN_CHECK", "PK-C 1", "COMPLETED", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("ACT-003", 101, 3, ts("2026-05-21 08:10:00"), "BLOOD_DRAW", "T-20", "COMPLETED", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("ACT-004", 101, 3, ts("2026-05-21 08:20:00"), "BLOOD_DRAW", "T-10", "COMPLETED", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("ACT-005", 101, 3, ts("2026-05-21 08:30:00"), "BLOOD_DRAW", "T-0", "COMPLETED", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("ACT-006", 101, 3, ts("2026-05-21 08:30:00"), "INSULIN_INJECTION", "SC", "COMPLETED", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("ACT-007", 101, 3, ts("2026-05-21 08:40:00"), "BLOOD_DRAW", "GD1", "COMPLETED", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("ACT-008", 101, 3, ts("2026-05-21 08:50:00"), "BLOOD_DRAW", "GD2", "COMPLETED", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("ACT-009", 101, 3, ts("2026-05-21 09:00:00"), "BLOOD_DRAW", "GD3", "COMPLETED", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("ACT-010", 101, 3, ts("2026-05-21 09:00:00"), "INSULIN_CHECK", "PK-C 2", "COMPLETED", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("ACT-011", 101, 3, ts("2026-05-21 09:10:00"), "BLOOD_DRAW", "GD4", "COMPLETED", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("ACT-012", 101, 3, ts("2026-05-21 09:20:00"), "BLOOD_DRAW", "GD5", "COMPLETED", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE")
         );
     }
 
@@ -209,6 +223,44 @@ public class SeedDataRunner implements CommandLineRunner {
                 row("D-090", "PR-24H", "Phase 3", 30, true, false, true, ts("2026-05-21 7:10:00"), 1, ts("2026-05-21 7:10:00"), 1, null, null, "ACTIVE")
         );
     }
+
+
+
+    private void seedBloodSamples() {
+        batch(
+            "INSERT INTO blood_samples (blood_sample_id, activity_id, collected_by, sample_time, sample_type, tube_type, volume_ml, created_at, created_by, updated_at, updated_by, deleted_at, deleted_by, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT (blood_sample_id) DO UPDATE SET activity_id = EXCLUDED.activity_id, collected_by = EXCLUDED.collected_by, sample_time = EXCLUDED.sample_time, sample_type = EXCLUDED.sample_type, tube_type = EXCLUDED.tube_type, volume_ml = EXCLUDED.volume_ml, created_at = EXCLUDED.created_at, created_by = EXCLUDED.created_by, updated_at = EXCLUDED.updated_at, updated_by = EXCLUDED.updated_by, deleted_at = EXCLUDED.deleted_at, deleted_by = EXCLUDED.deleted_by, status = EXCLUDED.status",
+            row("BS-001", "ACT-001", 4, ts("2026-05-21 08:00:05"), "Glucose", "Fluoride", bd("3"), ts("2026-05-21 07:10:00"), 4, ts("2026-05-21 07:10:00"), 4, null, null, "ACTIVE"),
+            row("BS-002", "ACT-002", 4, ts("2026-05-21 08:00:05"), "C-Peptide", "EDTA", bd("3"), ts("2026-05-21 07:10:00"), 4, ts("2026-05-21 07:10:00"), 4, null, null, "ACTIVE"),
+            row("BS-003", "ACT-003", 4, ts("2026-05-21 08:10:02"), "Glucose", "Fluoride", bd("3"), ts("2026-05-21 07:10:00"), 4, ts("2026-05-21 07:10:00"), 4, null, null, "ACTIVE"),
+            row("BS-004", "ACT-004", 4, ts("2026-05-21 08:20:10"), "Glucose", "Fluoride", bd("3"), ts("2026-05-21 07:10:00"), 4, ts("2026-05-21 07:10:00"), 4, null, null, "ACTIVE"),
+            row("BS-005", "ACT-005", 4, ts("2026-05-21 08:30:10"), "Glucose", "Fluoride", bd("3"), ts("2026-05-21 07:10:00"), 4, ts("2026-05-21 07:10:00"), 4, null, null, "ACTIVE"),
+            row("BS-006", "ACT-007", 4, ts("2026-05-21 08:40:05"), "Glucose", "Fluoride", bd("3"), ts("2026-05-21 07:10:00"), 4, ts("2026-05-21 07:10:00"), 4, null, null, "ACTIVE"),
+            row("BS-007", "ACT-008", 4, ts("2026-05-21 08:50:00"), "Glucose", "Fluoride", bd("3"), ts("2026-05-21 07:10:00"), 4, ts("2026-05-21 07:10:00"), 4, null, null, "ACTIVE"),
+            row("BS-008", "ACT-009", 4, ts("2026-05-21 09:00:15"), "Glucose", "Fluoride", bd("3"), ts("2026-05-21 07:10:00"), 4, ts("2026-05-21 07:10:00"), 4, null, null, "ACTIVE"),
+            row("BS-009", "ACT-010", 4, ts("2026-05-21 09:00:15"), "C-Peptide", "EDTA", bd("3"), ts("2026-05-21 07:10:00"), 4, ts("2026-05-21 07:10:00"), 4, null, null, "ACTIVE"),
+            row("BS-010", "ACT-011", 4, ts("2026-05-21 09:10:00"), "Glucose", "Fluoride", bd("3"), ts("2026-05-21 07:10:00"), 4, ts("2026-05-21 07:10:00"), 4, null, null, "ACTIVE"),
+            row("BS-011", "ACT-012", 4, ts("2026-05-21 09:20:00"), "Glucose", "Fluoride", bd("3"), ts("2026-05-21 07:10:00"), 4, ts("2026-05-21 07:10:00"), 4, null, null, "ACTIVE"),
+            row("BS-012", "ACT-012", 4, ts("2026-05-21 09:20:00"), "Glucose", "Fluoride", bd("3"), ts("2026-05-21 07:10:00"), 4, ts("2026-05-21 07:10:00"), 4, null, null, "ACTIVE")
+        );
+    }
+
+    private void seedLabResults() {
+        batch(
+            "INSERT INTO lab_results (lab_result_id, blood_sample_id, parameter_name, verified_by, value, reference_range_min, reference_range_max, unit, abnormal_flag, created_at, created_by, updated_at, updated_by, deleted_at, deleted_by, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT (lab_result_id) DO UPDATE SET blood_sample_id = EXCLUDED.blood_sample_id, parameter_name = EXCLUDED.parameter_name, verified_by = EXCLUDED.verified_by, value = EXCLUDED.value, reference_range_min = EXCLUDED.reference_range_min, reference_range_max = EXCLUDED.reference_range_max, unit = EXCLUDED.unit, abnormal_flag = EXCLUDED.abnormal_flag, created_at = EXCLUDED.created_at, created_by = EXCLUDED.created_by, updated_at = EXCLUDED.updated_at, updated_by = EXCLUDED.updated_by, deleted_at = EXCLUDED.deleted_at, deleted_by = EXCLUDED.deleted_by, status = EXCLUDED.status",
+            row("LAB-001", "BS-001", "Glucose", 4, bd("95"), bd("90"), bd("100"), "mg/dL", "NORMAL", ts("2026-05-21 07:10:00"), 4, ts("2026-05-21 07:10:00"), 4, null, null, "ACTIVE"),
+            row("LAB-002", "BS-002", "Insulin", 4, bd("12.1"), bd("2.6"), bd("24.9"), "ulU/ml", "NORMAL", ts("2026-05-21 07:10:00"), 4, ts("2026-05-21 07:10:00"), 4, null, null, "ACTIVE"),
+            row("LAB-003", "BS-003", "C-Peptide", 4, bd("1.5"), bd("0.5"), bd("2.7"), "ng/mL", "NORMAL", ts("2026-05-21 07:10:00"), 4, ts("2026-05-21 07:10:00"), 4, null, null, "ACTIVE"),
+            row("LAB-004", "BS-004", "Glucose", 4, bd("94"), bd("90"), bd("100"), "mg/dL", "NORMAL", ts("2026-05-21 07:10:00"), 4, ts("2026-05-21 07:10:00"), 4, null, null, "ACTIVE"),
+            row("LAB-005", "BS-005", "Glucose", 4, bd("95.5"), bd("90"), bd("100"), "mg/dL", "NORMAL", ts("2026-05-21 07:10:00"), 4, ts("2026-05-21 07:10:00"), 4, null, null, "ACTIVE"),
+            row("LAB-006", "BS-006", "Glucose", 4, bd("95"), bd("90"), bd("100"), "mg/dL", "NORMAL", ts("2026-05-21 07:10:00"), 4, ts("2026-05-21 07:10:00"), 4, null, null, "ACTIVE"),
+            row("LAB-007", "BS-007", "Glucose", 4, bd("88"), bd("90"), bd("100"), "mg/dL", "NORMAL", ts("2026-05-21 07:10:00"), 4, ts("2026-05-21 07:10:00"), 4, null, null, "ACTIVE"),
+            row("LAB-008", "BS-008", "Glucose", 4, bd("85"), bd("90"), bd("100"), "mg/dL", "NORMAL", ts("2026-05-21 07:10:00"), 4, ts("2026-05-21 07:10:00"), 4, null, null, "ACTIVE"),
+            row("LAB-009", "BS-009", "Glucose", 4, bd("82.5"), bd("90"), bd("100"), "mg/dL", "NORMAL", ts("2026-05-21 07:10:00"), 4, ts("2026-05-21 07:10:00"), 4, null, null, "ACTIVE"),
+            row("LAB-010", "BS-010", "Insulin", 4, bd("12.1"), bd("2.6"), bd("24.9"), "ulU/ml", "NORMAL", ts("2026-05-21 07:10:00"), 4, ts("2026-05-21 07:10:00"), 4, null, null, "ACTIVE"),
+            row("LAB-011", "BS-011", "C-Peptide", 4, bd("4.8"), bd("0.5"), bd("2.7"), "ng/mL", "NORMAL", ts("2026-05-21 07:10:00"), 4, ts("2026-05-21 07:10:00"), 4, null, null, "ACTIVE")
+        );
+    }
+
     private void syncSequences() {
         jdbcTemplate.execute("SELECT setval('role_id_seq', COALESCE((SELECT MAX(role_id) FROM roles), 0) + 1, false)");
         jdbcTemplate.execute("SELECT setval('user_id_seq', COALESCE((SELECT MAX(user_id) FROM users), 0) + 1, false)");

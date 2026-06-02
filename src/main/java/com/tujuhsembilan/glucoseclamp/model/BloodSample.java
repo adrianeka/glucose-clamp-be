@@ -3,8 +3,6 @@ package com.tujuhsembilan.glucoseclamp.model;
 import com.tujuhsembilan.glucoseclamp.model.base.BaseEntity;
 import lombok.*;
 import jakarta.persistence.*;
-
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
@@ -12,32 +10,34 @@ import java.time.LocalDateTime;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(exclude = {"activity", "collectedByUser"}, callSuper = true)
-@ToString(exclude = {"activity", "collectedByUser"})
+@EqualsAndHashCode(exclude = "activity", callSuper = true)
+@ToString(exclude = "activity")
 @Builder
 public class BloodSample extends BaseEntity {
-    
+
     @Id
     @Column(name = "blood_sample_id", length = 50)
     private String bloodSampleId;
-    
+
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "activity_id", nullable = false)
+    @JoinColumn(name = "activity_id")
     private Activity activity;
-    
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "collected_by")
-    private User collectedByUser;
-    
+
+    @Column(name = "sample_code", length = 100)
+    private String sampleCode;
+
+    @Column(name = "collected_by")
+    private Integer collectedBy;
+
     @Column(name = "sample_time")
     private LocalDateTime sampleTime;
-    
-    @Column(name = "sample_type", length = 50)
+
+    @Column(name = "sample_type", length = 100)
     private String sampleType;
-    
-    @Column(name = "tube_type", length = 50)
+
+    @Column(name = "tube_type", length = 100)
     private String tubeType;
-    
-    @Column(name = "volume_ml", precision = 10, scale = 2)
-    private BigDecimal volumeMl;
+
+    @Column(name = "volume_ml")
+    private Integer volumeMl;
 }

@@ -34,6 +34,7 @@ public class SeedDataRunner implements CommandLineRunner {
         seedPatients();
         seedProtocols();
         seedSessions();
+        seedActivities();
         seedDevices();
         seedProtocolDetails();
         syncSequences();
@@ -73,6 +74,22 @@ public class SeedDataRunner implements CommandLineRunner {
         row(101, "PAT-001", "PR-24H", ts("2026-05-21 07:10:00"), ts("2026-05-21 07:10:00"), ts("2026-05-21 07:10:00"), ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE")
     );
 }
+
+    private void seedActivities() {
+        batch(
+                "INSERT INTO activities (activity_id, session_id, actor_id, time, activity_type, activity_desc, activity_status, created_at, created_by, updated_at, updated_by, deleted_at, deleted_by, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT (activity_id) DO UPDATE SET session_id = EXCLUDED.session_id, actor_id = EXCLUDED.actor_id, time = EXCLUDED.time, activity_type = EXCLUDED.activity_type, activity_desc = EXCLUDED.activity_desc, activity_status = EXCLUDED.activity_status, created_at = EXCLUDED.created_at, created_by = EXCLUDED.created_by, updated_at = EXCLUDED.updated_at, updated_by = EXCLUDED.updated_by, deleted_at = EXCLUDED.deleted_at, deleted_by = EXCLUDED.deleted_by, status = EXCLUDED.status",
+                row("ACT-001-T-30-101", 101, 3, ts("2026-05-21 08:00:00"), "BLOOD_DRAW", "T-30", "COMPLETED", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("ACT-002-PK-C 1-101", 101, 3, ts("2026-05-21 08:00:00"), "INSULIN_CHECK", "PK-C 1", "COMPLETED", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("ACT-003-T-20-101", 101, 3, ts("2026-05-21 08:10:00"), "BLOOD_DRAW", "T-20", "COMPLETED", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("ACT-004-T-10-101", 101, 3, ts("2026-05-21 08:20:00"), "BLOOD_DRAW", "T-10", "COMPLETED", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("ACT-005-T-0-101", 101, 3, ts("2026-05-21 08:30:00"), "BLOOD_DRAW", "T-0", "COMPLETED", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("ACT-006-SC-101", 101, 3, ts("2026-05-21 08:30:00"), "INSULIN_INJECTION", "SC", "COMPLETED", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("ACT-007-GD1-101", 101, 3, ts("2026-05-21 08:40:00"), "BLOOD_DRAW", "GD1", "COMPLETED", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("ACT-008-GD2-101", 101, 3, ts("2026-05-21 08:50:00"), "BLOOD_DRAW", "GD2", "COMPLETED", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("ACT-009-GD3-101", 101, 3, ts("2026-05-21 09:00:00"), "BLOOD_DRAW", "GD3", "COMPLETED", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("ACT-010-PK-C 2-101", 101, 3, ts("2026-05-21 09:00:00"), "INSULIN_CHECK", "PK-C 2", "COMPLETED", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE")
+        );
+    }
 
     private void seedDevices() {
         batch(

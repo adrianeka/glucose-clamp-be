@@ -18,10 +18,8 @@ import java.time.LocalDateTime;
 public class InfusionMonitoring extends BaseEntity {
     
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "infusion_id_seq")
-    @SequenceGenerator(name = "infusion_id_seq", sequenceName = "infusion_id_seq", allocationSize = 1)
-    @Column(name = "infusion_id")
-    private Integer infusionId;
+    @Column(name = "infusion_id", length = 10)
+    private String infusionId;
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "session_id", nullable = false)
@@ -44,4 +42,7 @@ public class InfusionMonitoring extends BaseEntity {
     
     @Column(name = "adjustment_note", length = 500)
     private String adjustmentNote;
+
+    @Column(name = "monitored_by")
+    private Integer monitoredBy;
 }

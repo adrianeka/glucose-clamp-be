@@ -13,8 +13,8 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(exclude = {"patient", "protocol", "sessionDevices"}, callSuper = true)
-@ToString(exclude = {"patient", "protocol", "sessionDevices"})
+@EqualsAndHashCode(exclude = {"participant", "protocol", "sessionDevices"}, callSuper = true)
+@ToString(exclude = {"participant", "protocol", "sessionDevices"})
 @Builder
 public class Session extends BaseEntity {
     
@@ -25,8 +25,8 @@ public class Session extends BaseEntity {
     private Integer sessionId;
     
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "patient_id", nullable = false)
-    private Patient patient;
+    @JoinColumn(name = "participant_id", nullable = false)
+    private Participant participant;
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "protocol_id", nullable = false)

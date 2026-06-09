@@ -22,7 +22,7 @@ public interface SessionRepository extends JpaRepository<Session, Integer> {
     @Query("""
             SELECT new com.tujuhsembilan.glucoseclamp.dto.response.SessionSummaryResponse(
                 s.sessionId,
-                p.patientId,
+                p.participantId,
                 p.name,
                 pr.protocolId,
                 pr.protocolName,
@@ -35,7 +35,7 @@ public interface SessionRepository extends JpaRepository<Session, Integer> {
                 s.status
                 )
             FROM Session s
-            JOIN s.patient p
+            JOIN s.participant p
             JOIN s.protocol pr
             WHERE s.deletedAt IS NULL
             """)
@@ -46,8 +46,8 @@ public interface SessionRepository extends JpaRepository<Session, Integer> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT s FROM Session s WHERE s.sessionId = ?1 AND s.deletedAt IS NULL")
     Optional<Session> findByIdAndDeletedAtIsNullForUpdate(Integer sessionId);
-    @Query("SELECT s FROM Session s WHERE s.patient.patientId = ?1 AND s.deletedAt IS NULL")
-    List<Session> findByPatientIdAndDeletedAtIsNull(String patientId);
+    @Query("SELECT s FROM Session s WHERE s.participant.participantId = ?1 AND s.deletedAt IS NULL")
+    List<Session> findByParticipantIdAndDeletedAtIsNull(String participantId);
     @Query("SELECT s FROM Session s WHERE s.protocol.protocolId = ?1 AND s.deletedAt IS NULL")
     List<Session> findByProtocolIdAndDeletedAtIsNull(String protocolId);
     @Query("SELECT s FROM Session s WHERE s.visitDate = ?1 AND s.deletedAt IS NULL")

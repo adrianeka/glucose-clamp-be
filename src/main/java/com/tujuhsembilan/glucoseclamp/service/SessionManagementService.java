@@ -10,7 +10,7 @@ import com.tujuhsembilan.glucoseclamp.dto.response.SessionSummaryResponse;
 import com.tujuhsembilan.glucoseclamp.model.Activity;
 import com.tujuhsembilan.glucoseclamp.model.ProtocolDetail;
 import com.tujuhsembilan.glucoseclamp.model.Device;
-import com.tujuhsembilan.glucoseclamp.model.Patient;
+import com.tujuhsembilan.glucoseclamp.model.Participant;
 import com.tujuhsembilan.glucoseclamp.model.Protocol;
 import com.tujuhsembilan.glucoseclamp.model.Session;
 import com.tujuhsembilan.glucoseclamp.model.SessionDevice;
@@ -21,7 +21,7 @@ import com.tujuhsembilan.glucoseclamp.model.base.SessionStatus;
 import com.tujuhsembilan.glucoseclamp.repository.AnamnesisRepository;
 import com.tujuhsembilan.glucoseclamp.repository.AnthropometryRepository;
 import com.tujuhsembilan.glucoseclamp.repository.DeviceRepository;
-import com.tujuhsembilan.glucoseclamp.repository.PatientRepository;
+import com.tujuhsembilan.glucoseclamp.repository.ParticipantRepository;
 import com.tujuhsembilan.glucoseclamp.repository.ProtocolRepository;
 import com.tujuhsembilan.glucoseclamp.repository.SessionDeviceRepository;
 import com.tujuhsembilan.glucoseclamp.repository.SessionRepository;
@@ -55,7 +55,7 @@ import java.util.stream.Collectors;
 public class SessionManagementService {
 
     private final SessionRepository sessionRepository;
-    private final PatientRepository patientRepository;
+    private final ParticipantRepository participantRepository;
     private final ProtocolRepository protocolRepository;
     private final DeviceRepository deviceRepository;
     private final SessionDeviceRepository sessionDeviceRepository;
@@ -68,7 +68,7 @@ public class SessionManagementService {
 
     public SessionManagementService(
             SessionRepository sessionRepository,
-            PatientRepository patientRepository,
+            ParticipantRepository participantRepository,
             ProtocolRepository protocolRepository,
             DeviceRepository deviceRepository,
             SessionDeviceRepository sessionDeviceRepository,
@@ -80,7 +80,7 @@ public class SessionManagementService {
                 ActivityService activityService
     ) {
         this.sessionRepository = sessionRepository;
-        this.patientRepository = patientRepository;
+        this.participantRepository = participantRepository;
         this.protocolRepository = protocolRepository;
         this.deviceRepository = deviceRepository;
         this.sessionDeviceRepository = sessionDeviceRepository;
@@ -127,10 +127,10 @@ public class SessionManagementService {
         Integer actorId = currentUserService.getCurrentUserId();
         User actor = currentUserService.getCurrentUserEntity();
 
-        Optional<Patient> patientOptional = patientRepository.findByIdAndDeletedAtIsNull(request.getPatientId());
-        if (patientOptional.isEmpty()) {
+        Optional<Participant> participantOptional = participantRepository.findByIdAndDeletedAtIsNull(request.getParticipantId());
+        if (participantOptional.isEmpty()) {
             return ApiDataResponseBuilder.builder()
-                    .message("Patient tidak ditemukan")
+                    .message("Participant tidak ditemukan")
                     .statusCode(HttpStatus.BAD_REQUEST.value())
                     .status(HttpStatus.BAD_REQUEST)
                     .build();
@@ -167,7 +167,7 @@ public class SessionManagementService {
         }
 
         Session session = new Session();
-        session.setPatient(patientOptional.get());
+        session.setParticipant(participantOptional.get());
         session.setProtocol(protocolOptional.get());
         session.setVisitDate(request.getVisitDate());
         session.setStartTime(normalizeToSeconds(request.getStartTime()));
@@ -510,7 +510,7 @@ public class SessionManagementService {
 
         SessionCreateResponse resp = new SessionCreateResponse();
         resp.setSessionId(session.getSessionId());
-        resp.setPatientId(session.getPatient().getPatientId());
+        resp.setParticipantId(session.getParticipant().getParticipantId());
         resp.setProtocolId(session.getProtocol().getProtocolId());
         resp.setGeneratedActivityCount(activityIds.size());
         resp.setActivityIds(activityIds);
@@ -521,7 +521,7 @@ public class SessionManagementService {
     private SessionCreateResponse buildSessionCompleteResponse(Session session) {
         SessionCreateResponse resp = new SessionCreateResponse();
         resp.setSessionId(session.getSessionId());
-        resp.setPatientId(session.getPatient().getPatientId());
+        resp.setParticipantId(session.getParticipant().getParticipantId());
         resp.setProtocolId(session.getProtocol().getProtocolId());
         resp.setEndTime(session.getEndTime());
         return resp;

@@ -13,7 +13,7 @@ import java.util.List;
 @AllArgsConstructor
 public class SessionCreateResponse {
     private Integer sessionId;
-    private String patientId;
+    private String participantId;
     private String protocolId;
     private int generatedActivityCount;
     private List<String> activityIds;

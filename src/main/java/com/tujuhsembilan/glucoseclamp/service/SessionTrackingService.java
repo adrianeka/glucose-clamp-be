@@ -72,8 +72,8 @@ public class SessionTrackingService {
 
         SessionTimelineResponse response = new SessionTimelineResponse();
         response.setSessionId(session.getSessionId());
-        response.setPatientId(session.getPatient().getPatientId());
-        response.setPatientName(session.getPatient().getName());
+        response.setParticipantId(session.getParticipant().getParticipantId());
+        response.setParticipantName(session.getParticipant().getName());
         response.setProtocolId(session.getProtocol().getProtocolId());
         response.setProtocolName(session.getProtocol().getProtocolName());
         response.setVisitDate(session.getVisitDate());

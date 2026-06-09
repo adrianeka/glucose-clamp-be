@@ -19,8 +19,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 @AllArgsConstructor
 public class SessionCreateRequest {
     @Schema(description = "ID pasien terkait", example = "PAT-001")
-    @NotBlank(message = "Kolom patientId tidak boleh kosong")
-    private String patientId;
+    @NotBlank(message = "Kolom participantId tidak boleh kosong")
+    private String participantId;
 
     @Schema(description = "ID protokol yang digunakan", example = "PR-24H")   
     @NotBlank(message = "Kolom protocolId tidak boleh kosong")

@@ -31,7 +31,7 @@ public class SeedDataRunner implements CommandLineRunner {
     public void run(String... args) {
         seedRoles();
         seedUsers();
-        seedPatients();
+        seedParticipants();
         seedProtocols();
         seedSessions();
         seedActivities();
@@ -72,7 +72,7 @@ public class SeedDataRunner implements CommandLineRunner {
 
     private void seedSessions() {
     batch(
-        "INSERT INTO sessions (session_id, patient_id, protocol_id, visit_date, start_time, end_time, created_at, created_by, updated_at, updated_by, deleted_at, deleted_by, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT (session_id) DO UPDATE SET patient_id = EXCLUDED.patient_id, protocol_id = EXCLUDED.protocol_id, visit_date = EXCLUDED.visit_date, start_time = EXCLUDED.start_time, end_time = EXCLUDED.end_time, created_at = EXCLUDED.created_at, created_by = EXCLUDED.created_by, updated_at = EXCLUDED.updated_at, updated_by = EXCLUDED.updated_by, deleted_at = EXCLUDED.deleted_at, deleted_by = EXCLUDED.deleted_by, status = EXCLUDED.status",
+        "INSERT INTO sessions (session_id, participant_id, protocol_id, visit_date, start_time, end_time, created_at, created_by, updated_at, updated_by, deleted_at, deleted_by, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT (session_id) DO UPDATE SET participant_id = EXCLUDED.participant_id, protocol_id = EXCLUDED.protocol_id, visit_date = EXCLUDED.visit_date, start_time = EXCLUDED.start_time, end_time = EXCLUDED.end_time, created_at = EXCLUDED.created_at, created_by = EXCLUDED.created_by, updated_at = EXCLUDED.updated_at, updated_by = EXCLUDED.updated_by, deleted_at = EXCLUDED.deleted_at, deleted_by = EXCLUDED.deleted_by, status = EXCLUDED.status",
         row(101, "PAT-001", "PR-24H", ts("2026-05-21 07:10:00"), ts("2026-05-21 07:10:00"), ts("2026-05-21 07:10:00"), ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE")
     );
 }
@@ -114,9 +114,9 @@ public class SeedDataRunner implements CommandLineRunner {
         );
     }
 
-    private void seedPatients() {
+    private void seedParticipants() {
         batch(
-                "INSERT INTO patients (patient_id, medical_record_no, name, gender, dob, number_phone, created_at, created_by, updated_at, updated_by, deleted_at, deleted_by, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT (patient_id) DO UPDATE SET medical_record_no = EXCLUDED.medical_record_no, name = EXCLUDED.name, gender = EXCLUDED.gender, dob = EXCLUDED.dob, number_phone = EXCLUDED.number_phone, created_at = EXCLUDED.created_at, created_by = EXCLUDED.created_by, updated_at = EXCLUDED.updated_at, updated_by = EXCLUDED.updated_by, deleted_at = EXCLUDED.deleted_at, deleted_by = EXCLUDED.deleted_by, status = EXCLUDED.status",
+                "INSERT INTO participants (participant_id, medical_record_no, name, gender, dob, number_phone, created_at, created_by, updated_at, updated_by, deleted_at, deleted_by, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT (participant_id) DO UPDATE SET medical_record_no = EXCLUDED.medical_record_no, name = EXCLUDED.name, gender = EXCLUDED.gender, dob = EXCLUDED.dob, number_phone = EXCLUDED.number_phone, created_at = EXCLUDED.created_at, created_by = EXCLUDED.created_by, updated_at = EXCLUDED.updated_at, updated_by = EXCLUDED.updated_by, deleted_at = EXCLUDED.deleted_at, deleted_by = EXCLUDED.deleted_by, status = EXCLUDED.status",
                 row("PAT-001", "MR889100", "Adrian Saputra", "Male", d("1998-06-10"), "8123456789", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE")
         );
     }

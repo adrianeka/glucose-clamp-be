@@ -8,14 +8,14 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * Request DTO for updating a patient's status (ACTIVE / INACTIVE).
+ * Request DTO for updating a participant's status (ACTIVE / INACTIVE).
  */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class PatientStatusUpdateRequest {
+public class ParticipantStatusUpdateRequest {
 
-    @Schema(description = "Status pasien (ACTIVE atau INACTIVE)", example = "ACTIVE")
+    @Schema(description = "Status partisipan (ACTIVE atau INACTIVE)", example = "ACTIVE")
     @NotNull(message = "Status tidak boleh kosong")
     private EntityStatus status;
 }

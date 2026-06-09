@@ -15,8 +15,8 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class SessionSummaryResponse {
     private Integer sessionId;
-    private String patientId;
-    private String patientName;
+    private String participantId;
+    private String participantName;
     private String protocolId;
     private String protocolName;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")

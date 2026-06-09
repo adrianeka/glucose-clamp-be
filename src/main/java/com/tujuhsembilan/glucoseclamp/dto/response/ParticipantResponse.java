@@ -7,8 +7,8 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class PatientResponse {
-    private String patientId;
+public class ParticipantResponse {
+    private String participantId;
     private String medicalRecordNo;
     private String name;
     private String gender;

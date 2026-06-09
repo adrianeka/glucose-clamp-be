@@ -7,18 +7,18 @@ import java.time.LocalDate;
 import java.util.List;
 
 @Entity
-@Table(name = "patients")
+@Table(name = "participants")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(exclude = {"sessions"}, callSuper = true)
 @ToString(exclude = {"sessions"})
 @Builder
-public class Patient extends BaseEntity {
+public class Participant extends BaseEntity {
     
     @Id
-    @Column(name = "patient_id", length = 50)
-    private String patientId;
+    @Column(name = "participant_id", length = 50)
+    private String participantId;
     
     @Column(name = "medical_record_no", unique = true, nullable = false, length = 100)
     private String medicalRecordNo;
@@ -38,6 +38,6 @@ public class Patient extends BaseEntity {
     @Column(name = "number_phone", length = 20)
     private String numberPhone;
     
-    @OneToMany(mappedBy = "patient")
+    @OneToMany(mappedBy = "participant")
     private List<Session> sessions;
 }

@@ -12,8 +12,8 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(exclude = "protocolDetails", callSuper = true)
-@ToString(exclude = "protocolDetails")
+@EqualsAndHashCode(exclude = "samplingSchedules", callSuper = true)
+@ToString(exclude = "samplingSchedules")
 @Builder
 public class Protocol extends BaseEntity {
     
@@ -49,5 +49,5 @@ public class Protocol extends BaseEntity {
     private Float version;
     
     @OneToMany(mappedBy = "protocol")
-    private List<ProtocolDetail> protocolDetails;
+    private List<SamplingSchedule> samplingSchedules;
 }

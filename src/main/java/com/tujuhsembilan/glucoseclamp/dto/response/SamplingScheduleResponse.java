@@ -12,10 +12,10 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class ProtocolDetailResponse {
+public class SamplingScheduleResponse {
 
-    @JsonProperty("protocol_detail_id")
-    private String protocolDetailId;
+    @JsonProperty("sampling_schedule_id")
+    private String samplingScheduleId;
 
     @JsonProperty("protocol_id")
     private String protocolId;
@@ -32,8 +32,8 @@ public class ProtocolDetailResponse {
     @JsonProperty("insulin_inject")
     private Boolean insulinInject;
 
-    @JsonProperty("insulin_check")
-    private Boolean insulinCheck;
+    @JsonProperty("pk_sample_collection")
+    private Boolean pkSampleCollection;
 
     @JsonProperty("created_at")
     private LocalDateTime createdAt;

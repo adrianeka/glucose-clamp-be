@@ -67,6 +67,6 @@ public class ProtocolResponse {
     @JsonProperty("status")
     private String status;
 
-    @JsonProperty("protocol_details")
-    private List<ProtocolDetailResponse> protocolDetails;
+    @JsonProperty("sampling_schedules")
+    private List<SamplingScheduleResponse> samplingSchedules;
 }

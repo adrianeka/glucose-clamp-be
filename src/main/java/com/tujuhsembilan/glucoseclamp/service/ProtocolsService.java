@@ -1,14 +1,14 @@
 package com.tujuhsembilan.glucoseclamp.service;
 
-import com.tujuhsembilan.glucoseclamp.dto.request.ProtocolDetailRequest;
+import com.tujuhsembilan.glucoseclamp.dto.request.SamplingScheduleRequest;
 import com.tujuhsembilan.glucoseclamp.dto.request.ProtocolRequest;
 import com.tujuhsembilan.glucoseclamp.dto.response.ApiDataResponseBuilder;
-import com.tujuhsembilan.glucoseclamp.dto.response.ProtocolDetailResponse;
+import com.tujuhsembilan.glucoseclamp.dto.response.SamplingScheduleResponse;
 import com.tujuhsembilan.glucoseclamp.dto.response.ProtocolResponse;
 import com.tujuhsembilan.glucoseclamp.model.Protocol;
-import com.tujuhsembilan.glucoseclamp.model.ProtocolDetail;
+import com.tujuhsembilan.glucoseclamp.model.SamplingSchedule;
 import com.tujuhsembilan.glucoseclamp.model.base.EntityStatus;
-import com.tujuhsembilan.glucoseclamp.repository.ProtocolDetailRepository;
+import com.tujuhsembilan.glucoseclamp.repository.SamplingScheduleRepository;
 import com.tujuhsembilan.glucoseclamp.repository.ProtocolRepository;
 import com.tujuhsembilan.glucoseclamp.security.service.UserDetailsImplement;
 import lombok.extern.slf4j.Slf4j;
@@ -38,7 +38,7 @@ public class ProtocolsService {
     private ProtocolRepository protocolRepository;
 
     @Autowired
-    private ProtocolDetailRepository protocolDetailRepository;
+    private SamplingScheduleRepository samplingScheduleRepository;
 
     private Integer getCurrentUserId() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -108,11 +108,11 @@ public class ProtocolsService {
                     .build();
         }
 
-        if (request.getProtocolDetails() != null) {
-            for (ProtocolDetailRequest detailReq : request.getProtocolDetails()) {
-                if (protocolDetailRepository.findById(detailReq.getProtocolDetailId()).isPresent()) {
+        if (request.getSamplingSchedules() != null) {
+            for (SamplingScheduleRequest detailReq : request.getSamplingSchedules()) {
+                if (samplingScheduleRepository.findById(detailReq.getSamplingScheduleId()).isPresent()) {
                     return ApiDataResponseBuilder.builder()
-                            .message("Protocol Detail ID " + detailReq.getProtocolDetailId() + " sudah digunakan")
+                            .message("Sampling Schedule ID " + detailReq.getSamplingScheduleId() + " sudah digunakan")
                             .statusCode(HttpStatus.BAD_REQUEST.value())
                             .status(HttpStatus.BAD_REQUEST)
                             .build();
@@ -144,16 +144,16 @@ public class ProtocolsService {
 
         protocolRepository.save(protocol);
 
-        if (request.getProtocolDetails() != null) {
-            for (ProtocolDetailRequest detailReq : request.getProtocolDetails()) {
-                ProtocolDetail detail = ProtocolDetail.builder()
-                        .protocolDetailId(detailReq.getProtocolDetailId())
+        if (request.getSamplingSchedules() != null) {
+            for (SamplingScheduleRequest detailReq : request.getSamplingSchedules()) {
+                SamplingSchedule detail = SamplingSchedule.builder()
+                        .samplingScheduleId(detailReq.getSamplingScheduleId())
                         .protocol(protocol)
                         .phaseCode(detailReq.getPhaseCode())
                         .timeInterval(detailReq.getTimeInterval())
                         .bloodRaw(detailReq.getBloodRaw())
                         .insulinInject(detailReq.getInsulinInject())
-                        .insulinCheck(detailReq.getInsulinCheck())
+                        .pkSampleCollection(detailReq.getPkSampleCollection())
                         .build();
 
                 detail.setCreatedAt(now);
@@ -162,7 +162,7 @@ public class ProtocolsService {
                 detail.setUpdatedBy(currentUserId);
                 detail.setStatus(EntityStatus.ACTIVE);
 
-                protocolDetailRepository.save(detail);
+                samplingScheduleRepository.save(detail);
             }
         }
 
@@ -216,18 +216,18 @@ public class ProtocolsService {
 
         protocolRepository.save(protocol);
 
-        if (request.getProtocolDetails() != null) {
-            List<ProtocolDetail> currentDetails = protocolDetailRepository.findByProtocolIdAndDeletedAtIsNull(protocol.getProtocolId());
-            for (ProtocolDetail cd : currentDetails) {
+        if (request.getSamplingSchedules() != null) {
+            List<SamplingSchedule> currentDetails = samplingScheduleRepository.findByProtocolIdAndDeletedAtIsNull(protocol.getProtocolId());
+            for (SamplingSchedule cd : currentDetails) {
                 cd.setDeletedAt(now);
                 cd.setDeletedBy(currentUserId);
                 cd.setStatus(EntityStatus.DELETED);
-                protocolDetailRepository.save(cd);
+                samplingScheduleRepository.save(cd);
             }
 
-            for (ProtocolDetailRequest detailReq : request.getProtocolDetails()) {
-                Optional<ProtocolDetail> existingOpt = protocolDetailRepository.findById(detailReq.getProtocolDetailId());
-                ProtocolDetail detail;
+            for (SamplingScheduleRequest detailReq : request.getSamplingSchedules()) {
+                Optional<SamplingSchedule> existingOpt = samplingScheduleRepository.findById(detailReq.getSamplingScheduleId());
+                SamplingSchedule detail;
                 if (existingOpt.isPresent()) {
                     detail = existingOpt.get();
                     detail.setProtocol(protocol);
@@ -235,21 +235,21 @@ public class ProtocolsService {
                     detail.setTimeInterval(detailReq.getTimeInterval());
                     detail.setBloodRaw(detailReq.getBloodRaw());
                     detail.setInsulinInject(detailReq.getInsulinInject());
-                    detail.setInsulinCheck(detailReq.getInsulinCheck());
+                    detail.setPkSampleCollection(detailReq.getPkSampleCollection());
                     detail.setUpdatedBy(currentUserId);
                     detail.setUpdatedAt(now);
                     detail.setStatus(EntityStatus.ACTIVE);
                     detail.setDeletedAt(null);
                     detail.setDeletedBy(null);
                 } else {
-                    detail = ProtocolDetail.builder()
-                            .protocolDetailId(detailReq.getProtocolDetailId())
+                    detail = SamplingSchedule.builder()
+                            .samplingScheduleId(detailReq.getSamplingScheduleId())
                             .protocol(protocol)
                             .phaseCode(detailReq.getPhaseCode())
                             .timeInterval(detailReq.getTimeInterval())
                             .bloodRaw(detailReq.getBloodRaw())
                             .insulinInject(detailReq.getInsulinInject())
-                            .insulinCheck(detailReq.getInsulinCheck())
+                            .pkSampleCollection(detailReq.getPkSampleCollection())
                             .build();
                     detail.setCreatedAt(now);
                     detail.setUpdatedAt(now);
@@ -257,7 +257,7 @@ public class ProtocolsService {
                     detail.setUpdatedBy(currentUserId);
                     detail.setStatus(EntityStatus.ACTIVE);
                 }
-                protocolDetailRepository.save(detail);
+                samplingScheduleRepository.save(detail);
             }
         }
 
@@ -340,12 +340,12 @@ public class ProtocolsService {
 
         protocolRepository.save(protocol);
 
-        List<ProtocolDetail> details = protocolDetailRepository.findByProtocolIdAndDeletedAtIsNull(protocol.getProtocolId());
-        for (ProtocolDetail detail : details) {
+        List<SamplingSchedule> details = samplingScheduleRepository.findByProtocolIdAndDeletedAtIsNull(protocol.getProtocolId());
+        for (SamplingSchedule detail : details) {
             detail.setDeletedAt(now);
             detail.setDeletedBy(currentUserId);
             detail.setStatus(EntityStatus.DELETED);
-            protocolDetailRepository.save(detail);
+            samplingScheduleRepository.save(detail);
         }
 
         return ApiDataResponseBuilder.builder()
@@ -388,9 +388,9 @@ public class ProtocolsService {
     }
 
     public ProtocolResponse mapToResponse(Protocol protocol) {
-        List<ProtocolDetailResponse> details = null;
-        if (protocol.getProtocolDetails() != null) {
-            details = protocol.getProtocolDetails().stream()
+        List<SamplingScheduleResponse> details = null;
+        if (protocol.getSamplingSchedules() != null) {
+            details = protocol.getSamplingSchedules().stream()
                     .filter(pd -> pd.getDeletedAt() == null)
                     .map(this::mapDetailToResponse)
                     .collect(Collectors.toList());
@@ -414,19 +414,19 @@ public class ProtocolsService {
                 .deletedAt(protocol.getDeletedAt())
                 .deletedBy(protocol.getDeletedBy())
                 .status(protocol.getStatus() != null ? protocol.getStatus().name() : null)
-                .protocolDetails(details)
+                .samplingSchedules(details)
                 .build();
     }
 
-    public ProtocolDetailResponse mapDetailToResponse(ProtocolDetail detail) {
-        return ProtocolDetailResponse.builder()
-                .protocolDetailId(detail.getProtocolDetailId())
+    public SamplingScheduleResponse mapDetailToResponse(SamplingSchedule detail) {
+        return SamplingScheduleResponse.builder()
+                .samplingScheduleId(detail.getSamplingScheduleId())
                 .protocolId(detail.getProtocol() != null ? detail.getProtocol().getProtocolId() : null)
                 .phaseCode(detail.getPhaseCode())
                 .timeInterval(detail.getTimeInterval())
                 .bloodRaw(detail.getBloodRaw())
                 .insulinInject(detail.getInsulinInject())
-                .insulinCheck(detail.getInsulinCheck())
+                .pkSampleCollection(detail.getPkSampleCollection())
                 .createdAt(detail.getCreatedAt())
                 .createdBy(detail.getCreatedBy())
                 .updatedAt(detail.getUpdatedAt())

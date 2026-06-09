@@ -8,7 +8,7 @@ import com.tujuhsembilan.glucoseclamp.dto.response.MessageResponse;
 import com.tujuhsembilan.glucoseclamp.dto.response.SessionCreateResponse;
 import com.tujuhsembilan.glucoseclamp.dto.response.SessionSummaryResponse;
 import com.tujuhsembilan.glucoseclamp.model.Activity;
-import com.tujuhsembilan.glucoseclamp.model.ProtocolDetail;
+import com.tujuhsembilan.glucoseclamp.model.SamplingSchedule;
 import com.tujuhsembilan.glucoseclamp.model.Device;
 import com.tujuhsembilan.glucoseclamp.model.Participant;
 import com.tujuhsembilan.glucoseclamp.model.Protocol;

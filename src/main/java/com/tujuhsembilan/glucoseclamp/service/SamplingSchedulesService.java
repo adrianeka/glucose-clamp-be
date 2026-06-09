@@ -1,12 +1,12 @@
 package com.tujuhsembilan.glucoseclamp.service;
 
-import com.tujuhsembilan.glucoseclamp.dto.request.ProtocolDetailRequest;
+import com.tujuhsembilan.glucoseclamp.dto.request.SamplingScheduleRequest;
 import com.tujuhsembilan.glucoseclamp.dto.response.ApiDataResponseBuilder;
-import com.tujuhsembilan.glucoseclamp.dto.response.ProtocolDetailResponse;
+import com.tujuhsembilan.glucoseclamp.dto.response.SamplingScheduleResponse;
 import com.tujuhsembilan.glucoseclamp.model.Protocol;
-import com.tujuhsembilan.glucoseclamp.model.ProtocolDetail;
+import com.tujuhsembilan.glucoseclamp.model.SamplingSchedule;
 import com.tujuhsembilan.glucoseclamp.model.base.EntityStatus;
-import com.tujuhsembilan.glucoseclamp.repository.ProtocolDetailRepository;
+import com.tujuhsembilan.glucoseclamp.repository.SamplingScheduleRepository;
 import com.tujuhsembilan.glucoseclamp.repository.ProtocolRepository;
 import com.tujuhsembilan.glucoseclamp.security.service.UserDetailsImplement;
 import lombok.extern.slf4j.Slf4j;
@@ -30,10 +30,10 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
-public class ProtocolDetailsService {
+public class SamplingSchedulesService {
 
     @Autowired
-    private ProtocolDetailRepository protocolDetailRepository;
+    private SamplingScheduleRepository samplingScheduleRepository;
 
     @Autowired
     private ProtocolRepository protocolRepository;
@@ -47,11 +47,11 @@ public class ProtocolDetailsService {
         return userDetails.getId();
     }
 
-    public ApiDataResponseBuilder getAllProtocolDetails(int pageNumber, int pageSize) {
+    public ApiDataResponseBuilder getAllSamplingSchedules(int pageNumber, int pageSize) {
         Pageable pageable = PageRequest.of(Math.max(0, pageNumber - 1), pageSize);
-        Page<ProtocolDetail> result = protocolDetailRepository.findAllActive(pageable);
+        Page<SamplingSchedule> result = samplingScheduleRepository.findAllActive(pageable);
 
-        List<ProtocolDetailResponse> content = result.getContent().stream()
+        List<SamplingScheduleResponse> content = result.getContent().stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
 
@@ -70,11 +70,11 @@ public class ProtocolDetailsService {
                 .build();
     }
 
-    public ApiDataResponseBuilder getProtocolDetailById(String id) {
-        ProtocolDetail detail = protocolDetailRepository.findByIdAndDeletedAtIsNull(id).orElse(null);
+    public ApiDataResponseBuilder getSamplingScheduleById(String id) {
+        SamplingSchedule detail = samplingScheduleRepository.findByIdAndDeletedAtIsNull(id).orElse(null);
         if (detail == null) {
             return ApiDataResponseBuilder.builder()
-                    .message("Data detail protocol tidak ditemukan")
+                    .message("Data detail sampling schedule tidak ditemukan")
                     .statusCode(HttpStatus.NOT_FOUND.value())
                     .status(HttpStatus.NOT_FOUND)
                     .build();
@@ -82,17 +82,17 @@ public class ProtocolDetailsService {
 
         return ApiDataResponseBuilder.builder()
                 .data(mapToResponse(detail))
-                .message("Berhasil mendapatkan data detail protocol")
+                .message("Berhasil mendapatkan data detail sampling schedule")
                 .statusCode(HttpStatus.OK.value())
                 .status(HttpStatus.OK)
                 .build();
     }
 
     @Transactional
-    public ApiDataResponseBuilder addProtocolDetail(ProtocolDetailRequest request) {
-        if (protocolDetailRepository.findById(request.getProtocolDetailId()).isPresent()) {
+    public ApiDataResponseBuilder addSamplingSchedule(SamplingScheduleRequest request) {
+        if (samplingScheduleRepository.findById(request.getSamplingScheduleId()).isPresent()) {
             return ApiDataResponseBuilder.builder()
-                    .message("Protocol Detail ID sudah digunakan")
+                    .message("Sampling Schedule ID sudah digunakan")
                     .statusCode(HttpStatus.BAD_REQUEST.value())
                     .status(HttpStatus.BAD_REQUEST)
                     .build();
@@ -110,14 +110,14 @@ public class ProtocolDetailsService {
         Integer currentUserId = getCurrentUserId();
         LocalDateTime now = LocalDateTime.now();
 
-        ProtocolDetail detail = ProtocolDetail.builder()
-                .protocolDetailId(request.getProtocolDetailId())
+        SamplingSchedule detail = SamplingSchedule.builder()
+                .samplingScheduleId(request.getSamplingScheduleId())
                 .protocol(protocolOpt.get())
                 .phaseCode(request.getPhaseCode())
                 .timeInterval(request.getTimeInterval())
                 .bloodRaw(request.getBloodRaw())
                 .insulinInject(request.getInsulinInject())
-                .insulinCheck(request.getInsulinCheck())
+                .pkSampleCollection(request.getPkSampleCollection())
                 .build();
 
         detail.setCreatedAt(now);
@@ -126,28 +126,28 @@ public class ProtocolDetailsService {
         detail.setUpdatedBy(currentUserId);
         detail.setStatus(EntityStatus.ACTIVE);
 
-        protocolDetailRepository.save(detail);
+        samplingScheduleRepository.save(detail);
 
         return ApiDataResponseBuilder.builder()
                 .data(mapToResponse(detail))
-                .message("Detail protocol berhasil ditambahkan")
+                .message("Detail sampling schedule berhasil ditambahkan")
                 .statusCode(HttpStatus.CREATED.value())
                 .status(HttpStatus.CREATED)
                 .build();
     }
 
     @Transactional
-    public ApiDataResponseBuilder updateProtocolDetail(String id, ProtocolDetailRequest request) {
-        Optional<ProtocolDetail> opt = protocolDetailRepository.findById(id);
+    public ApiDataResponseBuilder updateSamplingSchedule(String id, SamplingScheduleRequest request) {
+        Optional<SamplingSchedule> opt = samplingScheduleRepository.findById(id);
         if (opt.isEmpty() || EntityStatus.DELETED.equals(opt.get().getStatus())) {
             return ApiDataResponseBuilder.builder()
-                    .message("Data detail protocol tidak ditemukan")
+                    .message("Data detail sampling schedule tidak ditemukan")
                     .statusCode(HttpStatus.NOT_FOUND.value())
                     .status(HttpStatus.NOT_FOUND)
                     .build();
         }
 
-        ProtocolDetail detail = opt.get();
+        SamplingSchedule detail = opt.get();
         Integer currentUserId = getCurrentUserId();
         LocalDateTime now = LocalDateTime.now();
 
@@ -167,27 +167,27 @@ public class ProtocolDetailsService {
         if (request.getTimeInterval() != null) detail.setTimeInterval(request.getTimeInterval());
         if (request.getBloodRaw() != null) detail.setBloodRaw(request.getBloodRaw());
         if (request.getInsulinInject() != null) detail.setInsulinInject(request.getInsulinInject());
-        if (request.getInsulinCheck() != null) detail.setInsulinCheck(request.getInsulinCheck());
+        if (request.getPkSampleCollection() != null) detail.setPkSampleCollection(request.getPkSampleCollection());
 
         detail.setUpdatedBy(currentUserId);
         detail.setUpdatedAt(now);
 
-        protocolDetailRepository.save(detail);
+        samplingScheduleRepository.save(detail);
 
         return ApiDataResponseBuilder.builder()
                 .data(mapToResponse(detail))
-                .message("Detail protocol berhasil diupdate")
+                .message("Detail sampling schedule berhasil diupdate")
                 .statusCode(HttpStatus.OK.value())
                 .status(HttpStatus.OK)
                 .build();
     }
 
     @Transactional
-    public ApiDataResponseBuilder updateProtocolDetailStatus(String id, String statusStr) {
-        Optional<ProtocolDetail> opt = protocolDetailRepository.findById(id);
+    public ApiDataResponseBuilder updateSamplingScheduleStatus(String id, String statusStr) {
+        Optional<SamplingSchedule> opt = samplingScheduleRepository.findById(id);
         if (opt.isEmpty() || EntityStatus.DELETED.equals(opt.get().getStatus())) {
             return ApiDataResponseBuilder.builder()
-                    .message("Data detail protocol tidak ditemukan")
+                    .message("Data detail sampling schedule tidak ditemukan")
                     .statusCode(HttpStatus.NOT_FOUND.value())
                     .status(HttpStatus.NOT_FOUND)
                     .build();
@@ -212,7 +212,7 @@ public class ProtocolDetailsService {
                     .build();
         }
 
-        ProtocolDetail detail = opt.get();
+        SamplingSchedule detail = opt.get();
         Integer currentUserId = getCurrentUserId();
         LocalDateTime now = LocalDateTime.now();
 
@@ -220,19 +220,19 @@ public class ProtocolDetailsService {
         detail.setUpdatedBy(currentUserId);
         detail.setUpdatedAt(now);
 
-        protocolDetailRepository.save(detail);
+        samplingScheduleRepository.save(detail);
 
         return ApiDataResponseBuilder.builder()
                 .data(mapToResponse(detail))
-                .message("Status detail protocol berhasil diupdate")
+                .message("Status detail sampling schedule berhasil diupdate")
                 .statusCode(HttpStatus.OK.value())
                 .status(HttpStatus.OK)
                 .build();
     }
 
     @Transactional
-    public ApiDataResponseBuilder deleteProtocolDetail(String id) {
-        Optional<ProtocolDetail> opt = protocolDetailRepository.findById(id);
+    public ApiDataResponseBuilder deleteSamplingSchedule(String id) {
+        Optional<SamplingSchedule> opt = samplingScheduleRepository.findById(id);
         if (opt.isEmpty() || EntityStatus.DELETED.equals(opt.get().getStatus())) {
             return ApiDataResponseBuilder.builder()
                     .message("Data detail protocol tidak ditemukan")
@@ -241,7 +241,7 @@ public class ProtocolDetailsService {
                     .build();
         }
 
-        ProtocolDetail detail = opt.get();
+        SamplingSchedule detail = opt.get();
         Integer currentUserId = getCurrentUserId();
         LocalDateTime now = LocalDateTime.now();
 
@@ -249,16 +249,16 @@ public class ProtocolDetailsService {
         detail.setDeletedBy(currentUserId);
         detail.setStatus(EntityStatus.DELETED);
 
-        protocolDetailRepository.save(detail);
+        samplingScheduleRepository.save(detail);
 
         return ApiDataResponseBuilder.builder()
-                .message("Detail protocol berhasil dihapus")
+                .message("Detail sampling schedule berhasil dihapus")
                 .statusCode(HttpStatus.OK.value())
                 .status(HttpStatus.OK)
                 .build();
     }
 
-    public ApiDataResponseBuilder searchProtocolDetails(String protocolId, String search, String startDateStr, String endDateStr) {
+    public ApiDataResponseBuilder searchSamplingSchedules(String protocolId, String search, String startDateStr, String endDateStr) {
         LocalDateTime startDate = null;
         LocalDateTime endDate = null;
         try {
@@ -272,34 +272,34 @@ public class ProtocolDetailsService {
             log.error("Failed to parse search dates: {} - {}", startDateStr, endDateStr, ex);
         }
 
-        List<ProtocolDetail> results = protocolDetailRepository.searchProtocolDetails(
+        List<SamplingSchedule> results = samplingScheduleRepository.searchSamplingSchedules(
                 protocolId != null ? protocolId.trim() : null,
                 search != null ? search.trim() : null,
                 startDate,
                 endDate
         );
 
-        List<ProtocolDetailResponse> responseList = results.stream()
+        List<SamplingScheduleResponse> responseList = results.stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
 
         return ApiDataResponseBuilder.builder()
                 .data(responseList)
-                .message("Berhasil mencari data detail protocol")
+                .message("Berhasil mencari data detail sampling schedule")
                 .statusCode(HttpStatus.OK.value())
                 .status(HttpStatus.OK)
                 .build();
     }
 
-    public ProtocolDetailResponse mapToResponse(ProtocolDetail detail) {
-        return ProtocolDetailResponse.builder()
-                .protocolDetailId(detail.getProtocolDetailId())
+    public SamplingScheduleResponse mapToResponse(SamplingSchedule detail) {
+        return SamplingScheduleResponse.builder()
+                .samplingScheduleId(detail.getSamplingScheduleId())
                 .protocolId(detail.getProtocol() != null ? detail.getProtocol().getProtocolId() : null)
                 .phaseCode(detail.getPhaseCode())
                 .timeInterval(detail.getTimeInterval())
                 .bloodRaw(detail.getBloodRaw())
                 .insulinInject(detail.getInsulinInject())
-                .insulinCheck(detail.getInsulinCheck())
+                .pkSampleCollection(detail.getPkSampleCollection())
                 .createdAt(detail.getCreatedAt())
                 .createdBy(detail.getCreatedBy())
                 .updatedAt(detail.getUpdatedAt())

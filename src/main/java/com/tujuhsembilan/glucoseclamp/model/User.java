@@ -20,6 +20,9 @@ public class User extends BaseEntity {
     @Column(name = "user_id")
     private Integer userId;
     
+    @Column(name = "position_name", nullable = false, length = 100)
+    private String positionName;
+    
     @Column(name = "name", nullable = false, length = 150)
     private String name;
     

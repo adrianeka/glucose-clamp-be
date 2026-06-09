@@ -36,7 +36,7 @@ public class SeedDataRunner implements CommandLineRunner {
         seedSessions();
         seedActivities();
         seedDevices();
-        seedProtocolDetails();
+        seedSamplingSchedules();
         seedBloodSamples();
         seedLabResults();
         syncSequences();
@@ -58,14 +58,14 @@ public class SeedDataRunner implements CommandLineRunner {
     private void seedUsers() {
         String password = passwordEncoder.encode("hash123");
         batch(
-                "INSERT INTO users (user_id, role_id, name, username, email, password, created_at, created_by, updated_at, updated_by, deleted_at, deleted_by, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT (user_id) DO UPDATE SET role_id = EXCLUDED.role_id, name = EXCLUDED.name, username = EXCLUDED.username, email = EXCLUDED.email, password = EXCLUDED.password, created_at = EXCLUDED.created_at, created_by = EXCLUDED.created_by, updated_at = EXCLUDED.updated_at, updated_by = EXCLUDED.updated_by, deleted_at = EXCLUDED.deleted_at, deleted_by = EXCLUDED.deleted_by, status = EXCLUDED.status",
-                row(1, 1, "Super Admin", "superadmin", "superadmin@mail.com", "PASSWORD_PLACEHOLDER", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row(2, 2, "Admin RSCM", "admin", "admin@mail.com", "PASSWORD_PLACEHOLDER", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row(3, 3, "Dr Budi", "budi", "budi@mail.com", "PASSWORD_PLACEHOLDER", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row(4, 4, "Fitri", "fitri", "fitri@mail.com", "PASSWORD_PLACEHOLDER", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row(5, 5, "Rina", "rina", "rina@mail.com", "PASSWORD_PLACEHOLDER", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row(6, 6, "Agus", "agus", "agus@mail.com", "PASSWORD_PLACEHOLDER", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row(7, 6, "Bagas", "bagas", "bagas@mail.com", "PASSWORD_PLACEHOLDER", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "INACTIVE")
+                "INSERT INTO users (user_id, role_id, position_name, name, username, email, password, created_at, created_by, updated_at, updated_by, deleted_at, deleted_by, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT (user_id) DO UPDATE SET role_id = EXCLUDED.role_id, position_name = EXCLUDED.position_name, name = EXCLUDED.name, username = EXCLUDED.username, email = EXCLUDED.email, password = EXCLUDED.password, created_at = EXCLUDED.created_at, created_by = EXCLUDED.created_by, updated_at = EXCLUDED.updated_at, updated_by = EXCLUDED.updated_by, deleted_at = EXCLUDED.deleted_at, deleted_by = EXCLUDED.deleted_by, status = EXCLUDED.status",
+                row(1, 1, "SUPER ADMIN", "Super Admin", "superadmin", "superadmin@mail.com", "PASSWORD_PLACEHOLDER", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row(2, 2, "ADMINISTRASI", "Admin RSCM", "admin", "admin@mail.com", "PASSWORD_PLACEHOLDER", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row(3, 3, "DOKTER PENELITI", "Dr Budi", "budi", "budi@mail.com", "PASSWORD_PLACEHOLDER", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row(4, 4, "PERAWAT/DOKTER", "Fitri", "fitri", "fitri@mail.com", "PASSWORD_PLACEHOLDER", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row(5, 5, "ANALIS", "Rina", "rina", "rina@mail.com", "PASSWORD_PLACEHOLDER", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row(6, 6, "PERAWAT", "Agus", "agus", "agus@mail.com", "PASSWORD_PLACEHOLDER", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row(7, 6, "PERAWAT", "Bagas", "bagas", "bagas@mail.com", "PASSWORD_PLACEHOLDER", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "INACTIVE")
         );
         jdbcTemplate.update("UPDATE users SET password = ? WHERE password = ?", password, "PASSWORD_PLACEHOLDER");
     }
@@ -81,7 +81,7 @@ public class SeedDataRunner implements CommandLineRunner {
         batch(
                 "INSERT INTO activities (activity_id, session_id, actor_id, time, activity_type, activity_desc, activity_status, created_at, created_by, updated_at, updated_by, deleted_at, deleted_by, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT (activity_id) DO UPDATE SET session_id = EXCLUDED.session_id, actor_id = EXCLUDED.actor_id, time = EXCLUDED.time, activity_type = EXCLUDED.activity_type, activity_desc = EXCLUDED.activity_desc, activity_status = EXCLUDED.activity_status, created_at = EXCLUDED.created_at, created_by = EXCLUDED.created_by, updated_at = EXCLUDED.updated_at, updated_by = EXCLUDED.updated_by, deleted_at = EXCLUDED.deleted_at, deleted_by = EXCLUDED.deleted_by, status = EXCLUDED.status",
                 row("ACT-001-T-30-101", 101, 3, ts("2026-05-21 08:00:00"), "BLOOD_DRAW", "T-30", "COMPLETED", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row("ACT-002-PK-C 1-101", 101, 3, ts("2026-05-21 08:00:00"), "INSULIN_CHECK", "PK-C 1", "COMPLETED", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("ACT-002-PK-C 1-101", 101, 3, ts("2026-05-21 08:00:00"), "PK_SAMPLE_COLLECTION", "PK-C 1", "COMPLETED", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
                 row("ACT-003-T-20-101", 101, 3, ts("2026-05-21 08:10:00"), "BLOOD_DRAW", "T-20", "COMPLETED", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
                 row("ACT-004-T-10-101", 101, 3, ts("2026-05-21 08:20:00"), "BLOOD_DRAW", "T-10", "COMPLETED", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
                 row("ACT-005-T-0-101", 101, 3, ts("2026-05-21 08:30:00"), "BLOOD_DRAW", "T-0", "COMPLETED", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
@@ -89,9 +89,9 @@ public class SeedDataRunner implements CommandLineRunner {
                 row("ACT-007-GD1-101", 101, 3, ts("2026-05-21 08:40:00"), "BLOOD_DRAW", "GD1", "COMPLETED", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
                 row("ACT-008-GD2-101", 101, 3, ts("2026-05-21 08:50:00"), "BLOOD_DRAW", "GD2", "COMPLETED", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
                 row("ACT-009-GD3-101", 101, 3, ts("2026-05-21 09:00:00"), "BLOOD_DRAW", "GD3", "COMPLETED", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row("ACT-010-PK-C 2-101", 101, 3, ts("2026-05-21 09:00:00"), "INSULIN_CHECK", "PK-C 2", "COMPLETED", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("ACT-010-PK-C 2-101", 101, 3, ts("2026-05-21 09:00:00"), "PK_SAMPLE_COLLECTION", "PK-C 2", "COMPLETED", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
                 row("ACT-001", 101, 3, ts("2026-05-21 08:00:00"), "BLOOD_DRAW", "T-30", "COMPLETED", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row("ACT-002", 101, 3, ts("2026-05-21 08:00:00"), "INSULIN_CHECK", "PK-C 1", "COMPLETED", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("ACT-002", 101, 3, ts("2026-05-21 08:00:00"), "PK_SAMPLE_COLLECTION", "PK-C 1", "COMPLETED", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
                 row("ACT-003", 101, 3, ts("2026-05-21 08:10:00"), "BLOOD_DRAW", "T-20", "COMPLETED", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
                 row("ACT-004", 101, 3, ts("2026-05-21 08:20:00"), "BLOOD_DRAW", "T-10", "COMPLETED", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
                 row("ACT-005", 101, 3, ts("2026-05-21 08:30:00"), "BLOOD_DRAW", "T-0", "COMPLETED", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
@@ -99,7 +99,7 @@ public class SeedDataRunner implements CommandLineRunner {
                 row("ACT-007", 101, 3, ts("2026-05-21 08:40:00"), "BLOOD_DRAW", "GD1", "COMPLETED", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
                 row("ACT-008", 101, 3, ts("2026-05-21 08:50:00"), "BLOOD_DRAW", "GD2", "COMPLETED", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
                 row("ACT-009", 101, 3, ts("2026-05-21 09:00:00"), "BLOOD_DRAW", "GD3", "COMPLETED", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row("ACT-010", 101, 3, ts("2026-05-21 09:00:00"), "INSULIN_CHECK", "PK-C 2", "COMPLETED", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("ACT-010", 101, 3, ts("2026-05-21 09:00:00"), "PK_SAMPLE_COLLECTION", "PK-C 2", "COMPLETED", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
                 row("ACT-011", 101, 3, ts("2026-05-21 09:10:00"), "BLOOD_DRAW", "GD4", "COMPLETED", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
                 row("ACT-012", 101, 3, ts("2026-05-21 09:20:00"), "BLOOD_DRAW", "GD5", "COMPLETED", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE")
         );
@@ -128,9 +128,9 @@ public class SeedDataRunner implements CommandLineRunner {
         );
     }
 
-    private void seedProtocolDetails() {
+    private void seedSamplingSchedules() {
         batch(
-                "INSERT INTO protocol_details (protocol_detail_id, protocol_id, phase_code, time_interval, blood_raw, insulin_inject, insulin_check, created_at, created_by, updated_at, updated_by, deleted_at, deleted_by, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT (protocol_detail_id) DO UPDATE SET protocol_id = EXCLUDED.protocol_id, phase_code = EXCLUDED.phase_code, time_interval = EXCLUDED.time_interval, blood_raw = EXCLUDED.blood_raw, insulin_inject = EXCLUDED.insulin_inject, insulin_check = EXCLUDED.insulin_check, created_at = EXCLUDED.created_at, created_by = EXCLUDED.created_by, updated_at = EXCLUDED.updated_at, updated_by = EXCLUDED.updated_by, deleted_at = EXCLUDED.deleted_at, deleted_by = EXCLUDED.deleted_by, status = EXCLUDED.status",
+                "INSERT INTO sampling_schedules (sampling_schedule_id, protocol_id, phase_code, time_interval, blood_raw, insulin_inject, pk_sample_collection, created_at, created_by, updated_at, updated_by, deleted_at, deleted_by, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT (sampling_schedule_id) DO UPDATE SET protocol_id = EXCLUDED.protocol_id, phase_code = EXCLUDED.phase_code, time_interval = EXCLUDED.time_interval, blood_raw = EXCLUDED.blood_raw, insulin_inject = EXCLUDED.insulin_inject, pk_sample_collection = EXCLUDED.pk_sample_collection, created_at = EXCLUDED.created_at, created_by = EXCLUDED.created_by, updated_at = EXCLUDED.updated_at, updated_by = EXCLUDED.updated_by, deleted_at = EXCLUDED.deleted_at, deleted_by = EXCLUDED.deleted_by, status = EXCLUDED.status",
                 row("D-001", "PR-24H", "Baseline", 10, true, false, true, ts("2026-05-21 7:10:00"), 1, ts("2026-05-21 7:10:00"), 1, null, null, "ACTIVE"),
                 row("D-002", "PR-24H", "Baseline", 10, true, false, false, ts("2026-05-21 7:10:00"), 1, ts("2026-05-21 7:10:00"), 1, null, null, "ACTIVE"),
                 row("D-003", "PR-24H", "Baseline", 10, true, false, false, ts("2026-05-21 7:10:00"), 1, ts("2026-05-21 7:10:00"), 1, null, null, "ACTIVE"),

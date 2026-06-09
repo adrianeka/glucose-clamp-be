@@ -51,6 +51,6 @@ public class ProtocolRequest {
     @NotNull(message = "version is required")
     private Float version;
 
-    @JsonProperty("protocol_details")
-    private List<ProtocolDetailRequest> protocolDetails;
+    @JsonProperty("sampling_schedules")
+    private List<SamplingScheduleRequest> samplingSchedules;
 }

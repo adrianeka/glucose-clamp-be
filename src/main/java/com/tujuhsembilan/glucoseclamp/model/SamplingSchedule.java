@@ -5,18 +5,18 @@ import lombok.*;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "protocol_details")
+@Table(name = "sampling_schedules")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(exclude = "protocol", callSuper = true)
 @ToString(exclude = "protocol")
 @Builder
-public class ProtocolDetail extends BaseEntity {
+public class SamplingSchedule extends BaseEntity {
     
     @Id
-    @Column(name = "protocol_detail_id", length = 50)
-    private String protocolDetailId;
+    @Column(name = "sampling_schedule_id", length = 50)
+    private String samplingScheduleId;
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "protocol_id", nullable = false)
@@ -34,6 +34,6 @@ public class ProtocolDetail extends BaseEntity {
     @Column(name = "insulin_inject")
     private Boolean insulinInject;
     
-    @Column(name = "insulin_check")
-    private Boolean insulinCheck;
+    @Column(name = "pk_sample_collection")
+    private Boolean pkSampleCollection;
 }

@@ -7,14 +7,14 @@ import com.tujuhsembilan.glucoseclamp.dto.response.ActivityResponse;
 import com.tujuhsembilan.glucoseclamp.dto.response.ApiDataResponseBuilder;
 import com.tujuhsembilan.glucoseclamp.exception.classes.DataNotFoundException;
 import com.tujuhsembilan.glucoseclamp.model.Activity;
-import com.tujuhsembilan.glucoseclamp.model.ProtocolDetail;
+import com.tujuhsembilan.glucoseclamp.model.SamplingSchedule;
 import com.tujuhsembilan.glucoseclamp.model.Session;
 import com.tujuhsembilan.glucoseclamp.model.User;
 import com.tujuhsembilan.glucoseclamp.model.base.ActivityStatus;
 import com.tujuhsembilan.glucoseclamp.model.base.EntityStatus;
 import com.tujuhsembilan.glucoseclamp.model.base.SessionStatus;
 import com.tujuhsembilan.glucoseclamp.repository.ActivityRepository;
-import com.tujuhsembilan.glucoseclamp.repository.ProtocolDetailRepository;
+import com.tujuhsembilan.glucoseclamp.repository.SamplingScheduleRepository;
 import com.tujuhsembilan.glucoseclamp.repository.SessionRepository;
 import com.tujuhsembilan.glucoseclamp.security.service.CurrentUserService;
 import lombok.RequiredArgsConstructor;
@@ -42,7 +42,7 @@ public class ActivityService {
 
     private final ActivityRepository activityRepository;
     private final SessionRepository sessionRepository;
-    private final ProtocolDetailRepository protocolDetailRepository;
+    private final SamplingScheduleRepository samplingScheduleRepository;
     private final CurrentUserService currentUserService;
 
     public ApiDataResponseBuilder getAllActivities(int pageNumber, int pageSize) {
@@ -197,11 +197,11 @@ public class ActivityService {
 
     @Transactional
     public List<Activity> generateActivitiesForSession(Session session, User actor, Integer actorId) {
-        List<ProtocolDetail> protocolDetails = loadProtocolDetails(session.getProtocol().getProtocolId());
-        ActivityGenerationState generationState = buildActivityGenerationState(protocolDetails);
+        List<SamplingSchedule> samplingSchedules = loadSamplingSchedules(session.getProtocol().getProtocolId());
+        ActivityGenerationState generationState = buildActivityGenerationState(samplingSchedules);
 
         List<Activity> activities = new ArrayList<>();
-        for (ProtocolDetail detail : protocolDetails) {
+        for (SamplingSchedule detail : samplingSchedules) {
             activities.addAll(buildActivitiesForDetail(session, actor, actorId, detail, generationState));
         }
 
@@ -332,7 +332,7 @@ public class ActivityService {
         return normalizeToSeconds(startTime).plusMinutes(interval);
     }
 
-    private ActivityGenerationState buildActivityGenerationState(List<ProtocolDetail> protocolDetails) {
+    private ActivityGenerationState buildActivityGenerationState(List<SamplingSchedule> samplingSchedules) {
         ActivityGenerationState generationState = new ActivityGenerationState();
 
         try {
@@ -351,8 +351,8 @@ public class ActivityService {
 
         int cum = 0;
         Integer minBaseline = null;
-        for (ProtocolDetail detail : protocolDetails) {
-            generationState.detailOffsetMap.put(detail.getProtocolDetailId(), cum);
+        for (SamplingSchedule detail : samplingSchedules) {
+            generationState.detailOffsetMap.put(detail.getSamplingScheduleId(), cum);
             String phase = detail.getPhaseCode() == null ? "" : detail.getPhaseCode().trim();
             if ("baseline".equalsIgnoreCase(phase)) {
                 if (minBaseline == null || cum < minBaseline) {
@@ -370,20 +370,20 @@ public class ActivityService {
         return generationState;
     }
 
-    private List<ProtocolDetail> loadProtocolDetails(String protocolId) {
-        return protocolDetailRepository
+    private List<SamplingSchedule> loadSamplingSchedules(String protocolId) {
+        return samplingScheduleRepository
                 .findByProtocolIdAndDeletedAtIsNull(protocolId)
                 .stream()
-                .sorted(Comparator.comparing(ProtocolDetail::getProtocolDetailId))
+                .sorted(Comparator.comparing(SamplingSchedule::getSamplingScheduleId))
                 .collect(Collectors.toList());
     }
 
-    private List<Activity> buildActivitiesForDetail(Session session, User actor, Integer actorId, ProtocolDetail detail, ActivityGenerationState generationState) {
+    private List<Activity> buildActivitiesForDetail(Session session, User actor, Integer actorId, SamplingSchedule detail, ActivityGenerationState generationState) {
         List<Activity> activities = new ArrayList<>();
         String phaseCode = detail.getPhaseCode() == null ? "" : detail.getPhaseCode().trim();
         boolean isBaselinePhase = "baseline".equalsIgnoreCase(phaseCode);
 
-        Integer detailOffset = generationState.detailOffsetMap.get(detail.getProtocolDetailId());
+        Integer detailOffset = generationState.detailOffsetMap.get(detail.getSamplingScheduleId());
         if (detailOffset == null) detailOffset = generationState.elapsedMinutes;
         Integer minutesBeforeInjection = null;
         if (generationState.injectionOffsetMinutes != null) {
@@ -395,7 +395,7 @@ public class ActivityService {
             int baselineNumber = generationState.nextBaselineNumber();
             String basalCode = buildBaselineCode(minutesBeforeInjection);
             activities.add(buildActivity(session, actor, actorId, detail, timeOffsetFromStart, basalCode, buildBaselineSampleDescription(baselineNumber, minutesBeforeInjection), generationState, "BLOOD_RAW"));
-            activities.add(buildActivity(session, actor, actorId, detail, timeOffsetFromStart, "T0", buildInsulinInjectDescription(), generationState, "INSULIN_CHECK"));
+            activities.add(buildActivity(session, actor, actorId, detail, timeOffsetFromStart, "T0", buildInsulinInjectDescription(), generationState, "PK_SAMPLE_COLLECTION"));
         } else if (Boolean.TRUE.equals(detail.getBloodRaw())) {
             if (isBaselinePhase) {
                 int baselineNumber = generationState.nextBaselineNumber();
@@ -408,10 +408,10 @@ public class ActivityService {
             }
         }
 
-        if (Boolean.TRUE.equals(detail.getInsulinCheck())) {
+        if (Boolean.TRUE.equals(detail.getPkSampleCollection())) {
             int pkcNumber = generationState.nextInsulinCheckNumber();
             String pkcCode = "PKC-" + pkcNumber;
-            activities.add(buildActivity(session, actor, actorId, detail, timeOffsetFromStart, pkcCode, buildInsulinCheckDescription(pkcNumber), generationState, "INSULIN_CHECK"));
+            activities.add(buildActivity(session, actor, actorId, detail, timeOffsetFromStart, pkcCode, buildInsulinCheckDescription(pkcNumber), generationState, "PK_SAMPLE_COLLECTION"));
         }
 
         if (activities.isEmpty()) {
@@ -423,7 +423,7 @@ public class ActivityService {
         return activities;
     }
 
-    private Activity buildActivity(Session session, User actor, Integer actorId, ProtocolDetail detail, Integer scheduledMinute, String codePart, String activityDesc, ActivityGenerationState generationState, String type) {
+    private Activity buildActivity(Session session, User actor, Integer actorId, SamplingSchedule detail, Integer scheduledMinute, String codePart, String activityDesc, ActivityGenerationState generationState, String type) {
         Activity activity = new Activity();
         int seq = generationState.nextActivitySequence();
         activity.setActivityId(buildActivityId(seq, codePart, session.getSessionId()));
@@ -478,7 +478,7 @@ public class ActivityService {
         return "Pengambilan darah untuk pemeriksaan kadar insulin (PK) & C-Peptide - PK-C" + insulinCheckNumber;
     }
 
-    private String buildMonitoringDescription(ProtocolDetail detail) {
+    private String buildMonitoringDescription(SamplingSchedule detail) {
         return detail.getPhaseCode() == null ? "Monitoring jadwal aktivitas" : detail.getPhaseCode() + " - Monitoring jadwal aktivitas";
     }
 

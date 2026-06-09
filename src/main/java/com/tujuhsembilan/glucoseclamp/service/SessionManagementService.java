@@ -111,11 +111,11 @@ public class SessionManagementService {
         }
 
         Session session = sessionOptional.get();
-        if (session.getSessionStatus() != SessionStatus.IN_QUEUE) {
+        if (session.getSessionStatus() != SessionStatus.PREP) {
             return new MessageResponse("Session ini tidak bisa dimulai", HttpStatus.CONFLICT.value(), "CONFLICT");
         }
 
-        session.setSessionStatus(SessionStatus.IN_PROGRESS);
+        session.setSessionStatus(SessionStatus.RUNNING);
         session.setUpdatedBy(currentUserService.getCurrentUserId());
         sessionRepository.save(session);
 
@@ -172,7 +172,7 @@ public class SessionManagementService {
         session.setVisitDate(request.getVisitDate());
         session.setStartTime(normalizeToSeconds(request.getStartTime()));
         session.setFastingHour(request.getFastingHour());
-        session.setSessionStatus(SessionStatus.IN_QUEUE);
+        session.setSessionStatus(SessionStatus.PREP);
         session.setCreatedBy(actorId);
         session.setUpdatedBy(actorId);
         sessionRepository.save(session);
@@ -272,7 +272,7 @@ public class SessionManagementService {
         }
 
         Session session = sessionOptional.get();
-        if (session.getSessionStatus() != SessionStatus.IN_PROGRESS) {
+        if (session.getSessionStatus() != SessionStatus.RUNNING) {
             return ApiDataResponseBuilder.builder()
                     .message("Session hanya bisa di-complete saat status IN PROGRESS")
                     .statusCode(HttpStatus.CONFLICT.value())
@@ -307,9 +307,9 @@ public class SessionManagementService {
                     .build();
         }
 
-        if (session.getSessionStatus() != SessionStatus.IN_QUEUE) {
+        if (session.getSessionStatus() != SessionStatus.PREP) {
             return ApiDataResponseBuilder.builder()
-                    .message("Session hanya bisa diedit saat status masih IN QUEUE")
+                    .message("Session hanya bisa diedit saat status masih PREP")
                     .statusCode(HttpStatus.CONFLICT.value())
                     .status(HttpStatus.CONFLICT)
                     .build();

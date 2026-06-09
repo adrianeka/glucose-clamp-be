@@ -273,9 +273,9 @@ public class ActivityService {
                 .count();
 
         if (completedActivities == 0) {
-            session.setSessionStatus(SessionStatus.IN_QUEUE);
+            session.setSessionStatus(SessionStatus.PREP);
         } else if (completedActivities < totalActivities) {
-            session.setSessionStatus(SessionStatus.IN_PROGRESS);
+            session.setSessionStatus(SessionStatus.RUNNING);
         } else if (totalActivities > 0) {
             session.setSessionStatus(SessionStatus.COMPLETED);
         }

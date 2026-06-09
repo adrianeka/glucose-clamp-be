@@ -4,8 +4,9 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum SessionStatus {
-    IN_QUEUE("IN QUEUE"),
-    IN_PROGRESS("IN PROGRESS"),
+    PREP("PREP"),
+    RUNNING("RUNNING"),
+    HOLD("HOLD"),
     COMPLETED("COMPLETED");
 
     private final String value;

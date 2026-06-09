@@ -63,8 +63,8 @@ public class SessionTrackingService {
         SessionActivityItemResponse nextActivity = nextActivityResponses.stream().findFirst().orElse(null);
 
         SessionStatus sessionStatus = session.getSessionStatus();
-                if (sessionStatus == SessionStatus.IN_QUEUE && completedActivities > 0) {
-            sessionStatus = SessionStatus.IN_PROGRESS;
+                if (sessionStatus == SessionStatus.PREP && completedActivities > 0) {
+            sessionStatus = SessionStatus.RUNNING;
         }
         if (totalActivities > 0 && completedActivities == totalActivities) {
             sessionStatus = SessionStatus.COMPLETED;

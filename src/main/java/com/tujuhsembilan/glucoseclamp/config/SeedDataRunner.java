@@ -29,7 +29,9 @@ public class SeedDataRunner implements CommandLineRunner {
     @Override
     @Transactional
     public void run(String... args) {
+        seedAccessMenus();
         seedRoles();
+        seedRoleAccess();
         seedUsers();
         seedParticipants();
         seedProtocols();
@@ -52,6 +54,52 @@ public class SeedDataRunner implements CommandLineRunner {
                 row(5, "Operator Analyzer", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
                 row(6, "Operator Pump", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
                 row(7, "Operator Pump 2", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 6, "DELETED")
+        );
+    }
+
+    private void seedAccessMenus() {
+        batch(
+            "INSERT INTO access_menus (menu_id, menu_name, created_at, created_by, updated_at, updated_by, deleted_at, deleted_by, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT (menu_id) DO UPDATE SET menu_name = EXCLUDED.menu_name, updated_at = EXCLUDED.updated_at, updated_by = EXCLUDED.updated_by, status = EXCLUDED.status",
+            row(1,  "USER", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+            row(2,  "ROLE", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+            row(3,  "PARTICIPANT", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+            row(4,  "PROTOCOL", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+            row(5,  "PHASECONFIGURATION", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+            row(6,  "SAMPLINGSCHEDULE", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+            row(7,  "SESSION", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+            row(8,  "SESSIONDEVICE", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+            row(9,  "INFUSIONMONITORING", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+            row(10, "LABRESULT", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+            row(11, "BLOODSAMPLE", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+            row(12, "VITALSIGN", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+            row(13, "ANTHROPOMETRY", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+            row(14, "ANAMNESIS", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+            row(15, "DEVICE", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+            row(16, "GLOBALCONFIGURATION", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+            row(17, "ACTIVITY", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE")
+        );
+    }
+    private void seedRoleAccess() {
+    batch(
+            "INSERT INTO role_access (role_access_id, role_id, menu_id, can_view, can_add, can_edit, can_delete, created_at, created_by, updated_at, updated_by, deleted_at, deleted_by, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT (role_access_id) DO UPDATE SET role_id = EXCLUDED.role_id, menu_id = EXCLUDED.menu_id, can_view = EXCLUDED.can_view, can_add = EXCLUDED.can_add, can_edit = EXCLUDED.can_edit, can_delete = EXCLUDED.can_delete, created_at = EXCLUDED.created_at, created_by = EXCLUDED.created_by, updated_at = EXCLUDED.updated_at, updated_by = EXCLUDED.updated_by, deleted_at = EXCLUDED.deleted_at, deleted_by = EXCLUDED.deleted_by, status = EXCLUDED.status",
+
+            row(1,  1,  1,  true, true, true, true,  ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // USER
+            row(2,  1,  2,  true, true, true, true,  ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // ROLE
+            row(3,  1,  3,  true, true, true, true,  ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // PARTICIPANT
+            row(4,  1,  4,  true, true, true, true,  ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // PROTOCOL
+            row(5,  1,  5,  true, true, true, true,  ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // PHASECONFIGURATION
+            row(6,  1,  6,  true, true, true, true,  ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // SAMPLINGSCHEDULE
+            row(7,  1,  7,  true, true, true, true,  ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // SESSION
+            row(8,  1,  8,  true, true, true, true,  ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // SESSIONDEVICE
+            row(9,  1,  9,  true, true, true, true,  ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // INFUSIONMONITORING
+            row(10, 1, 10, true, true, true, true,  ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // LABRESULT
+            row(11, 1, 11, true, true, true, true,  ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // BLOODSAMPLE
+            row(12, 1, 12, true, true, true, true,  ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // VITALSIGN
+            row(13, 1, 13, true, true, true, true,  ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // ANTHROPOMETRY
+            row(14, 1, 14, true, true, true, true,  ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // ANAMNESIS
+            row(15, 1, 15, true, true, true, true,  ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // DEVICE
+            row(16, 1, 16, true, true, true, true,  ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // GLOBALCONFIGURATION
+            row(17, 1, 17, true, true, true, true, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE") // ACTIVITY
         );
     }
 

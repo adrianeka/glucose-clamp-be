@@ -48,12 +48,6 @@ public class ActivitiesController {
         return ResponseEntity.status(result.getStatus()).body(result);
     }
 
-    @PostMapping(path = "/session/{sessionId}/generate", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Object> generateForSession(@PathVariable Integer sessionId) {
-        ApiDataResponseBuilder result = activityService.getActivitiesBySession(sessionId);
-        return ResponseEntity.status(result.getStatus()).body(result);
-    }
-
     @PutMapping(path = "/{activityId}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Object> update(@PathVariable String activityId, @Valid @RequestBody ActivityUpdateRequest request) {
         ApiDataResponseBuilder result = activityService.updateActivity(activityId, request);

@@ -21,4 +21,10 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     List<User> findByRoleIdAndDeletedAtIsNull(Integer roleId);
     @Query("SELECT COUNT(u) > 0 FROM User u WHERE u.username = ?1 AND u.deletedAt IS NULL")
     boolean existsByUsername(String username);
+
+    @Query("SELECT u FROM User u WHERE u.deletedAt IS NULL")
+    org.springframework.data.domain.Page<User> findAllActive(org.springframework.data.domain.Pageable pageable);
+
+    @Query("SELECT u FROM User u WHERE u.deletedAt IS NULL AND (LOWER(u.username) LIKE LOWER(CONCAT('%', ?1, '%')) OR LOWER(u.name) LIKE LOWER(CONCAT('%', ?1, '%')) OR LOWER(u.email) LIKE LOWER(CONCAT('%', ?1, '%')) OR LOWER(u.positionName) LIKE LOWER(CONCAT('%', ?1, '%')))")
+    org.springframework.data.domain.Page<User> searchByKeyword(String keyword, org.springframework.data.domain.Pageable pageable);
 }

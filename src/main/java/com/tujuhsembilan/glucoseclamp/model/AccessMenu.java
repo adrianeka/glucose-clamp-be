@@ -24,9 +24,6 @@ public class AccessMenu extends BaseEntity {
     @Column(name = "menu_name", nullable = false, length = 100)
     private String menuName;
     
-    @Column(name = "route_url", length = 255)
-    private String routeUrl;
-    
     @OneToMany(mappedBy = "accessMenu")
     private List<RoleAccess> roleAccesses;
 }

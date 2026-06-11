@@ -24,6 +24,9 @@ public class SamplingSchedule extends BaseEntity {
     
     @Column(name = "phase_code", length = 50)
     private String phaseCode;
+
+    @Column(name = "phase_name", length = 255)
+    private String phaseName;
     
     @Column(name = "time_interval")
     private Integer timeInterval;

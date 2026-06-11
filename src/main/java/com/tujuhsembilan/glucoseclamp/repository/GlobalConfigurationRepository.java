@@ -17,7 +17,7 @@ public interface GlobalConfigurationRepository extends JpaRepository<GlobalConfi
     @org.springframework.data.jpa.repository.Query("SELECT gc FROM GlobalConfiguration gc WHERE gc.deletedAt IS NULL")
     Page<GlobalConfiguration> findAllActive(Pageable pageable);
     @Query("SELECT gc FROM GlobalConfiguration gc WHERE gc.gconfId = ?1 AND gc.deletedAt IS NULL")
-    Optional<GlobalConfiguration> findByIdAndDeletedAtIsNull(Integer gconfId);
+    Optional<GlobalConfiguration> findByIdAndDeletedAtIsNull(java.math.BigInteger gconfId);
     @Query("SELECT gc FROM GlobalConfiguration gc WHERE gc.gconfCode = ?1 AND gc.deletedAt IS NULL")
     Optional<GlobalConfiguration> findByCodeAndDeletedAtIsNull(String gconfCode);
 

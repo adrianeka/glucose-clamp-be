@@ -130,7 +130,7 @@ public class RolesService {
     public ApiDataResponseBuilder updateRole(Integer roleId, RoleUpdateRequest request) {
         Role role = roleRepository.findById(roleId).orElse(null);
 
-        if (role == null || EntityStatus.INACTIVE.equals(role.getStatus()) || EntityStatus.DELETED.equals(role.getStatus())) {
+        if (role == null || EntityStatus.DELETED.equals(role.getStatus())) {
             return ApiDataResponseBuilder.builder()
                     .message("Data role tidak ditemukan")
                     .statusCode(HttpStatus.NOT_FOUND.value())
@@ -169,7 +169,7 @@ public class RolesService {
     public ApiDataResponseBuilder updateRoleStatus(Integer roleId, RoleStatusUpdateRequest request) {
         Role role = roleRepository.findById(roleId).orElse(null);
 
-        if (role == null || EntityStatus.DELETED.equals(role.getStatus())) {
+        if (role == null) {
             return ApiDataResponseBuilder.builder()
                     .message("Data role tidak ditemukan")
                     .statusCode(HttpStatus.NOT_FOUND.value())
@@ -177,7 +177,7 @@ public class RolesService {
                     .build();
         }
 
-        if (EntityStatus.DELETED.equals(request.getStatus())) {
+        if (!EntityStatus.ACTIVE.equals(request.getStatus()) && !EntityStatus.DELETED.equals(request.getStatus())) {
             return ApiDataResponseBuilder.builder()
                     .message("Status role tidak valid")
                     .statusCode(HttpStatus.BAD_REQUEST.value())
@@ -186,6 +186,14 @@ public class RolesService {
         }
 
         Integer currentUserId = getCurrentUserId();
+
+        if (EntityStatus.DELETED.equals(request.getStatus())) {
+            role.setDeletedAt(LocalDateTime.now());
+            role.setDeletedBy(currentUserId);
+        } else {
+            role.setDeletedAt(null);
+            role.setDeletedBy(null);
+        }
 
         role.setStatus(request.getStatus());
         role.setUpdatedBy(currentUserId);

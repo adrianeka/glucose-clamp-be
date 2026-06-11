@@ -103,7 +103,21 @@ public class AccessMenusService {
 
         Integer currentUserId = getCurrentUserId();
 
+        Integer menuId = request.getMenuId();
+        if (menuId != null) {
+            if (accessMenuRepository.existsById(menuId)) {
+                return ApiDataResponseBuilder.builder()
+                        .message("ID menu sudah digunakan")
+                        .statusCode(HttpStatus.BAD_REQUEST.value())
+                        .status(HttpStatus.BAD_REQUEST)
+                        .build();
+            }
+        } else {
+            menuId = accessMenuRepository.getNextSequenceValue();
+        }
+
         AccessMenu menu = AccessMenu.builder()
+                .menuId(menuId)
                 .menuName(request.getMenuName())
                 .build();
 
@@ -129,7 +143,7 @@ public class AccessMenusService {
     public ApiDataResponseBuilder updateAccessMenu(Integer menuId, AccessMenuUpdateRequest request) {
         AccessMenu menu = accessMenuRepository.findById(menuId).orElse(null);
 
-        if (menu == null || EntityStatus.INACTIVE.equals(menu.getStatus()) || EntityStatus.DELETED.equals(menu.getStatus())) {
+        if (menu == null || EntityStatus.DELETED.equals(menu.getStatus())) {
             return ApiDataResponseBuilder.builder()
                     .message("Data access menu tidak ditemukan")
                     .statusCode(HttpStatus.NOT_FOUND.value())
@@ -168,7 +182,7 @@ public class AccessMenusService {
     public ApiDataResponseBuilder updateAccessMenuStatus(Integer menuId, AccessMenuStatusUpdateRequest request) {
         AccessMenu menu = accessMenuRepository.findById(menuId).orElse(null);
 
-        if (menu == null || EntityStatus.DELETED.equals(menu.getStatus())) {
+        if (menu == null) {
             return ApiDataResponseBuilder.builder()
                     .message("Data access menu tidak ditemukan")
                     .statusCode(HttpStatus.NOT_FOUND.value())
@@ -176,7 +190,7 @@ public class AccessMenusService {
                     .build();
         }
 
-        if (EntityStatus.DELETED.equals(request.getStatus())) {
+        if (!EntityStatus.ACTIVE.equals(request.getStatus()) && !EntityStatus.DELETED.equals(request.getStatus())) {
             return ApiDataResponseBuilder.builder()
                     .message("Status access menu tidak valid")
                     .statusCode(HttpStatus.BAD_REQUEST.value())
@@ -185,6 +199,14 @@ public class AccessMenusService {
         }
 
         Integer currentUserId = getCurrentUserId();
+
+        if (EntityStatus.DELETED.equals(request.getStatus())) {
+            menu.setDeletedAt(LocalDateTime.now());
+            menu.setDeletedBy(currentUserId);
+        } else {
+            menu.setDeletedAt(null);
+            menu.setDeletedBy(null);
+        }
 
         menu.setStatus(request.getStatus());
         menu.setUpdatedBy(currentUserId);

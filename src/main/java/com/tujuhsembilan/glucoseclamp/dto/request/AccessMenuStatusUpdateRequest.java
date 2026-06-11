@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class AccessMenuStatusUpdateRequest {
 
-    @Schema(description = "Status menu (ACTIVE atau INACTIVE)", example = "ACTIVE")
+    @Schema(description = "Status menu (ACTIVE atau DELETED)", example = "ACTIVE")
     @NotNull(message = "Status tidak boleh kosong")
     private EntityStatus status;
 }

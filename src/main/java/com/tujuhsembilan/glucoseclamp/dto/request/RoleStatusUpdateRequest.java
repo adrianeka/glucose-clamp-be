@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class RoleStatusUpdateRequest {
 
-    @Schema(description = "Status role (ACTIVE atau INACTIVE)", example = "ACTIVE")
+    @Schema(description = "Status role (ACTIVE atau DELETED)", example = "ACTIVE")
     @NotNull(message = "Status tidak boleh kosong")
     private EntityStatus status;
 }

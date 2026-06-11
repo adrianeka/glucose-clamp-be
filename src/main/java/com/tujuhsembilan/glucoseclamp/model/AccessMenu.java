@@ -16,8 +16,6 @@ import java.util.List;
 public class AccessMenu extends BaseEntity {
     
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "menu_id_seq")
-    @SequenceGenerator(name = "menu_id_seq", sequenceName = "menu_id_seq", allocationSize = 1)
     @Column(name = "menu_id")
     private Integer menuId;
     

@@ -19,4 +19,7 @@ public interface AccessMenuRepository extends JpaRepository<AccessMenu, Integer>
     Optional<AccessMenu> findByMenuNameAndDeletedAtIsNull(String menuName);
     @Query("SELECT m FROM AccessMenu m WHERE m.deletedAt IS NULL AND (LOWER(m.menuName) LIKE LOWER(CONCAT('%', ?1, '%')))")
     Page<AccessMenu> searchByKeyword(String keyword, Pageable pageable);
+
+    @Query(value = "SELECT nextval('menu_id_seq')", nativeQuery = true)
+    Integer getNextSequenceValue();
 }

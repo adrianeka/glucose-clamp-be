@@ -12,6 +12,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class AccessMenuRequest {
 
+    @Schema(description = "ID menu (optional, custom ID)", example = "109")
+    private Integer menuId;
+
     @Schema(description = "Nama menu", example = "Dashboard Utama")
     @NotBlank(message = "Nama menu tidak boleh kosong")
     @Size(max = 100, message = "Nama menu maksimal 100 karakter")

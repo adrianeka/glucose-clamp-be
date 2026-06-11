@@ -35,6 +35,7 @@ public class SeedDataRunner implements CommandLineRunner {
         seedUsers();
         seedParticipants();
         seedProtocols();
+        seedPhaseConfigurations();
         seedSessions();
         seedActivities();
         seedDevices();
@@ -176,6 +177,19 @@ public class SeedDataRunner implements CommandLineRunner {
         );
     }
 
+    private void seedPhaseConfigurations() {
+        batch(
+                "INSERT INTO phase_configurations (phase_conf_id, phase_conf_priority, phase_conf_code, phase_conf_name, phase_conf_type, created_at, created_by, updated_at, updated_by, deleted_at, deleted_by, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT (phase_conf_id) DO UPDATE SET phase_conf_priority = EXCLUDED.phase_conf_priority, phase_conf_code = EXCLUDED.phase_conf_code, phase_conf_name = EXCLUDED.phase_conf_name, phase_conf_type = EXCLUDED.phase_conf_type, created_at = EXCLUDED.created_at, created_by = EXCLUDED.created_by, updated_at = EXCLUDED.updated_at, updated_by = EXCLUDED.updated_by, deleted_at = EXCLUDED.deleted_at, deleted_by = EXCLUDED.deleted_by, status = EXCLUDED.status",
+                row(1, 1, "PREP1", "Pemeriksaan Awal", "preparation", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row(2, 2, "PREP2", "Pra - Tindakan", "preparation", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row(3, 3, "BASE", "Baseline", "pre-insulin", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row(4, 4, "PH1", "Phase 1", "post-insulin", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row(5, 5, "PH2", "Phase 2", "post-insulin", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row(6, 6, "PH3", "Phase 3", "post-insulin", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row(7, 7, "FINAL", "Pemeriksaan Akhir", "finalization", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE")
+        );
+    }
+
     private void seedSamplingSchedules() {
         batch(
                 "INSERT INTO sampling_schedules (sampling_schedule_id, protocol_id, phase_code, time_interval, blood_raw, insulin_inject, pk_sample_collection, created_at, created_by, updated_at, updated_by, deleted_at, deleted_by, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT (sampling_schedule_id) DO UPDATE SET protocol_id = EXCLUDED.protocol_id, phase_code = EXCLUDED.phase_code, time_interval = EXCLUDED.time_interval, blood_raw = EXCLUDED.blood_raw, insulin_inject = EXCLUDED.insulin_inject, pk_sample_collection = EXCLUDED.pk_sample_collection, created_at = EXCLUDED.created_at, created_by = EXCLUDED.created_by, updated_at = EXCLUDED.updated_at, updated_by = EXCLUDED.updated_by, deleted_at = EXCLUDED.deleted_at, deleted_by = EXCLUDED.deleted_by, status = EXCLUDED.status",
@@ -309,10 +323,13 @@ public class SeedDataRunner implements CommandLineRunner {
         );
     }
 
+
+
     private void syncSequences() {
         jdbcTemplate.execute("SELECT setval('role_id_seq', COALESCE((SELECT MAX(role_id) FROM roles), 0) + 1, false)");
         jdbcTemplate.execute("SELECT setval('user_id_seq', COALESCE((SELECT MAX(user_id) FROM users), 0) + 1, false)");
         jdbcTemplate.execute("SELECT setval('device_id_seq', COALESCE((SELECT MAX(device_id) FROM devices), 0) + 1, false)");
+        jdbcTemplate.execute("SELECT setval('phase_conf_id_seq', COALESCE((SELECT MAX(phase_conf_id) FROM phase_configurations), 0) + 1, false)");
     }
 
     private void batch(String sql, Object[]... rows) {

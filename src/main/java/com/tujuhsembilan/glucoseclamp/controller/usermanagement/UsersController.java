@@ -37,8 +37,10 @@ public class UsersController {
     private UserManagementService userManagementService;
 
     @PostMapping(path = "/users/sign-up", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public MessageResponse register(@RequestBody RegisterRequest request) {
-        return usersService.register(request);
+    public ResponseEntity<MessageResponse> register(@RequestBody RegisterRequest request) {
+        MessageResponse response = usersService.register(request);
+
+        return ResponseEntity.status(response.getStatusCode()).body(response);
     }
 
     @PostMapping("/users/sign-in")

@@ -37,19 +37,7 @@ public class SessionCreateRequest {
     @Schema(description = "Durasi puasa dalam jam", example = "8")
     private Integer fastingHour;
 
-    @Schema(description = "Daftar ID perangkat yang digunakan", example = "[1, 2]")
-    @NotEmpty(message = "Kolom deviceIds tidak boleh kosong")
-    private List<Integer> deviceIds;
-
-    @Valid
-    @NotNull(message = "Kolom vitalSignRequest wajib diisi")
-    private VitalSignRequest vitalSignRequest;
-
-    @Valid
-    @NotNull(message = "Kolom anamnesisRequest wajib diisi")
-    private AnamnesisRequest anamnesisRequest;
-
-    @Valid
-    @NotNull(message = "Kolom anthropometryRequest wajib diisi")
-    private AnthropometryRequest anthropometryRequest;
+    // @Schema(description = "Daftar ID perangkat yang digunakan", example = "[1, 2]")
+    // @NotEmpty(message = "Kolom deviceIds tidak boleh kosong")
+    // private List<Integer> deviceIds;
 }

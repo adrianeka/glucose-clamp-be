@@ -43,6 +43,12 @@ public class Session extends BaseEntity {
     
     @Column(name = "fasting_hour")
     private Integer fastingHour;
+
+    @Column(name = "end_reason_category", length = 100)
+    private String endReasonCategory;
+
+    @Column(name = "end_reason_detail", length = 1000)
+    private String endReasonDetail;
     
     @Enumerated(EnumType.STRING)
     @Column(name = "session_status", length = 50)

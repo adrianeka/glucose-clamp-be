@@ -145,26 +145,26 @@ public class SessionManagementService {
                     .build();
         }
 
-        if (request.getDeviceIds() == null || request.getDeviceIds().isEmpty()) {
-            return ApiDataResponseBuilder.builder()
-                    .message("Device minimal 1 harus diisi")
-                    .statusCode(HttpStatus.BAD_REQUEST.value())
-                    .status(HttpStatus.BAD_REQUEST)
-                    .build();
-        }
+        // if (request.getDeviceIds() == null || request.getDeviceIds().isEmpty()) {
+        //     return ApiDataResponseBuilder.builder()
+        //             .message("Device minimal 1 harus diisi")
+        //             .statusCode(HttpStatus.BAD_REQUEST.value())
+        //             .status(HttpStatus.BAD_REQUEST)
+        //             .build();
+        // }
 
-        List<Device> devices = new ArrayList<>();
-        for (Integer deviceId : request.getDeviceIds()) {
-            Optional<Device> deviceOptional = deviceRepository.findByIdAndDeletedAtIsNull(deviceId);
-            if (deviceOptional.isEmpty()) {
-                return ApiDataResponseBuilder.builder()
-                        .message("Device tidak ditemukan: " + deviceId)
-                        .statusCode(HttpStatus.BAD_REQUEST.value())
-                        .status(HttpStatus.BAD_REQUEST)
-                        .build();
-            }
-            devices.add(deviceOptional.get());
-        }
+        // List<Device> devices = new ArrayList<>();
+        // for (Integer deviceId : request.getDeviceIds()) {
+        //     Optional<Device> deviceOptional = deviceRepository.findByIdAndDeletedAtIsNull(deviceId);
+        //     if (deviceOptional.isEmpty()) {
+        //         return ApiDataResponseBuilder.builder()
+        //                 .message("Device tidak ditemukan: " + deviceId)
+        //                 .statusCode(HttpStatus.BAD_REQUEST.value())
+        //                 .status(HttpStatus.BAD_REQUEST)
+        //                 .build();
+        //     }
+        //     devices.add(deviceOptional.get());
+        // }
 
         Session session = new Session();
         session.setParticipant(participantOptional.get());
@@ -177,16 +177,16 @@ public class SessionManagementService {
         session.setUpdatedBy(actorId);
         sessionRepository.save(session);
 
-        List<SessionDevice> sessionDevices = new ArrayList<>();
-        for (Device device : devices) {
-            sessionDevices.add(SessionDevice.builder()
-                    .session(session)
-                    .device(device)
-                    .assignedAt(java.time.LocalDateTime.now())
-                    .assignedByUser(actor)
-                    .build());
-        }
-        sessionDeviceRepository.saveAll(sessionDevices);
+        // List<SessionDevice> sessionDevices = new ArrayList<>();
+        // for (Device device : devices) {
+        //     sessionDevices.add(SessionDevice.builder()
+        //             .session(session)
+        //             .device(device)
+        //             .assignedAt(java.time.LocalDateTime.now())
+        //             .assignedByUser(actor)
+        //             .build());
+        // }
+        // sessionDeviceRepository.saveAll(sessionDevices);
 
         List<Activity> activities = activityService.generateActivitiesForSession(session, actor, actorId);
         activityService.saveActivities(activities);
@@ -201,55 +201,10 @@ public class SessionManagementService {
         session.setEndTime(estimatedEndTime);
         sessionRepository.save(session);
 
-        com.tujuhsembilan.glucoseclamp.model.VitalSign vital = com.tujuhsembilan.glucoseclamp.model.VitalSign.builder().build();
-        vital.setSession(session);
-        vital.setMeasuredAt(parseFlexibleDateTime(request.getVitalSignRequest().getMeasuredAt()));
-        vital.setSystolic(request.getVitalSignRequest().getSystolic());
-        vital.setDiastolic(request.getVitalSignRequest().getDiastolic());
-        vital.setPulse(request.getVitalSignRequest().getPulse());
-        vital.setRespiratoryRate(request.getVitalSignRequest().getRespiratoryRate());
-        vital.setTemperatureC(request.getVitalSignRequest().getTemperatureC());
-        vital.setSpo2(request.getVitalSignRequest().getSpo2());
-        if (request.getVitalSignRequest().getAssignedBy() != null) {
-            userRepository.findByIdAndDeletedAtIsNull(request.getVitalSignRequest().getAssignedBy()).ifPresent(vital::setAssignedByUser);
-        }
-        vital.setCreatedBy(actorId);
-        vital.setUpdatedBy(actorId);
-        vitalSignRepository.save(vital);
-
-        com.tujuhsembilan.glucoseclamp.model.Anamnesis anamnesis = com.tujuhsembilan.glucoseclamp.model.Anamnesis.builder().build();
-        anamnesis.setSession(session);
-        anamnesis.setDate(java.time.LocalDate.parse(request.getAnamnesisRequest().getDate()));
-        anamnesis.setChiefComplaint(request.getAnamnesisRequest().getChiefComplaint());
-        anamnesis.setMedicalHistory(request.getAnamnesisRequest().getMedicalHistory());
-        if (request.getAnamnesisRequest().getAssignedBy() != null) {
-            userRepository.findByIdAndDeletedAtIsNull(request.getAnamnesisRequest().getAssignedBy()).ifPresent(anamnesis::setAssignedByUser);
-        }
-        anamnesis.setCreatedBy(actorId);
-        anamnesis.setUpdatedBy(actorId);
-        anamnesisRepository.save(anamnesis);
-
-        com.tujuhsembilan.glucoseclamp.model.Anthropometry anthropometry = com.tujuhsembilan.glucoseclamp.model.Anthropometry.builder().build();
-        anthropometry.setSession(session);
-        anthropometry.setMeasuredAt(parseFlexibleDateTime(request.getAnthropometryRequest().getMeasuredAt()));
-        anthropometry.setWeightKg(request.getAnthropometryRequest().getWeightKg());
-        anthropometry.setHeightCm(request.getAnthropometryRequest().getHeightCm());
-        anthropometry.setBmi(request.getAnthropometryRequest().getBmi());
-        anthropometry.setWaistCircumferenceCm(request.getAnthropometryRequest().getWaistCircumferenceCm());
-        if (request.getAnthropometryRequest().getAssignedBy() != null) {
-            userRepository.findByIdAndDeletedAtIsNull(request.getAnthropometryRequest().getAssignedBy()).ifPresent(anthropometry::setAssignedByUser);
-        }
-        anthropometry.setCreatedBy(actorId);
-        anthropometry.setUpdatedBy(actorId);
-        anthropometryRepository.save(anthropometry);
-
         SessionCreateResponse response = buildSessionCreateResponse(session, activities);
-        response.setVitalId(vital.getVitalId());
-        response.setAnamnesisId(anamnesis.getAnamnesisId());
-        response.setAnthropometryId(anthropometry.getAnthroId());
-        response.setSessionDeviceIds(sessionDevices.stream()
-                .map(SessionDevice::getSessionDeviceId)
-                .collect(java.util.stream.Collectors.toList()));
+        // response.setSessionDeviceIds(sessionDevices.stream()
+        //         .map(SessionDevice::getSessionDeviceId)
+        //         .collect(java.util.stream.Collectors.toList()));
         response.setEndTime(estimatedEndTime);
 
         return ApiDataResponseBuilder.builder()
@@ -274,7 +229,7 @@ public class SessionManagementService {
         Session session = sessionOptional.get();
         if (session.getSessionStatus() != SessionStatus.RUNNING) {
             return ApiDataResponseBuilder.builder()
-                    .message("Session hanya bisa di-complete saat status IN PROGRESS")
+                    .message("Session hanya bisa di-complete saat status masih RUNNING")
                     .statusCode(HttpStatus.CONFLICT.value())
                     .status(HttpStatus.CONFLICT)
                     .build();
@@ -282,6 +237,8 @@ public class SessionManagementService {
 
         session.setEndTime(normalizeToSeconds(request.getEndTime()));
         session.setSessionStatus(SessionStatus.COMPLETED);
+        session.setEndReasonCategory(request.getEndReasonCategory());
+        session.setEndReasonDetail(request.getEndReasonDetail());
         session.setUpdatedBy(currentUserService.getCurrentUserId());
         sessionRepository.save(session);
 

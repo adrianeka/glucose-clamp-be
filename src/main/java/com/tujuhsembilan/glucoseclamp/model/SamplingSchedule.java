@@ -27,6 +27,12 @@ public class SamplingSchedule extends BaseEntity {
 
     @Column(name = "phase_name", length = 255)
     private String phaseName;
+
+    @Column(name = "phase_type", length = 100)
+    private String phaseType;
+
+    @Column(name = "relative_minute")
+    private Integer relativeMinute; // Menyimpan nilai 0, 10, 30
     
     @Column(name = "time_interval")
     private Integer timeInterval;

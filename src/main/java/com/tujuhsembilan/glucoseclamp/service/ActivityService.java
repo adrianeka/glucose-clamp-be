@@ -266,6 +266,9 @@ public class ActivityService {
     }
 
     private void syncSessionStatus(Session session) {
+        if (session.getSessionStatus() == SessionStatus.COMPLETED) {
+            return;
+        }
         long totalActivities = activityRepository.findBySessionIdAndDeletedAtIsNull(session.getSessionId()).size();
         long completedActivities = activityRepository.findBySessionIdAndDeletedAtIsNull(session.getSessionId())
                 .stream()
@@ -285,11 +288,25 @@ public class ActivityService {
     }
 
     private ActivityResponse mapToResponse(Activity activity) {
+        Integer calculatedRelativeMinute = null;
+        
+        // Menghitung selisih menit secara otomatis di memori (runtime Java)
+        if (activity.getSession() != null && activity.getSession().getStartTime() != null && activity.getTime() != null) {
+            calculatedRelativeMinute = (int) java.time.Duration.between(
+                activity.getSession().getStartTime(), 
+                activity.getTime()
+            ).toMinutes();
+        }
+
         return ActivityResponse.builder()
                 .activityId(activity.getActivityId())
                 .sessionId(activity.getSession() == null ? null : activity.getSession().getSessionId())
                 .actorId(activity.getActor() == null ? null : activity.getActor().getUserId())
                 .time(activity.getTime())
+                
+                // Mengirim hasil kalkulasi dinamis ke frontend
+                .relativeMinute(calculatedRelativeMinute) 
+                
                 .activityType(activity.getActivityType())
                 .activityDesc(activity.getActivityDesc())
                 .activityStatus(activity.getActivityStatus())
@@ -335,40 +352,37 @@ public class ActivityService {
     private ActivityGenerationState buildActivityGenerationState(List<SamplingSchedule> samplingSchedules) {
         ActivityGenerationState generationState = new ActivityGenerationState();
 
+        // Cari tahu menit relatif di mana insulin disuntikkan secara statis
+        Integer injectMinute = samplingSchedules.stream()
+                .filter(s -> Boolean.TRUE.equals(s.getInsulinInject()))
+                .map(SamplingSchedule::getRelativeMinute)
+                .findFirst()
+                .orElse(null);
+
+        // Cari tahu menit awal fase baseline (pre-insulin) untuk kalkulasi offset T-x
+        Integer minBaseline = samplingSchedules.stream()
+                .filter(s -> "pre-insulin".equalsIgnoreCase(s.getPhaseType()))
+                .map(SamplingSchedule::getRelativeMinute)
+                .min(Integer::compareTo)
+                .orElse(0);
+
+        generationState.injectionMinute = injectMinute;
+        generationState.minBaselineOffset = minBaseline;
+
         try {
             var lastOpt = activityRepository.findTopByDeletedAtIsNullOrderByActivityIdDesc();
             if (lastOpt.isPresent()) {
                 String lastId = lastOpt.get().getActivityId();
                 if (lastId != null && lastId.length() >= 7) {
-                    try {
-                        generationState.setActivitySequence(Integer.parseInt(lastId.substring(4, 7)));
-                    } catch (NumberFormatException ignored) {
-                    }
+                    generationState.activitySequence = Integer.parseInt(lastId.substring(4, 7));
                 }
             }
         } catch (Exception ignored) {
         }
 
-        int cum = 0;
-        Integer minBaseline = null;
-        for (SamplingSchedule detail : samplingSchedules) {
-            generationState.detailOffsetMap.put(detail.getSamplingScheduleId(), cum);
-            String phase = detail.getPhaseCode() == null ? "" : detail.getPhaseCode().trim();
-            if ("baseline".equalsIgnoreCase(phase)) {
-                if (minBaseline == null || cum < minBaseline) {
-                    minBaseline = cum;
-                }
-            }
-            if (Boolean.TRUE.equals(detail.getInsulinInject()) && generationState.injectionOffsetMinutes == null) {
-                generationState.injectionOffsetMinutes = cum;
-            }
-            int interval = detail.getTimeInterval() == null ? 0 : detail.getTimeInterval();
-            cum += interval;
-        }
-
-        generationState.minBaselineOffset = minBaseline == null ? 0 : minBaseline;
         return generationState;
     }
+
 
     private List<SamplingSchedule> loadSamplingSchedules(String protocolId) {
         return samplingScheduleRepository
@@ -380,56 +394,80 @@ public class ActivityService {
 
     private List<Activity> buildActivitiesForDetail(Session session, User actor, Integer actorId, SamplingSchedule detail, ActivityGenerationState generationState) {
         List<Activity> activities = new ArrayList<>();
-        String phaseCode = detail.getPhaseCode() == null ? "" : detail.getPhaseCode().trim();
-        boolean isBaselinePhase = "baseline".equalsIgnoreCase(phaseCode);
+        String phaseType = detail.getPhaseType() == null ? "" : detail.getPhaseType().trim().toLowerCase();
+        String phaseName = detail.getPhaseName();
+        String phaseCode = detail.getPhaseCode();
 
-        Integer detailOffset = generationState.detailOffsetMap.get(detail.getSamplingScheduleId());
-        if (detailOffset == null) detailOffset = generationState.elapsedMinutes;
-        Integer minutesBeforeInjection = null;
-        if (generationState.injectionOffsetMinutes != null) {
-            minutesBeforeInjection = detailOffset - generationState.injectionOffsetMinutes;
-        }
-        int timeOffsetFromStart = detailOffset - generationState.minBaselineOffset;
+        // Nilai blueprint menit relatif dibaca dari database SamplingSchedule
+        int relativeMinute = detail.getRelativeMinute() == null ? 0 : detail.getRelativeMinute();
+        
+        LocalDateTime activityClockTime = session.getStartTime().plusMinutes(relativeMinute);
 
-        if (Boolean.TRUE.equals(detail.getInsulinInject())) {
-            int baselineNumber = generationState.nextBaselineNumber();
-            String basalCode = buildBaselineCode(minutesBeforeInjection);
-            activities.add(buildActivity(session, actor, actorId, detail, timeOffsetFromStart, basalCode, buildBaselineSampleDescription(baselineNumber, minutesBeforeInjection), generationState, "BLOOD_RAW"));
-            activities.add(buildActivity(session, actor, actorId, detail, timeOffsetFromStart, "T0", buildInsulinInjectDescription(), generationState, "PK_SAMPLE_COLLECTION"));
-        } else if (Boolean.TRUE.equals(detail.getBloodRaw())) {
-            if (isBaselinePhase) {
+        if ("preparation".equals(phaseType)) {
+            activities.add(buildActivity(session, actor, actorId, activityClockTime, 
+                    phaseCode, "Pemeriksaan fisik awal (Vital Signs, Anthropometry, & Anamneses) pada fase " + phaseName, 
+                    generationState, "PREPARATION_CHECK"));
+        } 
+        else if ("finalization".equals(phaseType)) {
+            activities.add(buildActivity(session, actor, actorId, activityClockTime, 
+                    phaseCode, "Evaluasi penghentian infus Dextrose 10% (GIR kembali mendekati 2 mg/kgBB/menit)", 
+                    generationState, "DEXTROSE_STOP_CHECK"));
+            activities.add(buildActivity(session, actor, actorId, activityClockTime, 
+                    phaseCode, "Partisipan makan, diobservasi, pemeriksaan klinis dan antropometri akhir pada fase " + phaseName, 
+                    generationState, "FINAL_OBSERVATION"));
+        } 
+
+        else {
+            Integer minutesBeforeInjection = null;
+            if (generationState.injectionMinute != null) {
+                minutesBeforeInjection = relativeMinute - generationState.injectionMinute;
+            }
+
+            if (Boolean.TRUE.equals(detail.getInsulinInject())) {
                 int baselineNumber = generationState.nextBaselineNumber();
                 String basalCode = buildBaselineCode(minutesBeforeInjection);
-                activities.add(buildActivity(session, actor, actorId, detail, timeOffsetFromStart, basalCode, buildBaselineSampleDescription(baselineNumber, minutesBeforeInjection), generationState, "BLOOD_RAW"));
-            } else {
-                int glucoseNumber = generationState.nextGlucoseNumber();
-                String gdCode = "GD" + glucoseNumber;
-                activities.add(buildActivity(session, actor, actorId, detail, timeOffsetFromStart, gdCode, buildGlucoseSampleDescription(glucoseNumber), generationState, "BLOOD_RAW"));
+                activities.add(buildActivity(session, actor, actorId, activityClockTime, basalCode, buildBaselineSampleDescription(baselineNumber, minutesBeforeInjection), generationState, "BLOOD_DRAW"));
+                activities.add(buildActivity(session, actor, actorId, activityClockTime, "T0", buildInsulinInjectDescription(), generationState, "INSULIN_INJECTION"));
+            } else if (Boolean.TRUE.equals(detail.getBloodRaw())) {
+                if ("pre-insulin".equals(phaseType)) {
+                    int baselineNumber = generationState.nextBaselineNumber();
+                    String basalCode = buildBaselineCode(minutesBeforeInjection);
+                    activities.add(buildActivity(session, actor, actorId, activityClockTime, basalCode, buildBaselineSampleDescription(baselineNumber, minutesBeforeInjection), generationState, "BLOOD_DRAW"));
+                } else {
+                    int glucoseNumber = generationState.nextGlucoseNumber();
+                    String gdCode = "GD" + glucoseNumber;
+                    activities.add(buildActivity(session, actor, actorId, activityClockTime, gdCode, buildGlucoseSampleDescription(glucoseNumber), generationState, "BLOOD_DRAW"));
+                }
+            }
+
+            if (Boolean.TRUE.equals(detail.getPkSampleCollection())) {
+                int pkcNumber = generationState.nextInsulinCheckNumber();
+                String pkcCode = "PKC-" + pkcNumber;
+                activities.add(buildActivity(session, actor, actorId, activityClockTime, pkcCode, buildInsulinCheckDescription(pkcNumber), generationState, "INSULIN_CHECK"));
             }
         }
 
-        if (Boolean.TRUE.equals(detail.getPkSampleCollection())) {
-            int pkcNumber = generationState.nextInsulinCheckNumber();
-            String pkcCode = "PKC-" + pkcNumber;
-            activities.add(buildActivity(session, actor, actorId, detail, timeOffsetFromStart, pkcCode, buildInsulinCheckDescription(pkcNumber), generationState, "PK_SAMPLE_COLLECTION"));
-        }
-
-        if (activities.isEmpty()) {
-            activities.add(buildActivity(session, actor, actorId, detail, timeOffsetFromStart, "MON", buildMonitoringDescription(detail), generationState, "MONITORING"));
-        }
-
-        int interval = detail.getTimeInterval() == null ? 0 : detail.getTimeInterval();
-        generationState.elapsedMinutes += interval;
         return activities;
     }
 
-    private Activity buildActivity(Session session, User actor, Integer actorId, SamplingSchedule detail, Integer scheduledMinute, String codePart, String activityDesc, ActivityGenerationState generationState, String type) {
+    private Activity buildActivity(
+            Session session, 
+            User actor, 
+            Integer actorId, 
+            LocalDateTime clockTime, 
+            String codePart, 
+            String activityDesc, 
+            ActivityGenerationState generationState, 
+            String type) {
+            
         Activity activity = new Activity();
         int seq = generationState.nextActivitySequence();
         activity.setActivityId(buildActivityId(seq, codePart, session.getSessionId()));
         activity.setSession(session);
         activity.setActor(actor);
-        activity.setTime(buildActivityTime(session.getStartTime(), scheduledMinute));
+        
+        activity.setTime(clockTime);
+        
         activity.setActivityType(type);
         activity.setActivityDesc(activityDesc);
         activity.setActivityStatus(ActivityStatus.INQUEUE);
@@ -490,6 +528,7 @@ public class ActivityService {
         private Map<String, Integer> detailOffsetMap = new HashMap<>();
         private Integer injectionOffsetMinutes = null;
         private Integer minBaselineOffset = null;
+        private Integer injectionMinute = null;
         private int activitySequence = 0;
 
         private int nextBaselineNumber() {

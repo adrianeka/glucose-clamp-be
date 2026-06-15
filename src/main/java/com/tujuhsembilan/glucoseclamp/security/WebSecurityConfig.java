@@ -16,6 +16,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 import com.tujuhsembilan.glucoseclamp.security.jwt.AuthEntryPointJwt;
 import com.tujuhsembilan.glucoseclamp.security.jwt.AuthTokenFilter;
+import com.tujuhsembilan.glucoseclamp.security.jwt.DynamicRbacFilter;
 import com.tujuhsembilan.glucoseclamp.security.service.UserDetailsServiceImplement;
 
 @Configuration
@@ -59,7 +60,8 @@ public class WebSecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth ->
                         auth.requestMatchers(
-                            "/user-management/**", 
+                            "/user-management/users/sign-in", 
+                            "/user-management/users/sign-up",
                             "/glucoseclamp-documentation/**", 
                             "/glucoseclamp-api-docs/**",
                             "/swagger-ui/**",
@@ -71,6 +73,13 @@ public class WebSecurityConfig {
 
         http.addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
 
+        http.addFilterAfter(dynamicRbacFilter(), AuthTokenFilter.class);
+
         return http.build();
+    }
+
+     @Bean
+    public DynamicRbacFilter dynamicRbacFilter() {
+        return new DynamicRbacFilter();
     }
 }

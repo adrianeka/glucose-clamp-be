@@ -31,8 +31,29 @@ public class UserDetailsImplement implements UserDetails {
         // UPDATE: Mengambil roleName dari dalam object Roles
         authorities.add(new SimpleGrantedAuthority(user.getRole().getRoleName()));
 
+        if (user.getRole() != null && user.getRole().getRoleAccesses() != null) {
+            for (com.tujuhsembilan.glucoseclamp.model.RoleAccess roleAccess : user.getRole().getRoleAccesses()) {
+                if (roleAccess.getAccessMenu() != null) {
+                    String menuName = roleAccess.getAccessMenu().getMenuName();
+                    
+                    if (Boolean.TRUE.equals(roleAccess.getCanView())) {
+                        authorities.add(new SimpleGrantedAuthority(menuName + ":VIEW"));
+                    }
+                    if (Boolean.TRUE.equals(roleAccess.getCanAdd())) {
+                        authorities.add(new SimpleGrantedAuthority(menuName + ":ADD"));
+                    }
+                    if (Boolean.TRUE.equals(roleAccess.getCanEdit())) {
+                        authorities.add(new SimpleGrantedAuthority(menuName + ":EDIT"));
+                    }
+                    if (Boolean.TRUE.equals(roleAccess.getCanDelete())) {
+                        authorities.add(new SimpleGrantedAuthority(menuName + ":DELETE"));
+                    }
+                }
+            }
+        }
+
         return new UserDetailsImplement(
-                user.getUserId(), // UPDATE: Menggunakan getId() bukan getUserId()
+                user.getUserId(),
                 user.getUsername(),
                 user.getPassword(),
                 authorities);

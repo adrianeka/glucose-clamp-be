@@ -11,7 +11,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,6 +22,7 @@ import com.tujuhsembilan.glucoseclamp.dto.response.JwtResponse;
 import com.tujuhsembilan.glucoseclamp.dto.response.MessageResponse;
 import com.tujuhsembilan.glucoseclamp.model.Role;
 import com.tujuhsembilan.glucoseclamp.model.User;
+import com.tujuhsembilan.glucoseclamp.model.base.EntityStatus;
 import com.tujuhsembilan.glucoseclamp.repository.RoleRepository;
 import com.tujuhsembilan.glucoseclamp.repository.UserRepository;
 import com.tujuhsembilan.glucoseclamp.security.jwt.JwtUtils;
@@ -68,31 +68,43 @@ public class UsersService {
             return new MessageResponse(errorMessage, HttpStatus.BAD_REQUEST.value(), "ERROR");
         }
 
-        if (userRepository.existsByUsername(request.getUsername())) {
-            String errorMessage = messageUtil.get("application.error.already-exist.user");
-            return new MessageResponse(errorMessage, HttpStatus.BAD_REQUEST.value(), "ERROR");
-        }
-
         if (!request.getPassword().equals(request.getRetypePassword())) {
             String errorMessage = messageUtil.get("application.error.password-not-match.user");
             return new MessageResponse(errorMessage, HttpStatus.BAD_REQUEST.value(), "ERROR");
         }
 
-        if (request.getPassword().length() < 6) {
-            String errorMessage = messageUtil.get("application.error.password-validation.user");
+        Optional<Role> role = rolesRepository.findById(request.getRoleId());
+        if (role.isEmpty()) {
+            return new MessageResponse("Role tidak ditemukan", HttpStatus.BAD_REQUEST.value(), "ERROR");
+        }
+
+        String normalizedUsername = normalize(request.getUsername());
+        Optional<User> existingUsername = userRepository.findByUsernameAndDeletedAtIsNull(normalizedUsername);
+        if (existingUsername.isPresent()) {
+            String errorMessage = messageUtil.get("application.error.already-exist.user");
             return new MessageResponse(errorMessage, HttpStatus.BAD_REQUEST.value(), "ERROR");
         }
 
-        // Mencari entitas Role default dari master data database
-        Role defaultRole = rolesRepository.findByRoleNameAndDeletedAtIsNull("Operator_Analyzer")
-                .orElseThrow(() -> new RuntimeException("Default Role tidak ditemukan di database."));
+        String normalizedEmail = normalize(request.getEmail());
+        Optional<User> existingEmail = userRepository.findByEmailAndDeletedAtIsNull(normalizedEmail);
+        if (existingEmail.isPresent()) {
+            return new MessageResponse("email sudah digunakan", HttpStatus.BAD_REQUEST.value(), "ERROR");
+        }
+
+        String encryptedPassword = encoder.encode(request.getPassword());
 
         User user = User.builder()
-                .username(request.getUsername())
-                .name(request.getFullname())
-                .password(BCrypt.hashpw(request.getPassword(), BCrypt.gensalt()))
-                .role(defaultRole) // Memasukkan entitas Roles, bukan String lagi
+                .username(normalizedUsername)
+                .name(request.getFullname().trim())
+                .email(normalizedEmail) // Mengisi nilai kolom email
+                .password(encryptedPassword)
+                .role(role.get())
+                .positionName(request.getPositionName().trim())
                 .build();
+        
+        user.setStatus(EntityStatus.ACTIVE);
+        user.setCreatedBy(null); 
+        user.setUpdatedBy(null);
 
         userRepository.save(user);
 
@@ -139,5 +151,9 @@ public class UsersService {
                     .status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .build();
         }
+    }
+
+    private String normalize(String value) {
+        return value == null ? null : value.trim();
     }
 }

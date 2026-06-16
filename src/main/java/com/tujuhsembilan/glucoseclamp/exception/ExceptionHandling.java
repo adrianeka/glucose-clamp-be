@@ -88,4 +88,17 @@ public class ExceptionHandling {
         );
     }
 
+    @ExceptionHandler(org.springframework.web.bind.MethodArgumentNotValidException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorDTO handleValidationExceptions(org.springframework.web.bind.MethodArgumentNotValidException ex) {
+        String details = ex.getBindingResult().getFieldErrors().stream()
+                .map(error -> error.getField() + ": " + error.getDefaultMessage())
+                .collect(java.util.stream.Collectors.joining(", "));
+        return new ErrorDTO(
+                HttpStatus.BAD_REQUEST.value(),
+                messageUtil.get("application.error.validation"),
+                details
+        );
+    }
+
 }

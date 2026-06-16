@@ -11,6 +11,7 @@ public class ParticipantResponse {
     private String participantId;
     private String medicalRecordNo;
     private String name;
+    private int age;
     private String gender;
     private LocalDate dob;
     private String numberPhone;

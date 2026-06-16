@@ -20,6 +20,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import java.time.Period;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -60,6 +61,13 @@ public class ParticipantsService {
             return "PAT-001";
         }
     }
+
+    private Integer calculateAge(LocalDate dob) {
+        if (dob == null) {
+            return null;
+        }
+        return Period.between(dob, LocalDate.now()).getYears();
+    };
 
     public ApiDataResponseBuilder getAllParticipants(int pageNumber, int pageSize) {
         Pageable pageable = PageRequest.of(pageNumber - 1, pageSize);
@@ -256,9 +264,11 @@ public class ParticipantsService {
     private ParticipantResponse mapToResponse(Participant participant) {
         ParticipantResponse response = modelMapper.map(participant, ParticipantResponse.class);
         response.setStatus(participant.getStatus() == null ? null : participant.getStatus().name());
+        response.setAge(calculateAge(participant.getDob()));
         response.setCreatedAt(participant.getCreatedAt() == null ? null : participant.getCreatedAt().toString());
         response.setUpdatedAt(participant.getUpdatedAt() == null ? null : participant.getUpdatedAt().toString());
         return response;
     }
+
 }
 

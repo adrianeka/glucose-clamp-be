@@ -24,12 +24,6 @@ public class ParticipantUpdateRequest {
     @Schema(description = "Tanggal lahir pasien", example = "1990-01-01")
     private String dob;
 
-    @Schema(description = "Usia pasien", example = "25")
-    @NotNull(message = "Usia tidak boleh kosong")
-    @Min(value = 0, message = "Usia harus positif")
-    @Max(value = 150, message = "Usia tidak boleh melebihi 150 tahun")
-    private Integer age;
-
     @Schema(description = "Nomor handphone pasien", example = "081234567890")
     @Size(max = 20, message = "Nomor telepon maksimal 20 karakter")
     private String numberPhone;

@@ -62,11 +62,12 @@ public class ParticipantsService {
         }
     }
 
-    private Integer calculateAge(LocalDate dob) {
+    private String calculateAge(LocalDate dob) {
         if (dob == null) {
             return null;
         }
-        return Period.between(dob, LocalDate.now()).getYears();
+        Period period = Period.between(dob, LocalDate.now());
+        return period.getYears() + "y " + period.getMonths() + "m";
     };
 
     public ApiDataResponseBuilder getAllParticipants(int pageNumber, int pageSize) {
@@ -141,7 +142,6 @@ public class ParticipantsService {
                 .medicalRecordNo(request.getMedicalRecordNo())
                 .name(request.getName())
                 .gender(request.getGender())
-                .age(request.getAge())
                 .dob(LocalDate.parse(request.getDob()))
                 .numberPhone(request.getNumberPhone())
                 .build();
@@ -182,7 +182,6 @@ public class ParticipantsService {
         if (request.getName() != null) participant.setName(request.getName());
         if (request.getGender() != null) participant.setGender(request.getGender());
         if (request.getDob() != null) participant.setDob(LocalDate.parse(request.getDob()));
-        if (request.getAge() != null) participant.setAge(request.getAge());
         if (request.getNumberPhone() != null) participant.setNumberPhone(request.getNumberPhone());
         participant.setUpdatedBy(currentUserId);
 

@@ -1,5 +1,6 @@
 package com.tujuhsembilan.glucoseclamp.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.*;
 import java.time.LocalDate;
 
@@ -11,9 +12,12 @@ public class ParticipantResponse {
     private String participantId;
     private String medicalRecordNo;
     private String name;
-    private int age;
+    private String age;
     private String gender;
+
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate dob;
+
     private String numberPhone;
     private String status;
     private String createdAt;

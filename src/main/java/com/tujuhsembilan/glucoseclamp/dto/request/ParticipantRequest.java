@@ -29,7 +29,6 @@ public class ParticipantRequest {
     private String dob;
 
     @Schema(description = "Usia pasien", example = "25")
-    @NotNull(message = "Usia tidak boleh kosong")
     @Min(value = 0, message = "Usia harus positif")
     @Max(value = 150, message = "Usia tidak boleh melebihi 150 tahun")
     private Integer age;

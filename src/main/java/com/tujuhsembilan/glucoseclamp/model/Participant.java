@@ -1,6 +1,7 @@
 package com.tujuhsembilan.glucoseclamp.model;
 
 import com.tujuhsembilan.glucoseclamp.model.base.BaseEntity;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.*;
 import jakarta.persistence.*;
 import java.time.LocalDate;
@@ -30,10 +31,8 @@ public class Participant extends BaseEntity {
     private String gender;
     
     @Column(name = "dob")
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate dob;
-    
-    @Column(name = "age")
-    private Integer age;
     
     @Column(name = "number_phone", length = 20)
     private String numberPhone;

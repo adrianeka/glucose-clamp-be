@@ -86,11 +86,9 @@ public class PhaseConfigurationService {
         }
 
         Integer currentUserId = getCurrentUserId();
-        Integer maxPriority = phaseConfigurationRepository.findMaxPriority();
-        Integer nextPriority = (maxPriority == null) ? 1 : maxPriority + 1;
 
         PhaseConfiguration phaseConfiguration = PhaseConfiguration.builder()
-                .phaseConfPriority(nextPriority)
+                .phaseConfPriority(request.getPhaseConfPriority())
                 .phaseConfCode(normalizedCode)
                 .phaseConfName(request.getPhaseConfName().trim())
                 .phaseConfType(request.getPhaseConfType().trim())
@@ -109,7 +107,6 @@ public class PhaseConfigurationService {
                 .build();
     }
 
-    @Transactional
     public ApiDataResponseBuilder updatePhaseConfiguration(Long id, PhaseConfigurationRequest request) {
         Optional<PhaseConfiguration> existingPhaseConfiguration = phaseConfigurationRepository.findByIdAndDeletedAtIsNull(id);
         if (existingPhaseConfiguration.isEmpty()) {
@@ -129,6 +126,13 @@ public class PhaseConfigurationService {
                     .statusCode(HttpStatus.BAD_REQUEST.value())
                     .status(HttpStatus.BAD_REQUEST)
                     .build();
+        }
+
+        Integer newPriority = request.getPhaseConfPriority();
+        Integer oldPriority = phaseConfiguration.getPhaseConfPriority();
+        
+        if (newPriority != null && !oldPriority.equals(newPriority)) {
+            swapPriorities(phaseConfiguration, oldPriority, newPriority);
         }
 
         phaseConfiguration.setPhaseConfCode(normalizedCode);
@@ -237,11 +241,19 @@ public class PhaseConfigurationService {
 
         PhaseConfiguration phaseConfiguration = existingPhaseConfiguration.get();
         Integer currentUserId = getCurrentUserId();
+        Integer deletedPriority = phaseConfiguration.getPhaseConfPriority();
+
+        phaseConfiguration.setPhaseConfPriority(-1 * phaseConfiguration.getPhaseConfId().intValue());
+
         phaseConfiguration.setDeletedAt(LocalDateTime.now());
         phaseConfiguration.setDeletedBy(currentUserId);
         phaseConfiguration.setStatus(EntityStatus.DELETED);
         phaseConfiguration.setUpdatedBy(currentUserId);
-        phaseConfigurationRepository.save(phaseConfiguration);
+        phaseConfigurationRepository.saveAndFlush(phaseConfiguration);
+
+        if (deletedPriority != null && deletedPriority > 0) {
+            closePriorityGaps(deletedPriority);
+        }
 
         return ApiDataResponseBuilder.builder()
                 .data(mapToResponse(phaseConfiguration))
@@ -264,14 +276,24 @@ public class PhaseConfigurationService {
 
         PhaseConfiguration phaseConfiguration = existingPhaseConfiguration.get();
         Integer currentUserId = getCurrentUserId();
+        Integer deletedPriority = phaseConfiguration.getPhaseConfPriority();
+
         phaseConfiguration.setStatus(request.getStatus());
         phaseConfiguration.setUpdatedBy(currentUserId);
         phaseConfiguration.setUpdatedAt(LocalDateTime.now());
+
         if (EntityStatus.DELETED.equals(request.getStatus())) {
+            phaseConfiguration.setPhaseConfPriority(-1 * phaseConfiguration.getPhaseConfId().intValue());
             phaseConfiguration.setDeletedAt(LocalDateTime.now());
             phaseConfiguration.setDeletedBy(currentUserId);
+            phaseConfigurationRepository.saveAndFlush(phaseConfiguration);
+
+            if (deletedPriority != null && deletedPriority > 0) {
+                closePriorityGaps(deletedPriority);
+            }
+        } else {
+            phaseConfigurationRepository.save(phaseConfiguration);
         }
-        phaseConfigurationRepository.save(phaseConfiguration);
 
         return ApiDataResponseBuilder.builder()
                 .data(mapToResponse(phaseConfiguration))
@@ -296,6 +318,50 @@ public class PhaseConfigurationService {
                 .statusCode(HttpStatus.OK.value())
                 .status(HttpStatus.OK)
                 .build();
+    }
+
+    private void swapPriorities(PhaseConfiguration mainItem, Integer oldPriority, Integer newPriority) {
+        // Cari data aktif lain yang saat ini menduduki priority tujuan (newPriority)
+        Optional<PhaseConfiguration> targetItemOpt = phaseConfigurationRepository
+                .findAll().stream()
+                .filter(p -> p.getDeletedAt() == null && p.getPhaseConfPriority().equals(newPriority))
+                .findFirst();
+
+        if (targetItemOpt.isPresent()) {
+            PhaseConfiguration targetItem = targetItemOpt.get();
+
+            // Langkah 1: Ubah targetItem ke priority negatif sementara agar slot 'newPriority' kosong
+            targetItem.setPhaseConfPriority(-1 * newPriority);
+            phaseConfigurationRepository.saveAndFlush(targetItem);
+
+            // Langkah 2: Ubah mainItem ke priority tujuan (newPriority)
+            mainItem.setPhaseConfPriority(newPriority);
+            phaseConfigurationRepository.saveAndFlush(mainItem);
+
+            // Langkah 3: Ubah targetItem ke priority lama milik mainItem (oldPriority)
+            targetItem.setPhaseConfPriority(oldPriority);
+            phaseConfigurationRepository.saveAndFlush(targetItem);
+        } else {
+            // Jika tidak ada data yang menduduki priority tujuan, langsung set saja
+            mainItem.setPhaseConfPriority(newPriority);
+            phaseConfigurationRepository.saveAndFlush(mainItem);
+        }
+    }
+    
+     private void closePriorityGaps(Integer deletedPriority) {
+        // Ambil semua data aktif yang memiliki priority lebih besar dari data yang dihapus
+        List<PhaseConfiguration> activeItemsToShift = phaseConfigurationRepository
+                .findAll().stream()
+                .filter(p -> p.getDeletedAt() == null && p.getPhaseConfPriority() > deletedPriority)
+                // Urutkan secara ASCENDING agar proses decrement aman dari tabrakan unik
+                .sorted(java.util.Comparator.comparing(PhaseConfiguration::getPhaseConfPriority))
+                .toList();
+
+        for (PhaseConfiguration item : activeItemsToShift) {
+            item.setPhaseConfPriority(item.getPhaseConfPriority() - 1);
+        }
+        phaseConfigurationRepository.saveAll(activeItemsToShift);
+        phaseConfigurationRepository.flush();
     }
 
     private PhaseConfigurationResponse mapToResponse(PhaseConfiguration phaseConfiguration) {

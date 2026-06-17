@@ -20,6 +20,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import java.time.Period;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -60,6 +61,14 @@ public class ParticipantsService {
             return "PAT-001";
         }
     }
+
+    private String calculateAge(LocalDate dob) {
+        if (dob == null) {
+            return null;
+        }
+        Period period = Period.between(dob, LocalDate.now());
+        return period.getYears() + "y " + period.getMonths() + "m";
+    };
 
     public ApiDataResponseBuilder getAllParticipants(int pageNumber, int pageSize) {
         Pageable pageable = PageRequest.of(pageNumber - 1, pageSize);
@@ -133,7 +142,6 @@ public class ParticipantsService {
                 .medicalRecordNo(request.getMedicalRecordNo())
                 .name(request.getName())
                 .gender(request.getGender())
-                .age(request.getAge())
                 .dob(LocalDate.parse(request.getDob()))
                 .numberPhone(request.getNumberPhone())
                 .build();
@@ -174,7 +182,6 @@ public class ParticipantsService {
         if (request.getName() != null) participant.setName(request.getName());
         if (request.getGender() != null) participant.setGender(request.getGender());
         if (request.getDob() != null) participant.setDob(LocalDate.parse(request.getDob()));
-        if (request.getAge() != null) participant.setAge(request.getAge());
         if (request.getNumberPhone() != null) participant.setNumberPhone(request.getNumberPhone());
         participant.setUpdatedBy(currentUserId);
 
@@ -256,9 +263,11 @@ public class ParticipantsService {
     private ParticipantResponse mapToResponse(Participant participant) {
         ParticipantResponse response = modelMapper.map(participant, ParticipantResponse.class);
         response.setStatus(participant.getStatus() == null ? null : participant.getStatus().name());
+        response.setAge(calculateAge(participant.getDob()));
         response.setCreatedAt(participant.getCreatedAt() == null ? null : participant.getCreatedAt().toString());
         response.setUpdatedAt(participant.getUpdatedAt() == null ? null : participant.getUpdatedAt().toString());
         return response;
     }
+
 }
 

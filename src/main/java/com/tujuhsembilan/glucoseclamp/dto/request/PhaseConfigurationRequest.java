@@ -1,7 +1,9 @@
 package com.tujuhsembilan.glucoseclamp.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -14,9 +16,10 @@ import lombok.NoArgsConstructor;
 @Builder
 public class PhaseConfigurationRequest {
 
-    // @Schema(description = "Priority of the phase configuration", example = "1")
-    // @NotNull(message = "phase_conf_priority is required")
-    // private Integer phaseConfPriority;
+    @Schema(description = "Priority of the phase configuration", example = "1")
+    @Min(value = 1, message = "phase_conf_priority must be greater than or equal to 1")
+    @NotNull(message = "phase_conf_priority is required")
+    private Integer phaseConfPriority;
 
     @Schema(description = "Unique phase configuration code", example = "PREP1")
     @NotBlank(message = "phase_conf_code is required")

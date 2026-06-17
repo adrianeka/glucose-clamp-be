@@ -39,14 +39,36 @@ public class RegisterRequest {
     @Schema(description = "Nama jabatan atau posisi kerja pengguna", example = "Operator Analyzer")
     private String positionName;
 
-    @NotBlank(message = "Kolom kata sandi tidak boleh kosong")
-    @Size(max = 50, min = 6, message = "Kata sandi tidak boleh kurang dari 6 karakter")
-    @Schema(description = "Kata sandi akun minimal 6 karakter", example = "hash123")
+   @NotBlank(message = "Kolom kata sandi tidak boleh kosong")
+    @Size(
+        max = 50,
+        min = 6,
+        message = "Kata sandi tidak boleh kurang dari 6 karakter"
+    )
+    @Pattern(
+        regexp = "^(?=.*[a-z])(?=.*[A-Z]).+$",
+        message = "Kata sandi harus mengandung minimal 1 huruf besar dan 1 huruf kecil"
+    )
+    @Schema(
+        description = "Kata sandi akun minimal 6 karakter dan harus mengandung huruf besar dan kecil",
+        example = "Password123"
+    )
     private String password;
 
     @NotBlank(message = "Kolom konfirmasi kata sandi tidak boleh kosong")
-    @Size(max = 50, min = 6, message = "Kata sandi tidak boleh kurang dari 6 karakter")
-    @Schema(description = "Konfirmasi kata sandi harus sama dengan kolom password", example = "hash123")
+    @Size(
+        max = 50,
+        min = 6,
+        message = "Kata sandi tidak boleh kurang dari 6 karakter"
+    )
+    @Pattern(
+        regexp = "^(?=.*[a-z])(?=.*[A-Z]).+$",
+        message = "Konfirmasi kata sandi harus mengandung minimal 1 huruf besar dan 1 huruf kecil"
+    )
+    @Schema(
+        description = "Konfirmasi kata sandi harus sama dengan kolom password",
+        example = "Password123"
+    )
     private String retypePassword;
 
     @NotNull(message = "Role wajib diisi")

@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.tujuhsembilan.glucoseclamp.dto.request.LoginRequest;
 import com.tujuhsembilan.glucoseclamp.dto.request.RegisterRequest;
 import com.tujuhsembilan.glucoseclamp.dto.request.UserManagementRequest;
+import com.tujuhsembilan.glucoseclamp.dto.request.UserManagementRequestEdit;
 import com.tujuhsembilan.glucoseclamp.dto.request.UpdateStatusRequest;
 import com.tujuhsembilan.glucoseclamp.dto.response.ApiDataResponseBuilder;
 import com.tujuhsembilan.glucoseclamp.dto.response.MessageResponse;
@@ -76,7 +77,7 @@ public class UsersController {
 
     @SecurityRequirement(name = "bearerAuth")
     @PutMapping(path = "/users/{id}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Object> updateUser(@PathVariable Integer id, @Valid @RequestBody UserManagementRequest request) {
+    public ResponseEntity<Object> updateUser(@PathVariable Integer id, @Valid @RequestBody UserManagementRequestEdit request) {
         ApiDataResponseBuilder result = userManagementService.updateUser(id, request);
         return ResponseEntity.status(result.getStatus()).body(result);
     }
@@ -95,7 +96,7 @@ public class UsersController {
         return ResponseEntity.status(result.getStatus()).body(result);
     }
 
-    @SecurityRequirement(name = "bearerAuth")
+    // @SecurityRequirement(name = "bearerAuth")
     @GetMapping(path = "/users/search", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Object> searchUsers(
             @RequestParam(required = false) String keyword,

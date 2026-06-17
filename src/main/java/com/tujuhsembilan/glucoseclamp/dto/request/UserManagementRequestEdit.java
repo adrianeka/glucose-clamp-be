@@ -15,7 +15,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class UserManagementRequest {
+public class UserManagementRequestEdit {
 
     @Schema(description = "Role ID", example = "2")
     @NotNull(message = "role_id is required")
@@ -43,17 +43,13 @@ public class UserManagementRequest {
     private String email;
 
     @Schema(
-    description = "User password (minimum 6 characters, must contain uppercase and lowercase letters)",
-    example = "Password123"
-    )
-    @NotBlank(message = "password is required")
-    @Size(
-        min = 6,
-        message = "password must be at least 6 characters"
+        description = "Optional password. Leave empty if password is not changed.",
+        example = "Password123",
+        nullable = true
     )
     @Pattern(
-        regexp = "^(?=.*[a-z])(?=.*[A-Z]).+$",
-        message = "password must contain at least one uppercase and one lowercase letter"
+        regexp = "^(|(?=.*[a-z])(?=.*[A-Z]).{6,})$",
+        message = "password must be at least 6 characters and contain uppercase and lowercase letters"
     )
     private String password;
 }

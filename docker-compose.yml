@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  backend-app:
+    build: .
+    container_name: glucoseclamp-backend
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}
+      - SPRING_DATASOURCE_USERNAME=${DB_USERNAME}
+      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}
+      - TUJUHSEMBILAN_APP_JWTSECRET=${JWT_SECRET}
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=${JPA_DDL_AUTO}
+    volumes:
+      - /var/log/glucoseclamp:/var/log/ims-log
+    networks:
+      - glucose-network
+    restart: always
+
+networks:
+  glucose-network:
+    external: true

@@ -1,6 +1,7 @@
 package com.tujuhsembilan.glucoseclamp.service;
 
 import com.tujuhsembilan.glucoseclamp.dto.request.UserManagementRequest;
+import com.tujuhsembilan.glucoseclamp.dto.request.UserManagementRequestEdit;
 import com.tujuhsembilan.glucoseclamp.dto.request.UpdateStatusRequest;
 import com.tujuhsembilan.glucoseclamp.dto.response.ApiDataResponseBuilder;
 import com.tujuhsembilan.glucoseclamp.dto.response.UserManagementResponse;
@@ -135,7 +136,7 @@ public class UserManagementService {
     }
 
     @Transactional
-    public ApiDataResponseBuilder updateUser(Integer id, UserManagementRequest request) {
+    public ApiDataResponseBuilder updateUser(Integer id, UserManagementRequestEdit request) {
         Optional<User> existingUser = userRepository.findByIdAndDeletedAtIsNull(id);
         if (existingUser.isEmpty()) {
             return ApiDataResponseBuilder.builder()
@@ -181,9 +182,8 @@ public class UserManagementService {
         user.setUsername(normalizedUsername);
         user.setEmail(normalizedEmail);
         
-        if (request.getPassword() != null && !request.getPassword().isBlank()) {
-            String encryptedPassword = passwordEncoder.encode(request.getPassword());
-            user.setPassword(encryptedPassword);
+        if (request.getPassword() != null && !request.getPassword().trim().isEmpty()) {
+            user.setPassword(passwordEncoder.encode(request.getPassword().trim()));
         }
         
         user.setUpdatedBy(getCurrentUserId());

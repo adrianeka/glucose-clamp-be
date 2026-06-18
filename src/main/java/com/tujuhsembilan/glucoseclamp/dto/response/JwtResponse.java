@@ -12,12 +12,14 @@ public class JwtResponse {
     private String token;
 	private String type = "Bearer";
 	private String username;
+	private String name;
     private String role;
 
-    public JwtResponse(String token, int id, String username, String role) {
+    public JwtResponse(String token, int id, String username, String name, String role) {
 	    this.token = token;
 	    this.id = id;
 	    this.username = username;
+		this.name = name;
 	    this.role = role;
 	}
 }

@@ -18,8 +18,9 @@ import java.util.List;
 public class Protocol extends BaseEntity {
     
     @Id
-    @Column(name = "protocol_id", length = 50)
-    private String protocolId;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "protocol_id")
+    private Long protocolId;
     
     @Column(name = "protocol_code", unique = true, nullable = false, length = 50)
     private String protocolCode;
@@ -41,6 +42,12 @@ public class Protocol extends BaseEntity {
     
     @Column(name = "glucose_target_unit", length = 50)
     private String glucoseTargetUnit;
+
+    @Column(name = "glucose_target_min_extreme", precision = 10, scale = 2)
+    private BigDecimal glucoseTargetMinExtreme;
+
+    @Column(name = "glucose_target_max_extreme", precision = 10, scale = 2)
+    private BigDecimal glucoseTargetMaxExtreme;
     
     @Column(name = "duration_hours", precision = 10, scale = 2)
     private BigDecimal durationHours;

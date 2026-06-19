@@ -19,7 +19,7 @@ public class SamplingScheduleRequest {
     private String samplingScheduleId;
 
     @JsonProperty("protocol_id")
-    private String protocolId;
+    private Long protocolId;
 
     @JsonProperty("phase_code")
     @NotBlank(message = "phase_code is required")

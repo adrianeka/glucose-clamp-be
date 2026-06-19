@@ -24,7 +24,7 @@ public class SessionCreateRequest {
 
     @Schema(description = "ID protokol yang digunakan", example = "PR-24H")   
     @NotBlank(message = "Kolom protocolId tidak boleh kosong")
-    private String protocolId;
+    private Long protocolId;
 
     @Schema(description = "Waktu pengukuran dalam format ISO (YYYY-MM-DD) atau 'YYYY-MM-DD'", example = "2026-05-21")
     @NotNull(message = "Kolom visitDate tidak boleh kosong")

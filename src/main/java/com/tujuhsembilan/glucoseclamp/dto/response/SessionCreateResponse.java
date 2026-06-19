@@ -14,7 +14,7 @@ import java.util.List;
 public class SessionCreateResponse {
     private Integer sessionId;
     private String participantId;
-    private String protocolId;
+    private Long protocolId;
     private int generatedActivityCount;
     private List<String> activityIds;
     private Integer vitalId;

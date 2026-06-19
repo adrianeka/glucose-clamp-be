@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface ProtocolRepository extends JpaRepository<Protocol, String> {
+public interface ProtocolRepository extends JpaRepository<Protocol, Long> {
 
     @Query("SELECT p FROM Protocol p WHERE p.deletedAt IS NULL")
     List<Protocol> findAllActive();
@@ -22,28 +22,28 @@ public interface ProtocolRepository extends JpaRepository<Protocol, String> {
     Page<Protocol> findAllActive(Pageable pageable);
 
     @Query("SELECT p FROM Protocol p WHERE p.protocolId = ?1 AND p.deletedAt IS NULL")
-    Optional<Protocol> findByIdAndDeletedAtIsNull(String protocolId);
+    Optional<Protocol> findByIdAndDeletedAtIsNull(Long protocolId);
 
     @Query("SELECT p FROM Protocol p WHERE p.protocolCode = ?1 AND p.deletedAt IS NULL")
     Optional<Protocol> findByProtocolCodeAndDeletedAtIsNull(String protocolCode);
 
     Optional<Protocol> findByProtocolCode(String protocolCode);
 
-    @Query("SELECT p FROM Protocol p WHERE p.deletedAt IS NULL " +
-           "AND (:search IS NULL OR :search = '' " +
-           "  OR LOWER(p.protocolId) LIKE LOWER(CONCAT('%', :search, '%')) " +
-           "  OR LOWER(p.protocolCode) LIKE LOWER(CONCAT('%', :search, '%')) " +
-           "  OR LOWER(p.protocolName) LIKE LOWER(CONCAT('%', :search, '%')) " +
-           "  OR LOWER(p.insulinDoseRule) LIKE LOWER(CONCAT('%', :search, '%')) " +
-           "  OR LOWER(p.insulinDoseUnit) LIKE LOWER(CONCAT('%', :search, '%')) " +
-           "  OR LOWER(p.glucoseTargetUnit) LIKE LOWER(CONCAT('%', :search, '%')) " +
-           "  OR CAST(p.version AS string) LIKE CONCAT('%', :search, '%') " +
-           "  OR CAST(p.durationHours AS string) LIKE CONCAT('%', :search, '%') " +
-           "  OR CAST(p.glucoseTargetMin AS string) LIKE CONCAT('%', :search, '%') " +
-           "  OR CAST(p.glucoseTargetMax AS string) LIKE CONCAT('%', :search, '%') " +
-           ") " +
-           "AND (CAST(:startDate AS timestamp) IS NULL OR p.createdAt >= :startDate) " +
-           "AND (CAST(:endDate AS timestamp) IS NULL OR p.createdAt <= :endDate)")
+    @Query("""
+        SELECT p
+        FROM Protocol p
+        WHERE p.deletedAt IS NULL
+        AND (
+            COALESCE(:search, '') = ''
+            OR LOWER(p.protocolCode) LIKE LOWER(CONCAT('%', :search, '%'))
+            OR LOWER(p.protocolName) LIKE LOWER(CONCAT('%', :search, '%'))
+            OR LOWER(p.insulinDoseRule) LIKE LOWER(CONCAT('%', :search, '%'))
+            OR LOWER(p.insulinDoseUnit) LIKE LOWER(CONCAT('%', :search, '%'))
+            OR LOWER(p.glucoseTargetUnit) LIKE LOWER(CONCAT('%', :search, '%'))
+        )
+        AND p.createdAt >= COALESCE(:startDate, p.createdAt)
+        AND p.createdAt <= COALESCE(:endDate, p.createdAt)
+    """)
     List<Protocol> searchProtocols(
         @Param("search") String search,
         @Param("startDate") LocalDateTime startDate,

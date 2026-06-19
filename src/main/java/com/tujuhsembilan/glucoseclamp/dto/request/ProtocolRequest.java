@@ -17,9 +17,9 @@ import java.util.List;
 @Builder
 public class ProtocolRequest {
 
-    @JsonProperty("protocol_id")
-    @NotBlank(message = "protocol_id is required")
-    private String protocolId;
+    // @JsonProperty("protocol_id")
+    // @NotBlank(message = "protocol_id is required")
+    // private String protocolId;
 
     @JsonProperty("protocol_code")
     @NotBlank(message = "protocol_code is required")
@@ -43,6 +43,12 @@ public class ProtocolRequest {
 
     @JsonProperty("glucose_target_unit")
     private String glucoseTargetUnit;
+
+    @JsonProperty("glucose_target_min_extreme")
+    private BigDecimal glucoseTargetMinExtreme;
+
+    @JsonProperty("glucose_target_max_extreme")
+    private BigDecimal glucoseTargetMaxExtreme;
 
     @JsonProperty("duration_hours")
     private BigDecimal durationHours;

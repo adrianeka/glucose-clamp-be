@@ -72,7 +72,7 @@ public class ProtocolsService {
                 .build();
     }
 
-    public ApiDataResponseBuilder getProtocolById(String id) {
+    public ApiDataResponseBuilder getProtocolById(Long id) {
         Protocol protocol = protocolRepository.findByIdAndDeletedAtIsNull(id).orElse(null);
         if (protocol == null) {
             return ApiDataResponseBuilder.builder()
@@ -92,13 +92,13 @@ public class ProtocolsService {
 
     @Transactional
     public ApiDataResponseBuilder addProtocol(ProtocolRequest request) {
-        if (protocolRepository.findById(request.getProtocolId()).isPresent()) {
-            return ApiDataResponseBuilder.builder()
-                    .message("Protocol ID sudah digunakan")
-                    .statusCode(HttpStatus.BAD_REQUEST.value())
-                    .status(HttpStatus.BAD_REQUEST)
-                    .build();
-        }
+        // if (protocolRepository.findById(request.getProtocolId()).isPresent()) {
+        //     return ApiDataResponseBuilder.builder()
+        //             .message("Protocol ID sudah digunakan")
+        //             .statusCode(HttpStatus.BAD_REQUEST.value())
+        //             .status(HttpStatus.BAD_REQUEST)
+        //             .build();
+        // }
 
         if (protocolRepository.findByProtocolCode(request.getProtocolCode()).isPresent()) {
             return ApiDataResponseBuilder.builder()
@@ -124,7 +124,7 @@ public class ProtocolsService {
         LocalDateTime now = LocalDateTime.now();
 
         Protocol protocol = Protocol.builder()
-                .protocolId(request.getProtocolId())
+                // .protocolId(request.getProtocolId())
                 .protocolCode(request.getProtocolCode())
                 .protocolName(request.getProtocolName())
                 .insulinDoseRule(request.getInsulinDoseRule())
@@ -132,6 +132,8 @@ public class ProtocolsService {
                 .glucoseTargetMin(request.getGlucoseTargetMin())
                 .glucoseTargetMax(request.getGlucoseTargetMax())
                 .glucoseTargetUnit(request.getGlucoseTargetUnit())
+                .glucoseTargetMinExtreme(request.getGlucoseTargetMinExtreme())
+                .glucoseTargetMaxExtreme(request.getGlucoseTargetMaxExtreme())
                 .durationHours(request.getDurationHours())
                 .version(request.getVersion())
                 .build();
@@ -142,7 +144,7 @@ public class ProtocolsService {
         protocol.setUpdatedBy(currentUserId);
         protocol.setStatus(EntityStatus.ACTIVE);
 
-        protocolRepository.save(protocol);
+        Protocol data = protocolRepository.save(protocol);
 
         if (request.getSamplingSchedules() != null) {
             for (SamplingScheduleRequest detailReq : request.getSamplingSchedules()) {
@@ -166,7 +168,7 @@ public class ProtocolsService {
             }
         }
 
-        Protocol saved = protocolRepository.findById(protocol.getProtocolId()).orElse(protocol);
+        Protocol saved = protocolRepository.findById(data.getProtocolId()).orElse(protocol);
 
         return ApiDataResponseBuilder.builder()
                 .data(mapToResponse(saved))
@@ -177,7 +179,7 @@ public class ProtocolsService {
     }
 
     @Transactional
-    public ApiDataResponseBuilder updateProtocol(String id, ProtocolRequest request) {
+    public ApiDataResponseBuilder updateProtocol(Long id, ProtocolRequest request) {
         Optional<Protocol> opt = protocolRepository.findById(id);
         if (opt.isEmpty() || EntityStatus.DELETED.equals(opt.get().getStatus())) {
             return ApiDataResponseBuilder.builder()
@@ -208,6 +210,8 @@ public class ProtocolsService {
         if (request.getGlucoseTargetMin() != null) protocol.setGlucoseTargetMin(request.getGlucoseTargetMin());
         if (request.getGlucoseTargetMax() != null) protocol.setGlucoseTargetMax(request.getGlucoseTargetMax());
         if (request.getGlucoseTargetUnit() != null) protocol.setGlucoseTargetUnit(request.getGlucoseTargetUnit());
+        if (request.getGlucoseTargetMinExtreme() != null) protocol.setGlucoseTargetMinExtreme(request.getGlucoseTargetMinExtreme());
+        if (request.getGlucoseTargetMaxExtreme() != null) protocol.setGlucoseTargetMaxExtreme(request.getGlucoseTargetMaxExtreme());
         if (request.getDurationHours() != null) protocol.setDurationHours(request.getDurationHours());
         if (request.getVersion() != null) protocol.setVersion(request.getVersion());
 
@@ -272,7 +276,7 @@ public class ProtocolsService {
     }
 
     @Transactional
-    public ApiDataResponseBuilder updateProtocolStatus(String id, String statusStr) {
+    public ApiDataResponseBuilder updateProtocolStatus(Long id, String statusStr) {
         Optional<Protocol> opt = protocolRepository.findById(id);
         if (opt.isEmpty() || EntityStatus.DELETED.equals(opt.get().getStatus())) {
             return ApiDataResponseBuilder.builder()
@@ -320,7 +324,7 @@ public class ProtocolsService {
     }
 
     @Transactional
-    public ApiDataResponseBuilder deleteProtocol(String id) {
+    public ApiDataResponseBuilder deleteProtocol(Long id) {
         Optional<Protocol> opt = protocolRepository.findById(id);
         if (opt.isEmpty() || EntityStatus.DELETED.equals(opt.get().getStatus())) {
             return ApiDataResponseBuilder.builder()
@@ -405,6 +409,8 @@ public class ProtocolsService {
                 .glucoseTargetMin(protocol.getGlucoseTargetMin())
                 .glucoseTargetMax(protocol.getGlucoseTargetMax())
                 .glucoseTargetUnit(protocol.getGlucoseTargetUnit())
+                .glucoseTargetMinExtreme(protocol.getGlucoseTargetMinExtreme())
+                .glucoseTargetMaxExtreme(protocol.getGlucoseTargetMaxExtreme())
                 .durationHours(protocol.getDurationHours())
                 .version(protocol.getVersion())
                 .createdAt(protocol.getCreatedAt())

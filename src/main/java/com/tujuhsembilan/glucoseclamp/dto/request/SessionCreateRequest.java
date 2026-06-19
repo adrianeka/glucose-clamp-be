@@ -1,16 +1,13 @@
 package com.tujuhsembilan.glucoseclamp.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.List;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
@@ -22,8 +19,8 @@ public class SessionCreateRequest {
     @NotBlank(message = "Kolom participantId tidak boleh kosong")
     private String participantId;
 
-    @Schema(description = "ID protokol yang digunakan", example = "PR-24H")   
-    @NotBlank(message = "Kolom protocolId tidak boleh kosong")
+    @Schema(description = "ID protokol yang digunakan", example = "1")   
+    @NotNull(message = "Kolom protocolId tidak boleh kosong")
     private Long protocolId;
 
     @Schema(description = "Waktu pengukuran dalam format ISO (YYYY-MM-DD) atau 'YYYY-MM-DD'", example = "2026-05-21")

@@ -25,14 +25,14 @@ public interface SamplingScheduleRepository extends JpaRepository<SamplingSchedu
     Optional<SamplingSchedule> findByIdAndDeletedAtIsNull(String samplingScheduleId);
 
     @Query("SELECT pd FROM SamplingSchedule pd WHERE pd.protocol.protocolId = ?1 AND pd.deletedAt IS NULL")
-    List<SamplingSchedule> findByProtocolIdAndDeletedAtIsNull(String protocolId);
+    List<SamplingSchedule> findByProtocolIdAndDeletedAtIsNull(Long protocolId);
 
     @Query("SELECT pd FROM SamplingSchedule pd WHERE pd.deletedAt IS NULL " +
            "AND (:protocolId IS NULL OR :protocolId = '' OR pd.protocol.protocolId = :protocolId) " +
            "AND (:search IS NULL OR :search = '' " +
            "  OR LOWER(pd.samplingScheduleId) LIKE LOWER(CONCAT('%', :search, '%')) " +
            "  OR LOWER(pd.phaseCode) LIKE LOWER(CONCAT('%', :search, '%')) " +
-           "  OR LOWER(pd.protocol.protocolId) LIKE LOWER(CONCAT('%', :search, '%')) " +
+        //    "  OR LOWER(pd.protocol.protocolId) LIKE LOWER(CONCAT('%', :search, '%')) " +
            "  OR LOWER(pd.protocol.protocolName) LIKE LOWER(CONCAT('%', :search, '%')) " +
            "  OR CAST(pd.timeInterval AS string) LIKE CONCAT('%', :search, '%') " +
            ") " +

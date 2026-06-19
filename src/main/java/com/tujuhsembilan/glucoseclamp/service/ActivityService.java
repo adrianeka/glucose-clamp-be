@@ -384,7 +384,7 @@ public class ActivityService {
     }
 
 
-    private List<SamplingSchedule> loadSamplingSchedules(String protocolId) {
+    private List<SamplingSchedule> loadSamplingSchedules(Long protocolId) {
         return samplingScheduleRepository
                 .findByProtocolIdAndDeletedAtIsNull(protocolId)
                 .stream()

@@ -37,7 +37,7 @@ public class ProtocolsController {
     }
 
     @GetMapping(path = "/{protocolId}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Object> getProtocolById(@PathVariable String protocolId) {
+    public ResponseEntity<Object> getProtocolById(@PathVariable Long protocolId) {
         ApiDataResponseBuilder result = protocolsService.getProtocolById(protocolId);
         return ResponseEntity.status(result.getStatus()).body(result);
     }
@@ -49,14 +49,14 @@ public class ProtocolsController {
     }
 
     @PutMapping(path = "/{protocolId}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Object> updateProtocol(@PathVariable String protocolId, @Valid @RequestBody ProtocolRequest request) {
+    public ResponseEntity<Object> updateProtocol(@PathVariable Long protocolId, @Valid @RequestBody ProtocolRequest request) {
         ApiDataResponseBuilder result = protocolsService.updateProtocol(protocolId, request);
         return ResponseEntity.status(result.getStatus()).body(result);
     }
 
     @PatchMapping(path = "/{protocolId}/status", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Object> updateProtocolStatus(
-            @PathVariable String protocolId,
+            @PathVariable Long protocolId,
             @RequestParam String status
     ) {
         ApiDataResponseBuilder result = protocolsService.updateProtocolStatus(protocolId, status);
@@ -64,7 +64,7 @@ public class ProtocolsController {
     }
 
     @DeleteMapping(path = "/{protocolId}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Object> deleteProtocol(@PathVariable String protocolId) {
+    public ResponseEntity<Object> deleteProtocol(@PathVariable Long protocolId) {
         ApiDataResponseBuilder result = protocolsService.deleteProtocol(protocolId);
         return ResponseEntity.status(result.getStatus()).body(result);
     }

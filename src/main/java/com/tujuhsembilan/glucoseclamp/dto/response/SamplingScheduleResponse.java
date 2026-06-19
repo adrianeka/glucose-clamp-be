@@ -18,7 +18,7 @@ public class SamplingScheduleResponse {
     private String samplingScheduleId;
 
     @JsonProperty("protocol_id")
-    private String protocolId;
+    private Long protocolId;
 
     @JsonProperty("phase_code")
     private String phaseCode;

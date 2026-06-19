@@ -17,7 +17,7 @@ import java.util.List;
 public class ProtocolResponse {
 
     @JsonProperty("protocol_id")
-    private String protocolId;
+    private Long protocolId;
 
     @JsonProperty("protocol_code")
     private String protocolCode;
@@ -39,6 +39,12 @@ public class ProtocolResponse {
 
     @JsonProperty("glucose_target_unit")
     private String glucoseTargetUnit;
+
+    @JsonProperty("glucose_target_min_extreme")
+    private BigDecimal glucoseTargetMinExtreme;
+
+    @JsonProperty("glucose_target_max_extreme")
+    private BigDecimal glucoseTargetMaxExtreme;
 
     @JsonProperty("duration_hours")
     private BigDecimal durationHours;

@@ -18,7 +18,7 @@ public class SessionUpdateRequest {
 
     @Schema(description = "ID protokol yang digunakan", example = "PR-24H")  
     @NotBlank(message = "Protocol ID wajib diisi")
-    private String protocolId;
+    private Long protocolId;
 
     @Schema(description = "Waktu pengukuran dalam format ISO (YYYY-MM-DD) atau 'YYYY-MM-DD'", example = "2026-05-22")
     @NotNull(message = "Visit date wajib diisi")

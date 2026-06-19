@@ -1,6 +1,7 @@
 package com.tujuhsembilan.glucoseclamp.controller.phaseconfiguration;
 
 import com.tujuhsembilan.glucoseclamp.dto.request.PhaseConfigurationRequest;
+import com.tujuhsembilan.glucoseclamp.dto.request.PhaseConfigurationBulkPriorityRequest;
 import com.tujuhsembilan.glucoseclamp.dto.request.UpdateStatusRequest;
 import com.tujuhsembilan.glucoseclamp.dto.response.ApiDataResponseBuilder;
 import com.tujuhsembilan.glucoseclamp.service.PhaseConfigurationService;
@@ -56,6 +57,14 @@ public class PhaseConfigurationController {
         return ResponseEntity.status(result.getStatus()).body(result);
     }
 
+    // NEW ENDPOINT: Batch / Bulk Update priority untuk memproses seluruh data sekaligus dari Frontend
+    @PutMapping(path = "/priority", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Object> updateBulkPriority(@Valid @RequestBody PhaseConfigurationBulkPriorityRequest request) {
+        ApiDataResponseBuilder result = phaseConfigurationService.updatePhaseConfigurationsBulkPriority(request);
+        return ResponseEntity.status(result.getStatus()).body(result);
+    }
+
+    // Individual priority update (tetap dipertahankan)
     @PutMapping(path = "/{id}/priority", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Object> updatePriority(@PathVariable Long id, @Valid @RequestBody com.tujuhsembilan.glucoseclamp.dto.request.PhaseConfigurationPriorityRequest request) {
         ApiDataResponseBuilder result = phaseConfigurationService.updatePhaseConfigurationPriority(id, request);

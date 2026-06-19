@@ -1,6 +1,8 @@
 package com.tujuhsembilan.glucoseclamp.service;
 
 import com.tujuhsembilan.glucoseclamp.dto.request.PhaseConfigurationRequest;
+import com.tujuhsembilan.glucoseclamp.dto.request.PhaseConfigurationBulkPriorityRequest;
+import com.tujuhsembilan.glucoseclamp.dto.request.PhaseConfigurationPriorityItemRequest;
 import com.tujuhsembilan.glucoseclamp.dto.request.UpdateStatusRequest;
 import com.tujuhsembilan.glucoseclamp.dto.response.ApiDataResponseBuilder;
 import com.tujuhsembilan.glucoseclamp.dto.response.PhaseConfigurationResponse;
@@ -8,7 +10,9 @@ import com.tujuhsembilan.glucoseclamp.model.PhaseConfiguration;
 import com.tujuhsembilan.glucoseclamp.model.base.EntityStatus;
 import com.tujuhsembilan.glucoseclamp.repository.PhaseConfigurationRepository;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -107,6 +111,7 @@ public class PhaseConfigurationService {
                 .build();
     }
 
+    @Transactional
     public ApiDataResponseBuilder updatePhaseConfiguration(Long id, PhaseConfigurationRequest request) {
         Optional<PhaseConfiguration> existingPhaseConfiguration = phaseConfigurationRepository.findByIdAndDeletedAtIsNull(id);
         if (existingPhaseConfiguration.isEmpty()) {
@@ -132,9 +137,15 @@ public class PhaseConfigurationService {
         Integer oldPriority = phaseConfiguration.getPhaseConfPriority();
         
         if (newPriority != null && !oldPriority.equals(newPriority)) {
-            swapPriorities(phaseConfiguration, oldPriority, newPriority);
+            // Set ke nilai negatif berbasis ID unik untuk membebaskan nilai prioritas lama
+            phaseConfiguration.setPhaseConfPriority(-1 * phaseConfiguration.getPhaseConfId().intValue());
+            phaseConfigurationRepository.saveAndFlush(phaseConfiguration);
+
+            shiftPriorities(phaseConfiguration.getPhaseConfId(), oldPriority, newPriority);
+            phaseConfigurationRepository.flush(); // Tulis perubahan ke DB
         }
 
+        phaseConfiguration.setPhaseConfPriority(newPriority);
         phaseConfiguration.setPhaseConfCode(normalizedCode);
         phaseConfiguration.setPhaseConfName(request.getPhaseConfName().trim());
         phaseConfiguration.setPhaseConfType(request.getPhaseConfType().trim());
@@ -144,6 +155,43 @@ public class PhaseConfigurationService {
         return ApiDataResponseBuilder.builder()
                 .data(mapToResponse(phaseConfiguration))
                 .message("Phase configuration berhasil diupdate")
+                .statusCode(HttpStatus.OK.value())
+                .status(HttpStatus.OK)
+                .build();
+    }
+
+    @Transactional
+    public ApiDataResponseBuilder updatePhaseConfigurationsBulkPriority(PhaseConfigurationBulkPriorityRequest request) {
+        List<PhaseConfigurationPriorityItemRequest> items = request.getPriorities();
+
+        // Langkah 1: Ubah semua prioritas sementara ke nilai negatif berbasis ID unik (Bukan nilai Priority)
+        for (PhaseConfigurationPriorityItemRequest item : items) {
+            Optional<PhaseConfiguration> existing = phaseConfigurationRepository.findByIdAndDeletedAtIsNull(item.getId());
+            if (existing.isPresent()) {
+                PhaseConfiguration phase = existing.get();
+                // Menggunakan ID unik sebagai bibit pengali negatif
+                phase.setPhaseConfPriority(-1 * phase.getPhaseConfId().intValue());
+                phaseConfigurationRepository.save(phase);
+            }
+        }
+        
+        phaseConfigurationRepository.flush();
+
+        // Langkah 2: Set ke nilai prioritas akhir yang baru secara bertahap
+        for (PhaseConfigurationPriorityItemRequest item : items) {
+            Optional<PhaseConfiguration> existing = phaseConfigurationRepository.findByIdAndDeletedAtIsNull(item.getId());
+            if (existing.isPresent()) {
+                PhaseConfiguration phase = existing.get();
+                phase.setPhaseConfPriority(item.getPriority());
+                phase.setUpdatedBy(getCurrentUserId());
+                phaseConfigurationRepository.save(phase);
+            }
+        }
+        
+        phaseConfigurationRepository.flush();
+
+        return ApiDataResponseBuilder.builder()
+                .message("Daftar priority phase configuration berhasil diperbarui")
                 .statusCode(HttpStatus.OK.value())
                 .status(HttpStatus.OK)
                 .build();
@@ -172,7 +220,6 @@ public class PhaseConfigurationService {
         PhaseConfiguration phaseConfiguration = existingPhaseConfiguration.get();
         Integer oldPriority = phaseConfiguration.getPhaseConfPriority();
 
-        // If priority is the same, no need to do anything
         if (oldPriority.equals(newPriority)) {
             return ApiDataResponseBuilder.builder()
                     .data(mapToResponse(phaseConfiguration))
@@ -187,38 +234,18 @@ public class PhaseConfigurationService {
             newPriority = maxPriority;
         }
 
-        Integer minPriority;
-        Integer maxRange;
+        // 1. Set priority item utama ke nilai negatif sementara berbasis ID unik untuk mengosongkan slot lamanya
+        phaseConfiguration.setPhaseConfPriority(-1 * phaseConfiguration.getPhaseConfId().intValue());
+        phaseConfigurationRepository.saveAndFlush(phaseConfiguration);
 
-        if (oldPriority < newPriority) {
-            // Moving down: shift items from oldPriority+1 to newPriority up by 1
-            minPriority = oldPriority + 1;
-            maxRange = newPriority;
-        } else {
-            // Moving up: shift items from newPriority to oldPriority-1 down by 1
-            minPriority = newPriority;
-            maxRange = oldPriority - 1;
-        }
+        // 2. Lakukan pergeseran (shift) pada item-item lainnya
+        shiftPriorities(id, oldPriority, newPriority);
+        phaseConfigurationRepository.flush(); // Pastikan perubahan shift tertulis di DB
 
-        List<PhaseConfiguration> itemsToShift = phaseConfigurationRepository.findByPriorityBetweenAndNotId(minPriority, maxRange, id);
-        
-        if (oldPriority < newPriority) {
-            // Moving down: decrement priority
-            for (PhaseConfiguration item : itemsToShift) {
-                item.setPhaseConfPriority(item.getPhaseConfPriority() - 1);
-            }
-        } else {
-            // Moving up: increment priority
-            for (PhaseConfiguration item : itemsToShift) {
-                item.setPhaseConfPriority(item.getPhaseConfPriority() + 1);
-            }
-        }
-
-        phaseConfigurationRepository.saveAll(itemsToShift);
-
+        // 3. Set priority item utama ke nilai baru
         phaseConfiguration.setPhaseConfPriority(newPriority);
         phaseConfiguration.setUpdatedBy(getCurrentUserId());
-        phaseConfigurationRepository.save(phaseConfiguration);
+        phaseConfigurationRepository.saveAndFlush(phaseConfiguration);
 
         return ApiDataResponseBuilder.builder()
                 .data(mapToResponse(phaseConfiguration))
@@ -320,40 +347,51 @@ public class PhaseConfigurationService {
                 .build();
     }
 
-    private void swapPriorities(PhaseConfiguration mainItem, Integer oldPriority, Integer newPriority) {
-        // Cari data aktif lain yang saat ini menduduki priority tujuan (newPriority)
-        Optional<PhaseConfiguration> targetItemOpt = phaseConfigurationRepository
-                .findAll().stream()
-                .filter(p -> p.getDeletedAt() == null && p.getPhaseConfPriority().equals(newPriority))
-                .findFirst();
+    private void shiftPriorities(Long excludedId, Integer oldPriority, Integer newPriority) {
+        Integer minPriority;
+        Integer maxRange;
+        int shiftOffset;
 
-        if (targetItemOpt.isPresent()) {
-            PhaseConfiguration targetItem = targetItemOpt.get();
-
-            // Langkah 1: Ubah targetItem ke priority negatif sementara agar slot 'newPriority' kosong
-            targetItem.setPhaseConfPriority(-1 * newPriority);
-            phaseConfigurationRepository.saveAndFlush(targetItem);
-
-            // Langkah 2: Ubah mainItem ke priority tujuan (newPriority)
-            mainItem.setPhaseConfPriority(newPriority);
-            phaseConfigurationRepository.saveAndFlush(mainItem);
-
-            // Langkah 3: Ubah targetItem ke priority lama milik mainItem (oldPriority)
-            targetItem.setPhaseConfPriority(oldPriority);
-            phaseConfigurationRepository.saveAndFlush(targetItem);
+        if (oldPriority < newPriority) {
+            minPriority = oldPriority + 1;
+            maxRange = newPriority;
+            shiftOffset = -1;
         } else {
-            // Jika tidak ada data yang menduduki priority tujuan, langsung set saja
-            mainItem.setPhaseConfPriority(newPriority);
-            phaseConfigurationRepository.saveAndFlush(mainItem);
+            minPriority = newPriority;
+            maxRange = oldPriority - 1;
+            shiftOffset = 1;
         }
+
+        List<PhaseConfiguration> itemsToShift = phaseConfigurationRepository.findByPriorityBetweenAndNotId(minPriority, maxRange, excludedId);
+        
+        // Map lokal untuk mencatat nilai prioritas asli sebelum dirubah ke negatif
+        Map<Long, Integer> originalPriorityMap = new HashMap<>();
+
+        // Langkah A: Catat prioritas asli, lalu set sementara ke nilai negatif berbasis ID (dijamin 100% unik)
+        for (PhaseConfiguration item : itemsToShift) {
+            originalPriorityMap.put(item.getPhaseConfId(), item.getPhaseConfPriority());
+            
+            // Pengali negatif menggunakan ID untuk mengeliminasi resiko tumpang tindih nilai
+            item.setPhaseConfPriority(-1 * item.getPhaseConfId().intValue());
+            phaseConfigurationRepository.save(item);
+        }
+        phaseConfigurationRepository.flush();
+
+        // Langkah B: Set ke nilai asli yang sudah digeser menggunakan referensi Map lokal
+        for (PhaseConfiguration item : itemsToShift) {
+            Integer originalPriority = originalPriorityMap.get(item.getPhaseConfId());
+            if (originalPriority != null) {
+                item.setPhaseConfPriority(originalPriority + shiftOffset);
+                phaseConfigurationRepository.save(item);
+            }
+        }
+        phaseConfigurationRepository.flush();
     }
     
-     private void closePriorityGaps(Integer deletedPriority) {
-        // Ambil semua data aktif yang memiliki priority lebih besar dari data yang dihapus
+    private void closePriorityGaps(Integer deletedPriority) {
         List<PhaseConfiguration> activeItemsToShift = phaseConfigurationRepository
                 .findAll().stream()
                 .filter(p -> p.getDeletedAt() == null && p.getPhaseConfPriority() > deletedPriority)
-                // Urutkan secara ASCENDING agar proses decrement aman dari tabrakan unik
                 .sorted(java.util.Comparator.comparing(PhaseConfiguration::getPhaseConfPriority))
                 .toList();
 

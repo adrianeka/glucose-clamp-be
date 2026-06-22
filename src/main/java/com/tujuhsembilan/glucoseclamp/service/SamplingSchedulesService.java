@@ -70,7 +70,7 @@ public class SamplingSchedulesService {
                 .build();
     }
 
-    public ApiDataResponseBuilder getSamplingScheduleById(String id) {
+    public ApiDataResponseBuilder getSamplingScheduleById(Long id) {
         SamplingSchedule detail = samplingScheduleRepository.findByIdAndDeletedAtIsNull(id).orElse(null);
         if (detail == null) {
             return ApiDataResponseBuilder.builder()
@@ -88,15 +88,36 @@ public class SamplingSchedulesService {
                 .build();
     }
 
+    public ApiDataResponseBuilder getSamplingSchedulesByProtocolId(
+        Long protocolId
+    ) {
+
+        List<SamplingSchedule> schedules =
+                samplingScheduleRepository
+                        .findByProtocolProtocolIdAndDeletedAtIsNullOrderByRelativeMinuteAsc(protocolId);
+
+        List<SamplingScheduleResponse> responses =
+                schedules.stream()
+                        .map(this::mapToResponse)
+                        .toList();
+
+        return ApiDataResponseBuilder.builder()
+                .data(responses)
+                .message("Berhasil mendapatkan data detail sampling schedule")
+                .statusCode(HttpStatus.OK.value())
+                .status(HttpStatus.OK)
+                .build();
+    }
+
     @Transactional
     public ApiDataResponseBuilder addSamplingSchedule(SamplingScheduleRequest request) {
-        if (samplingScheduleRepository.findById(request.getSamplingScheduleId()).isPresent()) {
-            return ApiDataResponseBuilder.builder()
-                    .message("Sampling Schedule ID sudah digunakan")
-                    .statusCode(HttpStatus.BAD_REQUEST.value())
-                    .status(HttpStatus.BAD_REQUEST)
-                    .build();
-        }
+        // if (samplingScheduleRepository.findById(request.getSamplingScheduleId()).isPresent()) {
+        //     return ApiDataResponseBuilder.builder()
+        //             .message("Sampling Schedule ID sudah digunakan")
+        //             .statusCode(HttpStatus.BAD_REQUEST.value())
+        //             .status(HttpStatus.BAD_REQUEST)
+        //             .build();
+        // }
 
         Optional<Protocol> protocolOpt = protocolRepository.findById(request.getProtocolId());
         if (protocolOpt.isEmpty() || EntityStatus.DELETED.equals(protocolOpt.get().getStatus())) {
@@ -107,14 +128,32 @@ public class SamplingSchedulesService {
                     .build();
         }
 
+        Integer relativeMinute = 0;
+
+        SamplingSchedule lastSchedule =
+                samplingScheduleRepository
+                        .findTopByProtocolProtocolIdAndStatusOrderByRelativeMinuteDesc(
+                                request.getProtocolId(),
+                                EntityStatus.ACTIVE
+                        )
+                        .orElse(null);
+
+        if (lastSchedule != null) {
+            relativeMinute =
+                    lastSchedule.getRelativeMinute()
+                    + request.getTimeInterval();
+        } else {
+            relativeMinute = request.getTimeInterval();
+        }
+
         Integer currentUserId = getCurrentUserId();
         LocalDateTime now = LocalDateTime.now();
 
         SamplingSchedule detail = SamplingSchedule.builder()
-                .samplingScheduleId(request.getSamplingScheduleId())
                 .protocol(protocolOpt.get())
                 .phaseCode(request.getPhaseCode())
                 .timeInterval(request.getTimeInterval())
+                .relativeMinute(relativeMinute)
                 .bloodRaw(request.getBloodRaw())
                 .insulinInject(request.getInsulinInject())
                 .pkSampleCollection(request.getPkSampleCollection())
@@ -137,7 +176,7 @@ public class SamplingSchedulesService {
     }
 
     @Transactional
-    public ApiDataResponseBuilder updateSamplingSchedule(String id, SamplingScheduleRequest request) {
+    public ApiDataResponseBuilder updateSamplingSchedule(Long id, SamplingScheduleRequest request) {
         Optional<SamplingSchedule> opt = samplingScheduleRepository.findById(id);
         if (opt.isEmpty() || EntityStatus.DELETED.equals(opt.get().getStatus())) {
             return ApiDataResponseBuilder.builder()
@@ -183,7 +222,7 @@ public class SamplingSchedulesService {
     }
 
     @Transactional
-    public ApiDataResponseBuilder updateSamplingScheduleStatus(String id, String statusStr) {
+    public ApiDataResponseBuilder updateSamplingScheduleStatus(Long id, String statusStr) {
         Optional<SamplingSchedule> opt = samplingScheduleRepository.findById(id);
         if (opt.isEmpty() || EntityStatus.DELETED.equals(opt.get().getStatus())) {
             return ApiDataResponseBuilder.builder()
@@ -231,7 +270,7 @@ public class SamplingSchedulesService {
     }
 
     @Transactional
-    public ApiDataResponseBuilder deleteSamplingSchedule(String id) {
+    public ApiDataResponseBuilder deleteSamplingSchedule(Long id) {
         Optional<SamplingSchedule> opt = samplingScheduleRepository.findById(id);
         if (opt.isEmpty() || EntityStatus.DELETED.equals(opt.get().getStatus())) {
             return ApiDataResponseBuilder.builder()
@@ -258,7 +297,7 @@ public class SamplingSchedulesService {
                 .build();
     }
 
-    public ApiDataResponseBuilder searchSamplingSchedules(String protocolId, String search, String startDateStr, String endDateStr) {
+    public ApiDataResponseBuilder searchSamplingSchedules(Long protocolId, String search, String startDateStr, String endDateStr) {
         LocalDateTime startDate = null;
         LocalDateTime endDate = null;
         try {
@@ -273,7 +312,7 @@ public class SamplingSchedulesService {
         }
 
         List<SamplingSchedule> results = samplingScheduleRepository.searchSamplingSchedules(
-                protocolId != null ? protocolId.trim() : null,
+                protocolId,
                 search != null ? search.trim() : null,
                 startDate,
                 endDate
@@ -297,6 +336,7 @@ public class SamplingSchedulesService {
                 .protocolId(detail.getProtocol() != null ? detail.getProtocol().getProtocolId() : null)
                 .phaseCode(detail.getPhaseCode())
                 .timeInterval(detail.getTimeInterval())
+                .relativeMinute(detail.getRelativeMinute())
                 .bloodRaw(detail.getBloodRaw())
                 .insulinInject(detail.getInsulinInject())
                 .pkSampleCollection(detail.getPkSampleCollection())

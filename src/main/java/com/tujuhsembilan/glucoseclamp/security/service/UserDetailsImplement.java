@@ -21,6 +21,7 @@ public class UserDetailsImplement implements UserDetails {
     private static final long serialVersionUID = 1387410741020370012L;
     private int id;
     private String username;
+    private String name;
     private String password;
 
     private Collection<? extends GrantedAuthority> authorities;
@@ -55,6 +56,7 @@ public class UserDetailsImplement implements UserDetails {
         return new UserDetailsImplement(
                 user.getUserId(),
                 user.getUsername(),
+                user.getName(),
                 user.getPassword(),
                 authorities);
     }

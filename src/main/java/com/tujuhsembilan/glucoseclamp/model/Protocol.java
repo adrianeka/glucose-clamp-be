@@ -56,5 +56,6 @@ public class Protocol extends BaseEntity {
     private Float version;
     
     @OneToMany(mappedBy = "protocol")
+    @OrderBy("relativeMinute ASC")
     private List<SamplingSchedule> samplingSchedules;
 }

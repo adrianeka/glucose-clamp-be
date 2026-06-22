@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 public class SamplingScheduleResponse {
 
     @JsonProperty("sampling_schedule_id")
-    private String samplingScheduleId;
+    private Long samplingScheduleId;
 
     @JsonProperty("protocol_id")
     private Long protocolId;
@@ -25,6 +25,9 @@ public class SamplingScheduleResponse {
 
     @JsonProperty("time_interval")
     private Integer timeInterval;
+
+    @JsonProperty("relative_minute")
+    private Integer relativeMinute;
 
     @JsonProperty("blood_raw")
     private Boolean bloodRaw;

@@ -5,6 +5,7 @@ import com.tujuhsembilan.glucoseclamp.dto.request.ProtocolRequest;
 import com.tujuhsembilan.glucoseclamp.dto.response.ApiDataResponseBuilder;
 import com.tujuhsembilan.glucoseclamp.dto.response.SamplingScheduleResponse;
 import com.tujuhsembilan.glucoseclamp.dto.response.ProtocolResponse;
+import com.tujuhsembilan.glucoseclamp.dto.response.ProtocolResponseDetail;
 import com.tujuhsembilan.glucoseclamp.model.Protocol;
 import com.tujuhsembilan.glucoseclamp.model.SamplingSchedule;
 import com.tujuhsembilan.glucoseclamp.model.base.EntityStatus;
@@ -29,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.Objects;
 
 @Slf4j
 @Service
@@ -83,7 +85,7 @@ public class ProtocolsService {
         }
 
         return ApiDataResponseBuilder.builder()
-                .data(mapToResponse(protocol))
+                .data(mapToResponseDetailProtocol(protocol))
                 .message("Berhasil mendapatkan data protocol")
                 .statusCode(HttpStatus.OK.value())
                 .status(HttpStatus.OK)
@@ -108,17 +110,17 @@ public class ProtocolsService {
                     .build();
         }
 
-        if (request.getSamplingSchedules() != null) {
-            for (SamplingScheduleRequest detailReq : request.getSamplingSchedules()) {
-                if (samplingScheduleRepository.findById(detailReq.getSamplingScheduleId()).isPresent()) {
-                    return ApiDataResponseBuilder.builder()
-                            .message("Sampling Schedule ID " + detailReq.getSamplingScheduleId() + " sudah digunakan")
-                            .statusCode(HttpStatus.BAD_REQUEST.value())
-                            .status(HttpStatus.BAD_REQUEST)
-                            .build();
-                }
-            }
-        }
+        // if (request.getSamplingSchedules() != null) {
+        //     for (SamplingScheduleRequest detailReq : request.getSamplingSchedules()) {
+        //         if (samplingScheduleRepository.findById(detailReq.getSamplingScheduleId()).isPresent()) {
+        //             return ApiDataResponseBuilder.builder()
+        //                     .message("Sampling Schedule ID " + detailReq.getSamplingScheduleId() + " sudah digunakan")
+        //                     .statusCode(HttpStatus.BAD_REQUEST.value())
+        //                     .status(HttpStatus.BAD_REQUEST)
+        //                     .build();
+        //         }
+        //     }
+        // }
 
         Integer currentUserId = getCurrentUserId();
         LocalDateTime now = LocalDateTime.now();
@@ -149,7 +151,6 @@ public class ProtocolsService {
         if (request.getSamplingSchedules() != null) {
             for (SamplingScheduleRequest detailReq : request.getSamplingSchedules()) {
                 SamplingSchedule detail = SamplingSchedule.builder()
-                        .samplingScheduleId(detailReq.getSamplingScheduleId())
                         .protocol(protocol)
                         .phaseCode(detailReq.getPhaseCode())
                         .timeInterval(detailReq.getTimeInterval())
@@ -230,37 +231,22 @@ public class ProtocolsService {
             }
 
             for (SamplingScheduleRequest detailReq : request.getSamplingSchedules()) {
-                Optional<SamplingSchedule> existingOpt = samplingScheduleRepository.findById(detailReq.getSamplingScheduleId());
-                SamplingSchedule detail;
-                if (existingOpt.isPresent()) {
-                    detail = existingOpt.get();
-                    detail.setProtocol(protocol);
-                    detail.setPhaseCode(detailReq.getPhaseCode());
-                    detail.setTimeInterval(detailReq.getTimeInterval());
-                    detail.setBloodRaw(detailReq.getBloodRaw());
-                    detail.setInsulinInject(detailReq.getInsulinInject());
-                    detail.setPkSampleCollection(detailReq.getPkSampleCollection());
-                    detail.setUpdatedBy(currentUserId);
-                    detail.setUpdatedAt(now);
-                    detail.setStatus(EntityStatus.ACTIVE);
-                    detail.setDeletedAt(null);
-                    detail.setDeletedBy(null);
-                } else {
-                    detail = SamplingSchedule.builder()
-                            .samplingScheduleId(detailReq.getSamplingScheduleId())
-                            .protocol(protocol)
-                            .phaseCode(detailReq.getPhaseCode())
-                            .timeInterval(detailReq.getTimeInterval())
-                            .bloodRaw(detailReq.getBloodRaw())
-                            .insulinInject(detailReq.getInsulinInject())
-                            .pkSampleCollection(detailReq.getPkSampleCollection())
-                            .build();
-                    detail.setCreatedAt(now);
-                    detail.setUpdatedAt(now);
-                    detail.setCreatedBy(currentUserId);
-                    detail.setUpdatedBy(currentUserId);
-                    detail.setStatus(EntityStatus.ACTIVE);
-                }
+
+                SamplingSchedule detail = SamplingSchedule.builder()
+                        .protocol(protocol)
+                        .phaseCode(detailReq.getPhaseCode())
+                        .timeInterval(detailReq.getTimeInterval())
+                        .bloodRaw(detailReq.getBloodRaw())
+                        .insulinInject(detailReq.getInsulinInject())
+                        .pkSampleCollection(detailReq.getPkSampleCollection())
+                        .build();
+
+                detail.setCreatedAt(now);
+                detail.setUpdatedAt(now);
+                detail.setCreatedBy(currentUserId);
+                detail.setUpdatedBy(currentUserId);
+                detail.setStatus(EntityStatus.ACTIVE);
+
                 samplingScheduleRepository.save(detail);
             }
         }
@@ -392,6 +378,41 @@ public class ProtocolsService {
     }
 
     public ProtocolResponse mapToResponse(Protocol protocol) {
+        // List<SamplingScheduleResponse> details = null;
+        // if (protocol.getSamplingSchedules() != null) {
+        //     details = protocol.getSamplingSchedules().stream()
+        //             .filter(pd -> pd.getDeletedAt() == null)
+        //             .map(this::mapDetailToResponse)
+        //             .collect(Collectors.toList());
+        // }
+
+        return ProtocolResponse.builder()
+                .protocolId(protocol.getProtocolId())
+                .protocolCode(protocol.getProtocolCode())
+                .protocolName(protocol.getProtocolName())
+                .insulinDoseRule(protocol.getInsulinDoseRule())
+                .insulinDoseUnit(protocol.getInsulinDoseUnit())
+                .glucoseTargetMin(protocol.getGlucoseTargetMin())
+                .glucoseTargetMax(protocol.getGlucoseTargetMax())
+                .glucoseTargetUnit(protocol.getGlucoseTargetUnit())
+                .glucoseTargetMinExtreme(protocol.getGlucoseTargetMinExtreme())
+                .glucoseTargetMaxExtreme(protocol.getGlucoseTargetMaxExtreme())
+                .durationHours(protocol.getDurationHours())
+                .version(protocol.getVersion())
+                .createdAt(protocol.getCreatedAt())
+                .createdBy(protocol.getCreatedBy())
+                .updatedAt(protocol.getUpdatedAt())
+                .updatedBy(protocol.getUpdatedBy())
+                .deletedAt(protocol.getDeletedAt())
+                .deletedBy(protocol.getDeletedBy())
+                .status(protocol.getStatus() != null ? protocol.getStatus().name() : null)
+                .samplingScheduleSummary(
+                        buildSamplingScheduleSummary(protocol)
+                )
+                .build();
+    }
+
+    public ProtocolResponseDetail mapToResponseDetailProtocol(Protocol protocol) {
         List<SamplingScheduleResponse> details = null;
         if (protocol.getSamplingSchedules() != null) {
             details = protocol.getSamplingSchedules().stream()
@@ -400,7 +421,7 @@ public class ProtocolsService {
                     .collect(Collectors.toList());
         }
 
-        return ProtocolResponse.builder()
+        return ProtocolResponseDetail.builder()
                 .protocolId(protocol.getProtocolId())
                 .protocolCode(protocol.getProtocolCode())
                 .protocolName(protocol.getProtocolName())
@@ -430,6 +451,7 @@ public class ProtocolsService {
                 .protocolId(detail.getProtocol() != null ? detail.getProtocol().getProtocolId() : null)
                 .phaseCode(detail.getPhaseCode())
                 .timeInterval(detail.getTimeInterval())
+                .relativeMinute(detail.getRelativeMinute())
                 .bloodRaw(detail.getBloodRaw())
                 .insulinInject(detail.getInsulinInject())
                 .pkSampleCollection(detail.getPkSampleCollection())
@@ -441,5 +463,46 @@ public class ProtocolsService {
                 .deletedBy(detail.getDeletedBy())
                 .status(detail.getStatus() != null ? detail.getStatus().name() : null)
                 .build();
+    }
+
+    private String buildSamplingScheduleSummary(Protocol protocol) {
+
+        if (protocol.getSamplingSchedules() == null) {
+            return "0 phase";
+        }
+
+        List<SamplingSchedule> schedules = protocol.getSamplingSchedules()
+                .stream()
+                .filter(s -> s.getDeletedAt() == null)
+                .toList();
+
+        int phaseCount = schedules.size();
+
+        if (phaseCount == 0) {
+            return "0 phase";
+        }
+
+        Integer maxMinute = schedules.stream()
+                .map(SamplingSchedule::getRelativeMinute)
+                .filter(Objects::nonNull)
+                .max(Integer::compareTo)
+                .orElse(0);
+
+        String durationText;
+
+        if (maxMinute < 60) {
+            durationText = maxMinute + " menit";
+        } else {
+            int hours = maxMinute / 60;
+            int minutes = maxMinute % 60;
+
+            if (minutes == 0) {
+                durationText = hours + " jam";
+            } else {
+                durationText = hours + " h " + minutes + " m";
+            }
+        }
+
+        return phaseCount + " phase (" + durationText + ")";
     }
 }

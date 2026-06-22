@@ -7,13 +7,14 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import com.tujuhsembilan.glucoseclamp.model.base.EntityStatus;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface SamplingScheduleRepository extends JpaRepository<SamplingSchedule, String> {
+public interface SamplingScheduleRepository extends JpaRepository<SamplingSchedule, Long> {
 
     @Query("SELECT pd FROM SamplingSchedule pd WHERE pd.deletedAt IS NULL")
     List<SamplingSchedule> findAllActive();
@@ -22,7 +23,7 @@ public interface SamplingScheduleRepository extends JpaRepository<SamplingSchedu
     Page<SamplingSchedule> findAllActive(Pageable pageable);
 
     @Query("SELECT pd FROM SamplingSchedule pd WHERE pd.samplingScheduleId = ?1 AND pd.deletedAt IS NULL")
-    Optional<SamplingSchedule> findByIdAndDeletedAtIsNull(String samplingScheduleId);
+    Optional<SamplingSchedule> findByIdAndDeletedAtIsNull(Long samplingScheduleId);
 
     @Query("SELECT pd FROM SamplingSchedule pd WHERE pd.protocol.protocolId = ?1 AND pd.deletedAt IS NULL")
     List<SamplingSchedule> findByProtocolIdAndDeletedAtIsNull(Long protocolId);
@@ -30,7 +31,7 @@ public interface SamplingScheduleRepository extends JpaRepository<SamplingSchedu
     @Query("SELECT pd FROM SamplingSchedule pd WHERE pd.deletedAt IS NULL " +
            "AND (:protocolId IS NULL OR :protocolId = '' OR pd.protocol.protocolId = :protocolId) " +
            "AND (:search IS NULL OR :search = '' " +
-           "  OR LOWER(pd.samplingScheduleId) LIKE LOWER(CONCAT('%', :search, '%')) " +
+        //    "  OR LOWER(pd.samplingScheduleId) LIKE LOWER(CONCAT('%', :search, '%')) " +
            "  OR LOWER(pd.phaseCode) LIKE LOWER(CONCAT('%', :search, '%')) " +
         //    "  OR LOWER(pd.protocol.protocolId) LIKE LOWER(CONCAT('%', :search, '%')) " +
            "  OR LOWER(pd.protocol.protocolName) LIKE LOWER(CONCAT('%', :search, '%')) " +
@@ -39,9 +40,19 @@ public interface SamplingScheduleRepository extends JpaRepository<SamplingSchedu
            "AND (CAST(:startDate AS timestamp) IS NULL OR pd.createdAt >= :startDate) " +
            "AND (CAST(:endDate AS timestamp) IS NULL OR pd.createdAt <= :endDate)")
     List<SamplingSchedule> searchSamplingSchedules(
-        @Param("protocolId") String protocolId,
+        @Param("protocolId") Long protocolId,
         @Param("search") String search,
         @Param("startDate") LocalDateTime startDate,
         @Param("endDate") LocalDateTime endDate
+    );
+
+    Optional<SamplingSchedule> findTopByProtocolProtocolIdAndStatusOrderByRelativeMinuteDesc(
+            Long protocolId,
+            EntityStatus status
+    );
+
+    List<SamplingSchedule>
+    findByProtocolProtocolIdAndDeletedAtIsNullOrderByRelativeMinuteAsc(
+            Long protocolId
     );
 }

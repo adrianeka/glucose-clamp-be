@@ -14,10 +14,6 @@ import lombok.NoArgsConstructor;
 @Builder
 public class SamplingScheduleRequest {
 
-    @JsonProperty("sampling_schedule_id")
-    @NotBlank(message = "sampling_schedule_id is required")
-    private String samplingScheduleId;
-
     @JsonProperty("protocol_id")
     private Long protocolId;
 
@@ -28,6 +24,9 @@ public class SamplingScheduleRequest {
     @JsonProperty("time_interval")
     @NotNull(message = "time_interval is required")
     private Integer timeInterval;
+    // @JsonProperty("relative_minute")
+    // @NotNull(message = "relative_minute is required")
+    // private Integer relativeMinute;
 
     @JsonProperty("blood_raw")
     @NotNull(message = "blood_raw is required")

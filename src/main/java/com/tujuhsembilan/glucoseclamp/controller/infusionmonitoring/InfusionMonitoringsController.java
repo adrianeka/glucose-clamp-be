@@ -8,6 +8,9 @@ import com.tujuhsembilan.glucoseclamp.service.InfusionMonitoringService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+
+import java.math.BigDecimal;
+
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -70,5 +73,10 @@ public class InfusionMonitoringsController {
     ) {
         ApiDataResponseBuilder result = infusionMonitoringService.searchInfusionMonitorings(keyword, pageNumber, pageSize);
         return ResponseEntity.status(result.getStatus()).body(result);
+    }
+    @GetMapping("/recommendation")
+    public ResponseEntity<ApiDataResponseBuilder> getRecommendation(@RequestParam Long sessionId) {
+        ApiDataResponseBuilder response = infusionMonitoringService.getLatestGirRecommendation(sessionId);
+        return ResponseEntity.status(response.getStatusCode()).body(response);
     }
 }

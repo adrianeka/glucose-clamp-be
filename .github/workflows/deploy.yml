@@ -48,4 +48,4 @@ jobs:
             git pull origin dev
             docker-compose pull backend-app
             docker-compose up -d --no-deps backend-app
-            docker-compose image prune -f
+            docker image prune -f

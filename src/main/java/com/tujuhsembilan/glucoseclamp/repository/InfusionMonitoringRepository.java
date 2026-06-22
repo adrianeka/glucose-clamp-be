@@ -1,6 +1,9 @@
 package com.tujuhsembilan.glucoseclamp.repository;
 
 import com.tujuhsembilan.glucoseclamp.model.InfusionMonitoring;
+import com.tujuhsembilan.glucoseclamp.model.Session;
+import com.tujuhsembilan.glucoseclamp.model.base.EntityStatus;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -24,4 +27,6 @@ public interface InfusionMonitoringRepository extends JpaRepository<InfusionMoni
 
     @Query("SELECT i FROM InfusionMonitoring i WHERE i.deletedAt IS NULL ORDER BY i.infusionId DESC")
     Optional<InfusionMonitoring> findTopByDeletedAtIsNullOrderByInfusionIdDesc();
+
+    Optional<InfusionMonitoring> findTopBySessionAndStatusAndDeletedAtIsNullOrderByTimeDesc(Session session, EntityStatus status);
 }

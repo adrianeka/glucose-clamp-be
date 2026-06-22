@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 @Builder
 public class BloodSampleResponse {
     private String bloodSampleId;
-    private String activityId;
+    private Long activityId;
     private String sampleCode;
     private Integer collectedBy;
     private LocalDateTime sampleTime;

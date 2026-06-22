@@ -8,9 +8,16 @@ import com.tujuhsembilan.glucoseclamp.dto.response.BloodSampleResponse;
 import com.tujuhsembilan.glucoseclamp.exception.classes.DataNotFoundException;
 import com.tujuhsembilan.glucoseclamp.model.Activity;
 import com.tujuhsembilan.glucoseclamp.model.BloodSample;
+import com.tujuhsembilan.glucoseclamp.model.InfusionMonitoring;
+import com.tujuhsembilan.glucoseclamp.model.LabResult;
+import com.tujuhsembilan.glucoseclamp.model.Protocol;
+import com.tujuhsembilan.glucoseclamp.model.Session;
 import com.tujuhsembilan.glucoseclamp.model.base.EntityStatus;
 import com.tujuhsembilan.glucoseclamp.repository.ActivityRepository;
 import com.tujuhsembilan.glucoseclamp.repository.BloodSampleRepository;
+import com.tujuhsembilan.glucoseclamp.repository.InfusionMonitoringRepository;
+import com.tujuhsembilan.glucoseclamp.repository.LabResultRepository;
+
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
@@ -22,17 +29,27 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import lombok.extern.log4j.Log4j2;
 
+@Log4j2
 @Service
 @RequiredArgsConstructor
 public class BloodSampleService {
 
     private final BloodSampleRepository bloodSampleRepository;
     private final ActivityRepository activityRepository;
+    private final LabResultRepository labResultRepository;
+    private final InfusionMonitoringRepository infusionMonitoringRepository;
     private final ModelMapper modelMapper;
+    private final ActivityService activityService;
+    private final SseService sseService;
+    private final InfusionMonitoringService infusionMonitoringService;
 
     private Integer getCurrentUserId() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -75,39 +92,188 @@ public class BloodSampleService {
                 .build();
     }
 
-    @Transactional
-    public ApiDataResponseBuilder addBloodSample(BloodSampleRequest request) {
-        Activity activity = activityRepository.findById(request.getActivityId()).orElseThrow(() -> new DataNotFoundException("Activity tidak ditemukan"));
+    // @Transactional
+    // public ApiDataResponseBuilder addBloodSample(BloodSampleRequest request) {
+    //     Activity activity = activityRepository.findById(request.getActivityId()).orElseThrow(() -> new DataNotFoundException("Activity tidak ditemukan"));
 
+    //     BloodSample bs = new BloodSample();
+    //     bs.setBloodSampleId(buildBloodSampleId(nextSequence()));
+    //     bs.setActivity(activity);
+    //     bs.setSampleCode(deriveSampleCode(activity.getActivityId()));
+    //     bs.setCollectedBy(request.getCollectedBy());
+    //     try {
+    //         if (request.getSampleTime() != null) bs.setSampleTime(LocalDateTime.parse(request.getSampleTime()));
+    //     } catch (DateTimeParseException ignored) {
+    //     }
+    //     bs.setSampleType(request.getSampleType());
+    //     bs.setTubeType(request.getTubeType());
+    //     bs.setVolumeMl(request.getVolumeMl());
+    //     Integer uid = getCurrentUserId();
+    //     bs.setCreatedBy(uid);
+    //     bs.setUpdatedBy(uid);
+    //     bs.setStatus(EntityStatus.ACTIVE);
+
+    //     bloodSampleRepository.save(bs);
+
+    //     return ApiDataResponseBuilder.builder()
+    //             .data(mapToResponse(bs))
+    //             .message("Blood sample berhasil ditambahkan")
+    //             .statusCode(HttpStatus.CREATED.value())
+    //             .status(HttpStatus.CREATED)
+    //             .build();
+    // }
+
+     @Transactional
+    public ApiDataResponseBuilder addBloodSample(BloodSampleRequest request) {
+        // 1. Validasi tipe sampel C-Peptide
+        if ("C-Peptide".equalsIgnoreCase(request.getSampleType())) {
+            if (request.getLabResults() == null || request.getLabResults().size() < 2) {
+                return ApiDataResponseBuilder.builder()
+                        .message("Untuk tipe sampel C-Peptide, wajib menyertakan minimal 2 lab result")
+                        .statusCode(HttpStatus.BAD_REQUEST.value())
+                        .status(HttpStatus.BAD_REQUEST)
+                        .build();
+            }
+        }
+
+        // 2. Cari Activity, Session, dan Protocol
+        Activity activity = activityRepository.findById(request.getActivityId())
+                .orElseThrow(() -> new DataNotFoundException("Activity tidak ditemukan"));
+        
+        Session session = activity.getSession();
+        Protocol protocol = (session != null) ? session.getProtocol() : null;
+        
+        Integer uid = getCurrentUserId();
+        LocalDateTime now = LocalDateTime.now();
+
+        // 3. Simpan Blood Sample
         BloodSample bs = new BloodSample();
-        bs.setBloodSampleId(buildBloodSampleId(nextSequence()));
+        String bsId = buildBloodSampleId(nextSequence());
+        bs.setBloodSampleId(bsId);
         bs.setActivity(activity);
         bs.setSampleCode(deriveSampleCode(activity.getActivityId()));
         bs.setCollectedBy(request.getCollectedBy());
-        try {
-            if (request.getSampleTime() != null) bs.setSampleTime(LocalDateTime.parse(request.getSampleTime()));
-        } catch (DateTimeParseException ignored) {
+        if (request.getSampleTime() != null) {
+            try {
+                bs.setSampleTime(LocalDateTime.parse(request.getSampleTime()));
+            } catch (Exception ignored) {}
         }
         bs.setSampleType(request.getSampleType());
         bs.setTubeType(request.getTubeType());
         bs.setVolumeMl(request.getVolumeMl());
-        Integer uid = getCurrentUserId();
         bs.setCreatedBy(uid);
         bs.setUpdatedBy(uid);
         bs.setStatus(EntityStatus.ACTIVE);
-
         bloodSampleRepository.save(bs);
+
+        // 4. Simpan Lab Results dengan penentuan rentang referensi dan abnormal flag otomatis
+        int index = 1;
+        java.math.BigDecimal glucoseValueForInfusion = null;
+
+        for (BloodSampleRequest.LabResultDetails lrDetail : request.getLabResults()) {
+            java.math.BigDecimal refMin = null;
+            java.math.BigDecimal refMax = null;
+            String calculatedFlag = "NORMAL";
+
+            // Jika parameter adalah Glucose, ambil data batas dari Protocol
+            if (protocol != null && "Glucose".equalsIgnoreCase(lrDetail.getParameterName())) {
+                refMin = protocol.getGlucoseTargetMin();
+                refMax = protocol.getGlucoseTargetMax();
+                java.math.BigDecimal val = lrDetail.getValue();
+
+                if (val != null) {
+                    java.math.BigDecimal minExtreme = protocol.getGlucoseTargetMinExtreme();
+                    java.math.BigDecimal maxExtreme = protocol.getGlucoseTargetMaxExtreme();
+
+                    // Logika penentuan Abnormal Flag berdasarkan batas Protocol
+                    if (minExtreme != null && val.compareTo(minExtreme) < 0) {
+                        calculatedFlag = "EXTREME_LOW";
+                    } else if (refMin != null && val.compareTo(refMin) < 0) {
+                        calculatedFlag = "LOW";
+                    } else if (maxExtreme != null && val.compareTo(maxExtreme) > 0) {
+                        calculatedFlag = "EXTREME_HIGH";
+                    } else if (refMax != null && val.compareTo(refMax) > 0) {
+                        calculatedFlag = "HIGH";
+                    } else {
+                        calculatedFlag = "NORMAL";
+                    }
+                }
+            } else {
+                // Untuk non-glucose (misal C-Peptide), range di-set null atau sesuai kebutuhan default sistem Anda
+                calculatedFlag = null; 
+            }
+
+            LabResult lr = LabResult.builder()
+                    .labResultId(String.format("LR-%s-%d", bsId, index++))
+                    .bloodSample(bs)
+                    .parameterName(lrDetail.getParameterName())
+                    .value(lrDetail.getValue())
+                    .referenceRangeMin(refMin) // Otomatis terisi dari Protocol
+                    .referenceRangeMax(refMax) // Otomatis terisi dari Protocol
+                    .unit(lrDetail.getUnit() != null ? lrDetail.getUnit() : (protocol != null && "Glucose".equalsIgnoreCase(lrDetail.getParameterName()) ? protocol.getGlucoseTargetUnit() : null))
+                    .abnormalFlag(calculatedFlag) // Otomatis terhitung di BE
+                    .build();
+            
+            lr.setCreatedBy(uid);
+            lr.setUpdatedBy(uid);
+            lr.setStatus(EntityStatus.ACTIVE);
+            labResultRepository.save(lr);
+
+            if ("Glucose".equalsIgnoreCase(lrDetail.getParameterName()) || glucoseValueForInfusion == null) {
+                glucoseValueForInfusion = lrDetail.getValue();
+            }
+        }
+
+        // 5. Simpan ke Infusion Monitoring
+        if (session != null) {
+            InfusionMonitoring im = new InfusionMonitoring();
+            im.setInfusionId("INF-" + bsId);
+            im.setSession(session);
+            im.setTime(now);
+            im.setGlucoseValue(glucoseValueForInfusion);
+
+            BigDecimal calculatedGir = infusionMonitoringService.calculateGir(session, glucoseValueForInfusion);
+            im.setRateMinKg(calculatedGir);
+            im.setMonitoredBy(uid);
+            im.setStatus(EntityStatus.ACTIVE);
+            im.setCreatedBy(uid);
+            im.setUpdatedBy(uid);
+            infusionMonitoringRepository.save(im);
+        }
+
+        try {
+            activityService.completeActivity(activity.getActivityId());
+        } catch (Exception e) {
+            log.error("Gagal mengubah status aktivitas {} menjadi complete: {}", activity.getActivityId(), e.getMessage());
+            // Dilempar kembali agar transaksi database melakukan rollback jika terjadi kesalahan fatal pada pembaruan aktivitas
+            throw e; 
+        }
+
+        // 7. Mengirimkan Event Real-Time melalui SSE
+        if (session != null && session.getSessionId() != null) {
+            try {
+                Map<String, Object> ssePayload = Map.of(
+                    "activityId", activity.getActivityId(),
+                    "activityName", activity.getActivityType() != null ? activity.getActivityType() : ""
+                );
+                sseService.sendEvent(session.getSessionId(), "BLOOD_DRAW_ADDED", ssePayload);
+            } catch (Exception e) {
+                // Dibungkus try-catch tersendiri agar kegagalan SSE/jaringan tidak membatalkan transaksi utama database
+                log.warn("Gagal mengirimkan event SSE untuk aktivitas {}: {}", activity.getActivityId(), e.getMessage());
+            }
+        }
 
         return ApiDataResponseBuilder.builder()
                 .data(mapToResponse(bs))
-                .message("Blood sample berhasil ditambahkan")
+                .message("Blood sample berhasil disimpan.")
                 .statusCode(HttpStatus.CREATED.value())
                 .status(HttpStatus.CREATED)
                 .build();
     }
 
     @Transactional
-    public ApiDataResponseBuilder updateBloodSample(String id, BloodSampleUpdateRequest request) {
+    public ApiDataResponseBuilder updateBloodSample(String id, BloodSampleRequest request) {
+        // 1. Cari Blood Sample yang akan di-update
         Optional<BloodSample> opt = bloodSampleRepository.findById(id);
         if (opt.isEmpty() || EntityStatus.DELETED.equals(opt.get().getStatus())) {
             return ApiDataResponseBuilder.builder()
@@ -119,22 +285,163 @@ public class BloodSampleService {
 
         BloodSample bs = opt.get();
         Integer uid = getCurrentUserId();
+        LocalDateTime now = LocalDateTime.now();
+
+        // 2. Validasi khusus C-Peptide
+        if ("C-Peptide".equalsIgnoreCase(request.getSampleType())) {
+            if (request.getLabResults() == null || request.getLabResults().size() < 2) {
+                return ApiDataResponseBuilder.builder()
+                        .message("Untuk tipe sampel C-Peptide, wajib menyertakan minimal 2 lab result")
+                        .statusCode(HttpStatus.BAD_REQUEST.value())
+                        .status(HttpStatus.BAD_REQUEST)
+                        .build();
+            }
+        }
+
+        // 3. Update data utama Blood Sample
         bs.setSampleCode(deriveSampleCode(bs.getActivity() == null ? null : bs.getActivity().getActivityId()));
         if (request.getCollectedBy() != null) bs.setCollectedBy(request.getCollectedBy());
-        try {
-            if (request.getSampleTime() != null) bs.setSampleTime(LocalDateTime.parse(request.getSampleTime()));
-        } catch (DateTimeParseException ignored) {
+        if (request.getSampleTime() != null) {
+            try {
+                bs.setSampleTime(LocalDateTime.parse(request.getSampleTime()));
+            } catch (Exception ignored) {}
         }
         if (request.getSampleType() != null) bs.setSampleType(request.getSampleType());
         if (request.getTubeType() != null) bs.setTubeType(request.getTubeType());
         if (request.getVolumeMl() != null) bs.setVolumeMl(request.getVolumeMl());
-
         bs.setUpdatedBy(uid);
         bloodSampleRepository.save(bs);
 
+        // 4. Sinkronisasi Lab Results (Sequential Sync)
+        // Ambil data lab result aktif yang ada di DB saat ini untuk sampel ini
+        List<LabResult> existingLrs = labResultRepository.findByBloodSampleAndDeletedAtIsNull(bs); 
+        List<BloodSampleRequest.LabResultDetails> newLrs = request.getLabResults() != null ? request.getLabResults() : new java.util.ArrayList<>();
+
+        java.math.BigDecimal glucoseValueForInfusion = null;
+        Protocol protocol = (bs.getActivity() != null && bs.getActivity().getSession() != null) 
+                ? bs.getActivity().getSession().getProtocol() : null;
+
+        int maxCount = Math.max(existingLrs.size(), newLrs.size());
+        for (int i = 0; i < maxCount; i++) {
+            if (i < newLrs.size()) {
+                // A. Ambil nilai referensi & flag abnormal otomatis
+                BloodSampleRequest.LabResultDetails lrDetail = newLrs.get(i);
+                java.math.BigDecimal refMin = null;
+                java.math.BigDecimal refMax = null;
+                String calculatedFlag = "NORMAL";
+
+                if (protocol != null && "Glucose".equalsIgnoreCase(lrDetail.getParameterName())) {
+                    refMin = protocol.getGlucoseTargetMin();
+                    refMax = protocol.getGlucoseTargetMax();
+                    java.math.BigDecimal val = lrDetail.getValue();
+
+                    if (val != null) {
+                        java.math.BigDecimal minExtreme = protocol.getGlucoseTargetMinExtreme();
+                        java.math.BigDecimal maxExtreme = protocol.getGlucoseTargetMaxExtreme();
+
+                        if (minExtreme != null && val.compareTo(minExtreme) < 0) {
+                            calculatedFlag = "EXTREME_LOW";
+                        } else if (refMin != null && val.compareTo(refMin) < 0) {
+                            calculatedFlag = "LOW";
+                        } else if (maxExtreme != null && val.compareTo(maxExtreme) > 0) {
+                            calculatedFlag = "EXTREME_HIGH";
+                        } else if (refMax != null && val.compareTo(refMax) > 0) {
+                            calculatedFlag = "HIGH";
+                        } else {
+                            calculatedFlag = "NORMAL";
+                        }
+                    }
+                } else {
+                    calculatedFlag = null;
+                }
+
+                if (i < existingLrs.size()) {
+                    // UPDATE data lab yang sudah ada
+                    LabResult existingLr = existingLrs.get(i);
+                    existingLr.setParameterName(lrDetail.getParameterName());
+                    existingLr.setValue(lrDetail.getValue());
+                    existingLr.setReferenceRangeMin(refMin);
+                    existingLr.setReferenceRangeMax(refMax);
+                    existingLr.setUnit(lrDetail.getUnit() != null ? lrDetail.getUnit() : (protocol != null && "Glucose".equalsIgnoreCase(lrDetail.getParameterName()) ? protocol.getGlucoseTargetUnit() : null));
+                    existingLr.setAbnormalFlag(calculatedFlag);
+                    existingLr.setUpdatedBy(uid);
+                    existingLr.setUpdatedAt(now);
+                    labResultRepository.save(existingLr);
+                } else {
+                    // INSERT data lab baru (karena inputan FE bertambah)
+                    LabResult newLr = LabResult.builder()
+                            .labResultId(String.format("LR-%s-%d", bs.getBloodSampleId(), i + 1))
+                            .bloodSample(bs)
+                            .parameterName(lrDetail.getParameterName())
+                            .value(lrDetail.getValue())
+                            .referenceRangeMin(refMin)
+                            .referenceRangeMax(refMax)
+                            .unit(lrDetail.getUnit() != null ? lrDetail.getUnit() : (protocol != null && "Glucose".equalsIgnoreCase(lrDetail.getParameterName()) ? protocol.getGlucoseTargetUnit() : null))
+                            .abnormalFlag(calculatedFlag)
+                            .build();
+                    newLr.setCreatedBy(uid);
+                    newLr.setUpdatedBy(uid);
+                    newLr.setCreatedAt(now);
+                    newLr.setUpdatedAt(now);
+                    newLr.setStatus(EntityStatus.ACTIVE);
+                    labResultRepository.save(newLr);
+                }
+
+                if ("Glucose".equalsIgnoreCase(lrDetail.getParameterName()) || glucoseValueForInfusion == null) {
+                    glucoseValueForInfusion = lrDetail.getValue();
+                }
+            } else {
+                // DELETE sisa data lab lama yang tidak dikirim lagi oleh FE
+                LabResult lrToDelete = existingLrs.get(i);
+                lrToDelete.setDeletedAt(now);
+                lrToDelete.setDeletedBy(uid);
+                lrToDelete.setStatus(EntityStatus.DELETED);
+                labResultRepository.save(lrToDelete);
+            }
+        }
+
+        // 5. Update data Infusion Monitoring yang terkait
+        Optional<InfusionMonitoring> imOpt = infusionMonitoringRepository.findById("INF-" + bs.getBloodSampleId());
+        if (imOpt.isPresent()) {
+            InfusionMonitoring im = imOpt.get();
+            im.setGlucoseValue(glucoseValueForInfusion);
+            im.setUpdatedBy(uid);
+            im.setUpdatedAt(now);
+            infusionMonitoringRepository.save(im);
+        }
+
+        // 6. Jaring pengaman untuk memastikan aktivitas terkait berstatus COMPLETE
+        if (bs.getActivity() != null) {
+            try {
+                activityService.completeActivity(bs.getActivity().getActivityId());
+            } catch (Exception e) {
+                log.error("Gagal menyinkronkan status aktivitas {} saat update blood sample: {}", 
+                    bs.getActivity().getActivityId(), e.getMessage());
+                // Dapat dilempar kembali (throw e) jika ingin membatalkan transaksi saat aktivitas gagal diperbarui
+            }
+        }
+
+        // 7. Mengirimkan Event Real-Time melalui SSE untuk memberi tahu adanya pembaruan data
+        if (bs.getActivity() != null && bs.getActivity().getSession() != null) {
+            Session session = bs.getActivity().getSession();
+            if (session.getSessionId() != null) {
+                try {
+                    Map<String, Object> ssePayload = Map.of(
+                        "activityId", bs.getActivity().getActivityId(),
+                        "activityName", bs.getActivity().getActivityType() != null ? bs.getActivity().getActivityType() : ""
+                    );
+                    // Menggunakan nama event "BLOOD_DRAW_UPDATED" agar frontend dapat membedakan antara data baru dan perubahan data
+                    sseService.sendEvent(session.getSessionId(), "BLOOD_DRAW_UPDATED", ssePayload);
+                } catch (Exception e) {
+                    log.warn("Gagal mengirimkan event SSE update untuk aktivitas {}: {}", 
+                        bs.getActivity().getActivityId(), e.getMessage());
+                }
+            }
+        }
+
         return ApiDataResponseBuilder.builder()
                 .data(mapToResponse(bs))
-                .message("Blood sample berhasil diupdate")
+                .message("Blood sample beserta data Lab Result dan Infusion terkait berhasil diupdate")
                 .statusCode(HttpStatus.OK.value())
                 .status(HttpStatus.OK)
                 .build();
@@ -235,7 +542,8 @@ public class BloodSampleService {
                     if (!num.isBlank()) return Integer.parseInt(num) + 1;
                 }
             }
-        } catch (Exception ignored) {
+        } catch (Exception e) {
+            e.printStackTrace(); 
         }
         return 1;
     }
@@ -244,24 +552,9 @@ public class BloodSampleService {
         return String.format("BS-%03d", seq);
     }
 
-    private String deriveSampleCode(String activityId) {
-        if (activityId == null || activityId.isBlank()) {
-            return null;
-        }
-
-        String[] parts = activityId.split("-");
-        if (parts.length < 4) {
-            return activityId;
-        }
-
-        StringBuilder sampleCode = new StringBuilder();
-        for (int i = 2; i < parts.length - 1; i++) {
-            if (sampleCode.length() > 0) {
-                sampleCode.append("-");
-            }
-            sampleCode.append(parts[i]);
-        }
-
-        return sampleCode.length() == 0 ? activityId : sampleCode.toString();
+    private String deriveSampleCode(Long activityId) {
+        return activityId == null
+                ? null
+                : "SA-" + activityId;
     }
 }

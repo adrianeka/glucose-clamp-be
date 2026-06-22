@@ -15,7 +15,7 @@ public class AnamnesisRequest {
 
     @Schema(description = "ID sesi terkait", example = "101")
     @NotNull(message = "session_id is required")
-    private Integer sessionId;
+    private Long sessionId;
 
     @Schema(description = "Tanggal anamnesis (YYYY-MM-DD)", example = "2026-05-21")
     @NotNull(message = "date is required")

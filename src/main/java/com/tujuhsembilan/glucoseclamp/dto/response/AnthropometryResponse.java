@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
 @Builder
 public class AnthropometryResponse {
     private Integer anthroId;
-    private Integer sessionId;
+    private Long sessionId;
     private LocalDateTime measuredAt;
     private BigDecimal weightKg;
     private BigDecimal heightCm;

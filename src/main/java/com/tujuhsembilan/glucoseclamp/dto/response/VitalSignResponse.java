@@ -17,7 +17,7 @@ import java.time.LocalDateTime;
 @Builder
 public class VitalSignResponse {
     private Integer vitalId;
-    private Integer sessionId;
+    private Long sessionId;
     private LocalDateTime measuredAt;
     private Integer systolic;
     private Integer diastolic;

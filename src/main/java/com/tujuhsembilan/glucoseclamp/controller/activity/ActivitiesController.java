@@ -31,13 +31,13 @@ public class ActivitiesController {
     }
 
     @GetMapping(path = "/{activityId}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Object> getById(@PathVariable String activityId) {
+    public ResponseEntity<Object> getById(@PathVariable Long activityId) {
         ApiDataResponseBuilder result = activityService.getActivityById(activityId);
         return ResponseEntity.status(result.getStatus()).body(result);
     }
 
     @GetMapping(path = "/session/{sessionId}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Object> getBySession(@PathVariable Integer sessionId) {
+    public ResponseEntity<Object> getBySession(@PathVariable Long sessionId) {
         ApiDataResponseBuilder result = activityService.getActivitiesBySession(sessionId);
         return ResponseEntity.status(result.getStatus()).body(result);
     }
@@ -49,20 +49,26 @@ public class ActivitiesController {
     }
 
     @PutMapping(path = "/{activityId}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Object> update(@PathVariable String activityId, @Valid @RequestBody ActivityUpdateRequest request) {
+    public ResponseEntity<Object> update(@PathVariable Long activityId, @Valid @RequestBody ActivityUpdateRequest request) {
         ApiDataResponseBuilder result = activityService.updateActivity(activityId, request);
         return ResponseEntity.status(result.getStatus()).body(result);
     }
 
     @PatchMapping(path = "/{activityId}/status", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Object> updateStatus(@PathVariable String activityId, @Valid @RequestBody ActivityStatusUpdateRequest request) {
+    public ResponseEntity<Object> updateStatus(@PathVariable Long activityId, @Valid @RequestBody ActivityStatusUpdateRequest request) {
         ApiDataResponseBuilder result = activityService.updateActivityStatus(activityId, request);
         return ResponseEntity.status(result.getStatus()).body(result);
     }
 
     @DeleteMapping(path = "/{activityId}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Object> delete(@PathVariable String activityId) {
+    public ResponseEntity<Object> delete(@PathVariable Long activityId) {
         ApiDataResponseBuilder result = activityService.deleteActivity(activityId);
+        return ResponseEntity.status(result.getStatus()).body(result);
+    }
+
+    @PostMapping(path = "/{activityId}/complete", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Object> completeActivity(@PathVariable Long activityId) {
+        ApiDataResponseBuilder result = activityService.completeActivity(activityId);
         return ResponseEntity.status(result.getStatus()).body(result);
     }
 }

@@ -44,25 +44,25 @@ public class SessionController {
 
 
     @PutMapping(path = "/{sessionId}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Object> update(@PathVariable Integer sessionId, @Valid @RequestBody SessionUpdateRequest request) {
+    public ResponseEntity<Object> update(@PathVariable Long sessionId, @Valid @RequestBody SessionUpdateRequest request) {
         ApiDataResponseBuilder result = sessionManagementService.update(sessionId, request);
         return ResponseEntity.status(result.getStatus()).body(result);
     }
 
     @PatchMapping(path = "/{sessionId}/status", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Object> updateStatus(@PathVariable Integer sessionId, @Valid @RequestBody com.tujuhsembilan.glucoseclamp.dto.request.SessionStatusUpdateRequest request) {
+    public ResponseEntity<Object> updateStatus(@PathVariable Long sessionId, @Valid @RequestBody com.tujuhsembilan.glucoseclamp.dto.request.SessionStatusUpdateRequest request) {
         ApiDataResponseBuilder result = sessionManagementService.updateSessionStatus(sessionId, request);
         return ResponseEntity.status(result.getStatus()).body(result);
     }
 
     @DeleteMapping(path = "/{sessionId}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Object> deleteSession(@PathVariable Integer sessionId) {
+    public ResponseEntity<Object> deleteSession(@PathVariable Long sessionId) {
         ApiDataResponseBuilder result = sessionManagementService.deleteSession(sessionId);
         return ResponseEntity.status(result.getStatus()).body(result);
     }
 
     @GetMapping(path = "/{sessionId}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Object> getTimeline(@PathVariable Integer sessionId) {
+    public ResponseEntity<Object> getTimeline(@PathVariable Long sessionId) {
         ApiDataResponseBuilder result = sessionTrackingService.getTimeline(sessionId);
         return ResponseEntity.status(result.getStatus()).body(result);
     }
@@ -76,13 +76,13 @@ public class SessionController {
     }
 
     @PostMapping(path = "/{sessionId}/start", produces = MediaType.APPLICATION_JSON_VALUE)
-    public MessageResponse startSession(@PathVariable Integer sessionId) {
+    public MessageResponse startSession(@PathVariable Long sessionId) {
         return sessionManagementService.startSession(sessionId);
     }
 
     @PostMapping(path = "/{sessionId}/complete", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Object> completeSession(
-            @PathVariable Integer sessionId,
+            @PathVariable Long sessionId,
             @Valid @RequestBody SessionCompleteRequest request) {
         ApiDataResponseBuilder result = sessionManagementService.complete(sessionId, request);
         return ResponseEntity.status(result.getStatus()).body(result);

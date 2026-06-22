@@ -11,6 +11,7 @@ import com.tujuhsembilan.glucoseclamp.model.base.EntityStatus;
 import com.tujuhsembilan.glucoseclamp.repository.InfusionMonitoringRepository;
 import com.tujuhsembilan.glucoseclamp.repository.SessionRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -21,10 +22,14 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
+import java.util.Map;
 import java.util.Optional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class InfusionMonitoringService {
@@ -92,9 +97,14 @@ public class InfusionMonitoringService {
             if (request.getTime() != null) im.setTime(LocalDateTime.parse(request.getTime()));
         } catch (DateTimeParseException ignored) {
         }
+        
         im.setGlucoseValue(request.getGlucoseValue());
+        
+        // 1. Hitung nilai GIR otomatis menggunakan formula khusus
+        BigDecimal calculatedGir = calculateGir(session, request.getGlucoseValue());
+        im.setRateMinKg(calculatedGir);
+
         im.setConfirmationRateMinKg(request.getConfirmationRateMinKg());
-        im.setRateMinKg(request.getRateMinKg());
         im.setFlowRateMlHr(request.getFlowRateMlHr());
         im.setAdjustmentNote(request.getAdjustmentNote());
         im.setMonitoredBy(request.getMonitoredBy());
@@ -130,7 +140,14 @@ public class InfusionMonitoringService {
             if (request.getTime() != null) im.setTime(LocalDateTime.parse(request.getTime()));
         } catch (DateTimeParseException ignored) {
         }
-        if (request.getGlucoseValue() != null) im.setGlucoseValue(request.getGlucoseValue());
+        
+        if (request.getGlucoseValue() != null) {
+            im.setGlucoseValue(request.getGlucoseValue());
+            // Hitung ulang GIR jika kadar glukosa diubah
+            BigDecimal calculatedGir = calculateGir(im.getSession(), request.getGlucoseValue());
+            im.setRateMinKg(calculatedGir);
+        }
+        
         if (request.getConfirmationRateMinKg() != null) im.setConfirmationRateMinKg(request.getConfirmationRateMinKg());
         if (request.getRateMinKg() != null) im.setRateMinKg(request.getRateMinKg());
         if (request.getFlowRateMlHr() != null) im.setFlowRateMlHr(request.getFlowRateMlHr());
@@ -221,6 +238,114 @@ public class InfusionMonitoringService {
                 .statusCode(HttpStatus.OK.value())
                 .status(HttpStatus.OK)
                 .build();
+    }
+
+    public ApiDataResponseBuilder getLatestGirRecommendation(Long sessionId) {
+        Session session = sessionRepository.findByIdAndDeletedAtIsNull(sessionId).orElse(null);
+        if (session == null) {
+            return ApiDataResponseBuilder.builder()
+                    .message("Session tidak ditemukan")
+                    .statusCode(HttpStatus.NOT_FOUND.value())
+                    .status(HttpStatus.NOT_FOUND)
+                    .build();
+        }
+
+        Optional<InfusionMonitoring> lastActiveOpt = infusionMonitoringRepository
+                .findTopBySessionAndStatusAndDeletedAtIsNullOrderByTimeDesc(session, EntityStatus.ACTIVE);
+
+        if (lastActiveOpt.isEmpty()) {
+            return ApiDataResponseBuilder.builder()
+                    .message("Belum ada data glukosa darah terekam untuk sesi ini.")
+                    .statusCode(HttpStatus.BAD_REQUEST.value())
+                    .status(HttpStatus.BAD_REQUEST)
+                    .build();
+        }
+
+        BigDecimal latestGlucose = lastActiveOpt.get().getGlucoseValue();
+        
+        // PERBAIKAN: Ambil nilai GIR yang sudah dihitung dan disimpan sebelumnya
+        BigDecimal recommendedGir = lastActiveOpt.get().getRateMinKg();
+        
+        // Jika karena suatu hal nilainya kosong di DB, baru lakukan kalkulasi ulang sebagai pengaman
+        if (recommendedGir == null) {
+            recommendedGir = calculateGir(session, latestGlucose);
+        }
+
+        return ApiDataResponseBuilder.builder()
+                .data(Map.of(
+                    "sessionId", sessionId,
+                    "latestGlucoseValue", latestGlucose,
+                    "recommendedGir", recommendedGir
+                ))
+                .message("Rekomendasi GIR berhasil diambil dari data glukosa terakhir")
+                .statusCode(HttpStatus.OK.value())
+                .status(HttpStatus.OK)
+                .build();
+    }
+
+    /**
+     * Logika Perhitungan GIR Matematis & Fallback Berdasarkan Gambar Rekomendasi
+     */
+    public BigDecimal calculateGir(Session session, BigDecimal currentGlucose) {
+        if (currentGlucose == null || currentGlucose.compareTo(BigDecimal.ZERO) <= 0) {
+            return BigDecimal.ZERO;
+        }
+
+        // A. Cari Nilai GIR Sebelumnya (gir_current) dari monitoring aktif terakhir pada sesi ini
+        BigDecimal girCurrent = null;
+        if (session != null) {
+            Optional<InfusionMonitoring> lastActiveOpt = infusionMonitoringRepository.findTopBySessionAndStatusAndDeletedAtIsNullOrderByTimeDesc(session, EntityStatus.ACTIVE);
+            if (lastActiveOpt.isPresent()) {
+                girCurrent = lastActiveOpt.get().getRateMinKg();
+            }
+        }
+
+        // B. FALLBACK JIKA GIR SEBELUMNYA KOSONG (Menggunakan aturan berjenjang pada gambar Anda)
+        if (girCurrent == null || girCurrent.compareTo(BigDecimal.ZERO) == 0) {
+            double glc = currentGlucose.doubleValue();
+            if (glc > 250) {
+                return new BigDecimal("2.00");
+            } else if (glc >= 180) {
+                return new BigDecimal("3.00");
+            } else if (glc >= 100) {
+                return new BigDecimal("4.00");
+            } else {
+                return new BigDecimal("5.00");
+            }
+        }
+
+        // C. Tentukan Target Glucose (Default ke 120, atau rata-rata target Protocol)
+        BigDecimal targetGlucose = new BigDecimal("120");
+        if (session != null && session.getProtocol() != null) {
+            BigDecimal min = session.getProtocol().getGlucoseTargetMin();
+            BigDecimal max = session.getProtocol().getGlucoseTargetMax();
+            if (min != null && max != null) {
+                targetGlucose = min.add(max).divide(BigDecimal.valueOf(2), 2, RoundingMode.HALF_UP);
+            } else if (min != null) {
+                targetGlucose = min;
+            } else if (max != null) {
+                targetGlucose = max;
+            }
+        }
+
+        // D. fmi = target_glucose / current_glucose
+        BigDecimal fmi = targetGlucose.divide(currentGlucose, 4, RoundingMode.HALF_UP);
+
+        // E. gir_new = gir_current * fmi
+        BigDecimal girNew = girCurrent.multiply(fmi).setScale(2, RoundingMode.HALF_UP);
+
+        // F. Safety Limit (Pembatasan Perubahan Maksimal 25%)
+        BigDecimal maxChange = new BigDecimal("0.25");
+        BigDecimal upper = girCurrent.multiply(BigDecimal.ONE.add(maxChange)).setScale(2, RoundingMode.HALF_UP);
+        BigDecimal lower = girCurrent.multiply(BigDecimal.ONE.subtract(maxChange)).setScale(2, RoundingMode.HALF_UP);
+
+        if (girNew.compareTo(upper) > 0) {
+            girNew = upper;
+        } else if (girNew.compareTo(lower) < 0) {
+            girNew = lower;
+        }
+
+        return girNew;
     }
 
     private InfusionMonitoringResponse mapToResponse(InfusionMonitoring im) {

@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 @Builder
 public class InfusionMonitoringResponse {
     private String infusionId;
-    private Integer sessionId;
+    private Long sessionId;
     private LocalDateTime time;
     private BigDecimal glucoseValue;
     private BigDecimal confirmationRateMinKg;

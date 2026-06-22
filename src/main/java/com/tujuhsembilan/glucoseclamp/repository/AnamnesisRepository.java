@@ -15,7 +15,7 @@ public interface AnamnesisRepository extends JpaRepository<Anamnesis, Integer> {
     @Query("SELECT a FROM Anamnesis a WHERE a.anamnesisId = ?1 AND a.deletedAt IS NULL")
     Optional<Anamnesis> findByIdAndDeletedAtIsNull(Integer anamnesisId);
     @Query("SELECT a FROM Anamnesis a WHERE a.session.sessionId = ?1 AND a.deletedAt IS NULL")
-    Optional<Anamnesis> findBySessionIdAndDeletedAtIsNull(Integer sessionId);
+    Optional<Anamnesis> findBySessionIdAndDeletedAtIsNull(Long sessionId);
 
     @Query("SELECT a FROM Anamnesis a WHERE (LOWER(a.chiefComplaint) LIKE LOWER(CONCAT('%', ?1, '%')) OR LOWER(a.medicalHistory) LIKE LOWER(CONCAT('%', ?1, '%'))) AND a.deletedAt IS NULL")
     Page<Anamnesis> searchByKeyword(String keyword, Pageable pageable);

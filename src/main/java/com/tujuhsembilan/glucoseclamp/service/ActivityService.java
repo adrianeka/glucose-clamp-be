@@ -33,7 +33,6 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -44,6 +43,7 @@ public class ActivityService {
     private final SessionRepository sessionRepository;
     private final SamplingScheduleRepository samplingScheduleRepository;
     private final CurrentUserService currentUserService;
+    private final SseService sseService;
 
     public ApiDataResponseBuilder getAllActivities(int pageNumber, int pageSize) {
         Pageable pageable = PageRequest.of(Math.max(0, pageNumber - 1), pageSize);
@@ -57,7 +57,7 @@ public class ActivityService {
                 .build();
     }
 
-    public ApiDataResponseBuilder getActivityById(String activityId) {
+    public ApiDataResponseBuilder getActivityById(Long activityId) {
         Activity activity = activityRepository.findByIdAndDeletedAtIsNull(activityId).orElse(null);
         if (activity == null) {
             return ApiDataResponseBuilder.builder()
@@ -75,7 +75,7 @@ public class ActivityService {
                 .build();
     }
 
-    public ApiDataResponseBuilder getActivitiesBySession(Integer sessionId) {
+    public ApiDataResponseBuilder getActivitiesBySession(Long sessionId) {
         Session session = sessionRepository.findByIdAndDeletedAtIsNull(sessionId)
             .orElseThrow(() -> new DataNotFoundException("Session tidak ditemukan"));
 
@@ -100,7 +100,7 @@ public class ActivityService {
                 .orElseThrow(() -> new DataNotFoundException("Session tidak ditemukan"));
 
         Activity activity = new Activity();
-        activity.setActivityId(buildActivityId(nextSequence(), request.getActivityType(), session.getSessionId()));
+        // activity.setActivityId(buildActivityId(nextSequence(), request.getActivityType(), session.getSessionId()));
         activity.setSession(session);
         activity.setActor(currentUserService.getCurrentUserEntity());
         activity.setTime(normalizeToSeconds(request.getTime()));
@@ -123,7 +123,7 @@ public class ActivityService {
     }
 
     @Transactional
-    public ApiDataResponseBuilder updateActivity(String activityId, ActivityUpdateRequest request) {
+    public ApiDataResponseBuilder updateActivity(Long activityId, ActivityUpdateRequest request) {
         Activity activity = requireActiveActivity(activityId);
 
         if (request.getTime() != null) {
@@ -152,7 +152,7 @@ public class ActivityService {
     }
 
     @Transactional
-    public ApiDataResponseBuilder updateActivityStatus(String activityId, ActivityStatusUpdateRequest request) {
+    public ApiDataResponseBuilder updateActivityStatus(Long activityId, ActivityStatusUpdateRequest request) {
         if (EntityStatus.DELETED.equals(request.getStatus())) {
             return ApiDataResponseBuilder.builder()
                     .message("Status tidak valid")
@@ -175,7 +175,7 @@ public class ActivityService {
     }
 
     @Transactional
-    public ApiDataResponseBuilder deleteActivity(String activityId) {
+    public ApiDataResponseBuilder deleteActivity(Long activityId) {
         Activity activity = requireActiveActivity(activityId);
         Integer currentUserId = currentUserService.getCurrentUserId();
 
@@ -190,6 +190,38 @@ public class ActivityService {
         return ApiDataResponseBuilder.builder()
                 .data(mapToResponse(activity))
                 .message("Activity berhasil dihapus")
+                .statusCode(HttpStatus.OK.value())
+                .status(HttpStatus.OK)
+                .build();
+    }
+
+    @Transactional
+    public ApiDataResponseBuilder completeActivity(Long activityId) {
+        // Ambil data aktivitas aktif, lemparkan Exception jika tidak ditemukan
+        Activity activity = requireActiveActivity(activityId);
+
+        // Update status aktivitas menjadi COMPLETED
+        activity.setActivityStatus(ActivityStatus.COMPLETED);
+        activity.setUpdatedBy(currentUserService.getCurrentUserId());
+        activityRepository.save(activity);
+
+        // Sinkronkan status sesi secara otomatis (logika bawaan Anda)
+        syncSessionStatus(activity.getSession());
+
+        // Siapkan respon data untuk dikirim ke frontend
+        ActivityResponse responseData = mapToResponse(activity);
+
+        // Kirimkan Event Real-Time melalui SSE ke semua yang memantau Sesi ini
+        if (activity.getSession() != null) {
+            Long sessionId = activity.getSession().getSessionId();
+            
+            // Mengirim event bernama "ACTIVITY_COMPLETED" membawa data detail aktivitas
+            sseService.sendEvent(sessionId, "ACTIVITY_COMPLETED", responseData);
+        }
+
+        return ApiDataResponseBuilder.builder()
+                .data(responseData)
+                .message("Aktivitas berhasil diselesaikan")
                 .statusCode(HttpStatus.OK.value())
                 .status(HttpStatus.OK)
                 .build();
@@ -218,12 +250,12 @@ public class ActivityService {
     }
 
     @Transactional(readOnly = true)
-    public List<Activity> findActiveActivitiesForSession(Integer sessionId) {
+    public List<Activity> findActiveActivitiesForSession(Long sessionId) {
         return activityRepository.findBySessionIdAndDeletedAtIsNull(sessionId);
     }
 
     @Transactional
-    public void softDeleteActivitiesForSession(Integer sessionId, Integer actorId) {
+    public void softDeleteActivitiesForSession(Long sessionId, Integer actorId) {
         List<Activity> existingActivities = activityRepository.findBySessionIdAndDeletedAtIsNull(sessionId);
         for (Activity activity : existingActivities) {
             activity.setDeletedAt(LocalDateTime.now());
@@ -235,7 +267,7 @@ public class ActivityService {
     }
 
     @Transactional
-    public void updateActivityStatusForSession(Integer sessionId, EntityStatus status, Integer actorId) {
+    public void updateActivityStatusForSession(Long sessionId, EntityStatus status, Integer actorId) {
         List<Activity> existingActivities = activityRepository.findBySessionIdAndDeletedAtIsNull(sessionId);
         for (Activity activity : existingActivities) {
             activity.setStatus(status);
@@ -245,7 +277,7 @@ public class ActivityService {
     }
 
     @Transactional
-    public List<Activity> shiftPendingActivitiesForSession(Integer sessionId, Duration delta, Integer actorId) {
+    public List<Activity> shiftPendingActivitiesForSession(Long sessionId, Duration delta, Integer actorId) {
         List<Activity> activitiesToUpdate = activityRepository.findBySessionIdAndDeletedAtIsNullAndNotCompleted(sessionId);
         for (Activity activity : activitiesToUpdate) {
             if (activity.getTime() != null) {
@@ -257,7 +289,7 @@ public class ActivityService {
         return activitiesToUpdate;
     }
 
-    private Activity requireActiveActivity(String activityId) {
+    private Activity requireActiveActivity(Long activityId) {
         Activity activity = activityRepository.findByIdAndDeletedAtIsNull(activityId).orElse(null);
         if (activity == null) {
             throw new DataNotFoundException("Activity tidak ditemukan");
@@ -324,21 +356,21 @@ public class ActivityService {
         return dateTime == null ? null : dateTime.truncatedTo(ChronoUnit.SECONDS);
     }
 
-    private int nextSequence() {
-        try {
-            var lastOpt = activityRepository.findTopByDeletedAtIsNullOrderByActivityIdDesc();
-            if (lastOpt.isPresent()) {
-                String lastId = lastOpt.get().getActivityId();
-                if (lastId != null && lastId.length() >= 7) {
-                    return Integer.parseInt(lastId.substring(4, 7)) + 1;
-                }
-            }
-        } catch (Exception ignored) {
-        }
-        return 1;
-    }
+    // private int nextSequence() {
+    //     try {
+    //         var lastOpt = activityRepository.findTopByDeletedAtIsNullOrderByActivityIdDesc();
+    //         if (lastOpt.isPresent()) {
+    //             String lastId = lastOpt.get().getActivityId();
+    //             if (lastId != null && lastId.length() >= 7) {
+    //                 return Integer.parseInt(lastId.substring(4, 7)) + 1;
+    //             }
+    //         }
+    //     } catch (Exception ignored) {
+    //     }
+    //     return 1;
+    // }
 
-    private String buildActivityId(int sequence, String codePart, Integer sessionId) {
+    private String buildActivityId(int sequence, String codePart, Long sessionId) {
         String seqPart = String.format("%03d", sequence);
         String sid = sessionId == null ? "0" : String.valueOf(sessionId);
         return String.format("ACT-%s-%s-%s", seqPart, codePart, sid);
@@ -372,9 +404,9 @@ public class ActivityService {
         try {
             var lastOpt = activityRepository.findTopByDeletedAtIsNullOrderByActivityIdDesc();
             if (lastOpt.isPresent()) {
-                String lastId = lastOpt.get().getActivityId();
-                if (lastId != null && lastId.length() >= 7) {
-                    generationState.activitySequence = Integer.parseInt(lastId.substring(4, 7));
+                Long lastId = lastOpt.get().getActivityId();
+                if (lastId != null) {
+                    generationState.activitySequence = lastId.intValue();
                 }
             }
         } catch (Exception ignored) {
@@ -461,8 +493,8 @@ public class ActivityService {
             String type) {
             
         Activity activity = new Activity();
-        int seq = generationState.nextActivitySequence();
-        activity.setActivityId(buildActivityId(seq, codePart, session.getSessionId()));
+        // int seq = generationState.nextActivitySequence();
+        // activity.setActivityId(buildActivityId(seq, codePart, session.getSessionId()));
         activity.setSession(session);
         activity.setActor(actor);
         

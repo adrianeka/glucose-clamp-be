@@ -25,6 +25,5 @@ public interface BloodSampleRepository extends JpaRepository<BloodSample, String
     @Query("SELECT b FROM BloodSample b WHERE b.deletedAt IS NULL AND (LOWER(b.sampleCode) LIKE LOWER(CONCAT('%', ?1, '%')) OR LOWER(b.sampleType) LIKE LOWER(CONCAT('%', ?1, '%')) OR LOWER(b.tubeType) LIKE LOWER(CONCAT('%', ?1, '%'))) ")
     Page<BloodSample> searchByKeyword(String keyword, Pageable pageable);
 
-    @Query("SELECT b FROM BloodSample b WHERE b.deletedAt IS NULL ORDER BY b.bloodSampleId DESC")
     Optional<BloodSample> findTopByDeletedAtIsNullOrderByBloodSampleIdDesc();
 }

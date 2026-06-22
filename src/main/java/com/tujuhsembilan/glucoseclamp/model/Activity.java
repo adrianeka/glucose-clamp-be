@@ -18,8 +18,14 @@ import java.util.List;
 public class Activity extends BaseEntity {
     
     @Id
-    @Column(name = "activity_id", length = 50)
-    private String activityId;
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "activity_id_seq")
+    @SequenceGenerator(
+            name = "activity_id_seq",
+            sequenceName = "activity_id_seq",
+            allocationSize = 1
+    )
+    @Column(name = "activity_id")
+    private Long activityId;
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "session_id", nullable = false)

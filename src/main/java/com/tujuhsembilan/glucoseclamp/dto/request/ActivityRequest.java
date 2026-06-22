@@ -18,7 +18,7 @@ import java.time.LocalDateTime;
 public class ActivityRequest {
     @Schema(description = "ID session terkait", example = "2")
     @NotNull(message = "Kolom sessionId tidak boleh kosong")
-    private Integer sessionId;
+    private Long sessionId;
 
     @Schema(description = "Waktu activity", example = "2026-05-30T10:52:00")
     @NotNull(message = "Kolom time tidak boleh kosong")

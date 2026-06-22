@@ -18,7 +18,7 @@ public class InfusionMonitoringRequest {
 
     @Schema(description = "Session ID ", example = "101")
     @NotNull(message = "session_id is required")
-    private Integer sessionId;
+    private Long sessionId;
 
     @Schema(description = "Time of monitoring in ISO 8601 format", example = "2024-06-01T14:30:00")
     @NotNull(message = "time is required")

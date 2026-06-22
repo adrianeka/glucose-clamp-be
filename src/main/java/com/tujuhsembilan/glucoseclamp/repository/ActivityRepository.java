@@ -8,9 +8,10 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Optional;
+import java.lang.Long;
 
 @Repository
-public interface ActivityRepository extends JpaRepository<Activity, String> {
+public interface ActivityRepository extends JpaRepository<Activity, Long> {
     @Query("SELECT a FROM Activity a WHERE a.deletedAt IS NULL")
     List<Activity> findAllActive();
 
@@ -18,17 +19,17 @@ public interface ActivityRepository extends JpaRepository<Activity, String> {
     Page<Activity> findAllActive(Pageable pageable);
 
     @Query("SELECT a FROM Activity a WHERE a.activityId = ?1 AND a.deletedAt IS NULL")
-    Optional<Activity> findByIdAndDeletedAtIsNull(String activityId);
+    Optional<Activity> findByIdAndDeletedAtIsNull(Long activityId);
     @Query("SELECT a FROM Activity a WHERE a.session.sessionId = ?1 AND a.deletedAt IS NULL")
-    List<Activity> findBySessionIdAndDeletedAtIsNull(Integer sessionId);
+    List<Activity> findBySessionIdAndDeletedAtIsNull(Long sessionId);
 
     @Query("SELECT a FROM Activity a WHERE a.session.sessionId = ?1 AND a.deletedAt IS NULL")
-    Page<Activity> findBySessionIdAndDeletedAtIsNull(Integer sessionId, Pageable pageable);
+    Page<Activity> findBySessionIdAndDeletedAtIsNull(Long sessionId, Pageable pageable);
 
     @Query("SELECT a FROM Activity a WHERE a.session.sessionId = ?1 AND a.deletedAt IS NULL AND a.activityStatus <> com.tujuhsembilan.glucoseclamp.model.base.ActivityStatus.COMPLETED")
-    List<Activity> findBySessionIdAndDeletedAtIsNullAndNotCompleted(Integer sessionId);
+    List<Activity> findBySessionIdAndDeletedAtIsNullAndNotCompleted(Long sessionId);
     @Query("SELECT a FROM Activity a WHERE a.actor.userId = ?1 AND a.deletedAt IS NULL")
-    List<Activity> findByActorIdAndDeletedAtIsNull(Integer actorId);
+    List<Activity> findByActorIdAndDeletedAtIsNull(Long actorId);
 
     Optional<Activity> findTopByDeletedAtIsNullOrderByActivityIdDesc();
 }

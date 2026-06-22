@@ -7,11 +7,13 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
+
+import java.math.BigInteger;
 import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface GlobalConfigurationRepository extends JpaRepository<GlobalConfiguration, Integer> {
+public interface GlobalConfigurationRepository extends JpaRepository<GlobalConfiguration, BigInteger> {
     @Query("SELECT gc FROM GlobalConfiguration gc WHERE gc.deletedAt IS NULL")
     List<GlobalConfiguration> findAllActive();
     @org.springframework.data.jpa.repository.Query("SELECT gc FROM GlobalConfiguration gc WHERE gc.deletedAt IS NULL")

@@ -29,20 +29,20 @@ public class SeedDataRunner implements CommandLineRunner {
     @Override
     @Transactional
     public void run(String... args) {
-        seedAccessMenus();
-        seedRoles();
-        seedRoleAccess();
-        seedUsers();
-        seedParticipants();
-        seedProtocols();
-        seedPhaseConfigurations();
+        // seedAccessMenus();
+        // seedRoles();
+        // seedRoleAccess();
+        // seedUsers();
+        // seedParticipants();
+        // seedProtocols();
+        // seedPhaseConfigurations();
         // seedSessions();
         // seedActivities();
         // seedDevices();
-        seedSamplingSchedules();
+        // seedSamplingSchedules();
         // seedBloodSamples();
         // seedLabResults();
-        syncSequences();
+        // syncSequences();
     }
 
     private void seedRoles() {

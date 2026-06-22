@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   backend-app:
-    build: .
+    # build: .
     image: ghcr.io/adrianeka/glucoseclamp-backend:latest # Menggunakan image dari GHCR
     container_name: glucoseclamp-backend
     ports:

@@ -1,6 +1,6 @@
 CREATE UNIQUE INDEX IF NOT EXISTS
 uk_sampling_schedule_protocol_phase_minute
-ON glucose_clamp.sampling_schedules (
+ON  sampling_schedules (
     protocol_id,
     relative_minute
 )

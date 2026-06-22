@@ -177,7 +177,9 @@ public class SamplingSchedulesService {
 
     @Transactional
     public ApiDataResponseBuilder updateSamplingSchedule(Long id, SamplingScheduleRequest request) {
+
         Optional<SamplingSchedule> opt = samplingScheduleRepository.findById(id);
+
         if (opt.isEmpty() || EntityStatus.DELETED.equals(opt.get().getStatus())) {
             return ApiDataResponseBuilder.builder()
                     .message("Data detail sampling schedule tidak ditemukan")
@@ -187,31 +189,64 @@ public class SamplingSchedulesService {
         }
 
         SamplingSchedule detail = opt.get();
+
         Integer currentUserId = getCurrentUserId();
         LocalDateTime now = LocalDateTime.now();
 
+        boolean intervalChanged = false;
+
         if (request.getProtocolId() != null) {
-            Optional<Protocol> protocolOpt = protocolRepository.findById(request.getProtocolId());
-            if (protocolOpt.isEmpty() || EntityStatus.DELETED.equals(protocolOpt.get().getStatus())) {
+            Optional<Protocol> protocolOpt =
+                    protocolRepository.findById(request.getProtocolId());
+
+            if (protocolOpt.isEmpty()
+                    || EntityStatus.DELETED.equals(protocolOpt.get().getStatus())) {
+
                 return ApiDataResponseBuilder.builder()
                         .message("Protocol tidak ditemukan")
                         .statusCode(HttpStatus.BAD_REQUEST.value())
                         .status(HttpStatus.BAD_REQUEST)
                         .build();
             }
+
             detail.setProtocol(protocolOpt.get());
         }
 
-        if (request.getPhaseCode() != null) detail.setPhaseCode(request.getPhaseCode());
-        if (request.getTimeInterval() != null) detail.setTimeInterval(request.getTimeInterval());
-        if (request.getBloodRaw() != null) detail.setBloodRaw(request.getBloodRaw());
-        if (request.getInsulinInject() != null) detail.setInsulinInject(request.getInsulinInject());
-        if (request.getPkSampleCollection() != null) detail.setPkSampleCollection(request.getPkSampleCollection());
+        if (request.getPhaseCode() != null) {
+            detail.setPhaseCode(request.getPhaseCode());
+        }
+
+        if (request.getTimeInterval() != null) {
+
+            if (!request.getTimeInterval().equals(detail.getTimeInterval())) {
+                intervalChanged = true;
+            }
+
+            detail.setTimeInterval(request.getTimeInterval());
+        }
+
+        if (request.getBloodRaw() != null) {
+            detail.setBloodRaw(request.getBloodRaw());
+        }
+
+        if (request.getInsulinInject() != null) {
+            detail.setInsulinInject(request.getInsulinInject());
+        }
+
+        if (request.getPkSampleCollection() != null) {
+            detail.setPkSampleCollection(request.getPkSampleCollection());
+        }
 
         detail.setUpdatedBy(currentUserId);
         detail.setUpdatedAt(now);
 
         samplingScheduleRepository.save(detail);
+
+        if (intervalChanged) {
+            recalculateRelativeMinute(
+                    detail.getProtocol().getProtocolId()
+            );
+        }
 
         return ApiDataResponseBuilder.builder()
                 .data(mapToResponse(detail))
@@ -290,11 +325,42 @@ public class SamplingSchedulesService {
 
         samplingScheduleRepository.save(detail);
 
+        recalculateRelativeMinute(
+                detail.getProtocol().getProtocolId()
+        );
+
         return ApiDataResponseBuilder.builder()
                 .message("Detail sampling schedule berhasil dihapus")
                 .statusCode(HttpStatus.OK.value())
                 .status(HttpStatus.OK)
                 .build();
+    }
+
+    private void recalculateRelativeMinute(Long protocolId) {
+
+        List<SamplingSchedule> schedules =
+                samplingScheduleRepository
+                        .findByProtocolProtocolIdAndDeletedAtIsNullOrderByRelativeMinuteAsc(protocolId);
+
+        int currentMinute = 0;
+
+        for (int i = 0; i < schedules.size(); i++) {
+
+            SamplingSchedule schedule = schedules.get(i);
+
+            if (i == 0) {
+                currentMinute = schedule.getTimeInterval() != null
+                        ? schedule.getTimeInterval()
+                        : 0;
+
+                schedule.setRelativeMinute(currentMinute);
+            } else {
+                currentMinute += schedule.getTimeInterval();
+                schedule.setRelativeMinute(currentMinute);
+            }
+        }
+
+        samplingScheduleRepository.saveAll(schedules);
     }
 
     public ApiDataResponseBuilder searchSamplingSchedules(Long protocolId, String search, String startDateStr, String endDateStr) {

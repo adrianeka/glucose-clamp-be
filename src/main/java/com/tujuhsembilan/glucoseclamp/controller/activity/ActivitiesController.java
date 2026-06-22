@@ -65,4 +65,10 @@ public class ActivitiesController {
         ApiDataResponseBuilder result = activityService.deleteActivity(activityId);
         return ResponseEntity.status(result.getStatus()).body(result);
     }
+
+    @PostMapping(path = "/{activityId}/complete", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Object> completeActivity(@PathVariable String activityId) {
+        ApiDataResponseBuilder result = activityService.completeActivity(activityId);
+        return ResponseEntity.status(result.getStatus()).body(result);
+    }
 }

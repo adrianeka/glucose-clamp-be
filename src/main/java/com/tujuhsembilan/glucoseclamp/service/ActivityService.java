@@ -33,7 +33,6 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -44,6 +43,7 @@ public class ActivityService {
     private final SessionRepository sessionRepository;
     private final SamplingScheduleRepository samplingScheduleRepository;
     private final CurrentUserService currentUserService;
+    private final SseService sseService;
 
     public ApiDataResponseBuilder getAllActivities(int pageNumber, int pageSize) {
         Pageable pageable = PageRequest.of(Math.max(0, pageNumber - 1), pageSize);
@@ -190,6 +190,38 @@ public class ActivityService {
         return ApiDataResponseBuilder.builder()
                 .data(mapToResponse(activity))
                 .message("Activity berhasil dihapus")
+                .statusCode(HttpStatus.OK.value())
+                .status(HttpStatus.OK)
+                .build();
+    }
+
+    @Transactional
+    public ApiDataResponseBuilder completeActivity(String activityId) {
+        // Ambil data aktivitas aktif, lemparkan Exception jika tidak ditemukan
+        Activity activity = requireActiveActivity(activityId);
+
+        // Update status aktivitas menjadi COMPLETED
+        activity.setActivityStatus(ActivityStatus.COMPLETED);
+        activity.setUpdatedBy(currentUserService.getCurrentUserId());
+        activityRepository.save(activity);
+
+        // Sinkronkan status sesi secara otomatis (logika bawaan Anda)
+        syncSessionStatus(activity.getSession());
+
+        // Siapkan respon data untuk dikirim ke frontend
+        ActivityResponse responseData = mapToResponse(activity);
+
+        // Kirimkan Event Real-Time melalui SSE ke semua yang memantau Sesi ini
+        if (activity.getSession() != null) {
+            Integer sessionId = activity.getSession().getSessionId();
+            
+            // Mengirim event bernama "ACTIVITY_COMPLETED" membawa data detail aktivitas
+            sseService.sendEvent(sessionId, "ACTIVITY_COMPLETED", responseData);
+        }
+
+        return ApiDataResponseBuilder.builder()
+                .data(responseData)
+                .message("Aktivitas berhasil diselesaikan")
                 .statusCode(HttpStatus.OK.value())
                 .status(HttpStatus.OK)
                 .build();

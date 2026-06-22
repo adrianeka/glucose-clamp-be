@@ -1,5 +1,6 @@
 package com.tujuhsembilan.glucoseclamp.repository;
 
+import com.tujuhsembilan.glucoseclamp.model.BloodSample;
 import com.tujuhsembilan.glucoseclamp.model.LabResult;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -51,4 +52,5 @@ public interface LabResultRepository extends JpaRepository<LabResult, String> {
         @Param("startDate") LocalDateTime startDate,
         @Param("endDate") LocalDateTime endDate
     );
+    List<LabResult> findByBloodSampleAndDeletedAtIsNull(BloodSample bloodSample);
 }

@@ -7,9 +7,7 @@ import lombok.*;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "lab_results", uniqueConstraints = {
-    @UniqueConstraint(columnNames = {"blood_sample_id"})
-})
+@Table(name = "lab_results")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -22,8 +20,8 @@ public class LabResult extends BaseEntity {
     @Column(name = "lab_result_id", length = 50)
     private String labResultId;
     
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "blood_sample_id", nullable = false, unique = true)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "blood_sample_id", nullable = false)
     private BloodSample bloodSample;
     
     @Column(name = "parameter_name", nullable = false, length = 100)

@@ -45,7 +45,10 @@ public class BloodSamplesController {
     }
 
     @PutMapping(path = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Object> update(@PathVariable String id, @Valid @RequestBody BloodSampleUpdateRequest request) {
+    public ResponseEntity<Object> update(
+            @PathVariable String id, 
+            @Valid @RequestBody BloodSampleRequest request
+    ) {
         ApiDataResponseBuilder result = bloodSampleService.updateBloodSample(id, request);
         return ResponseEntity.status(result.getStatus()).body(result);
     }

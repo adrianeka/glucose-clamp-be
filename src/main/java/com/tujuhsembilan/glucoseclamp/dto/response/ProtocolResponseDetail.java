@@ -14,7 +14,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class ProtocolResponse {
+public class ProtocolResponseDetail {
 
     @JsonProperty("protocol_id")
     private Long protocolId;
@@ -74,6 +74,5 @@ public class ProtocolResponse {
     private String status;
 
     @JsonProperty("sampling_schedules")
-    // private List<SamplingScheduleResponse> samplingSchedules;
-    private String samplingScheduleSummary;
+    private List<SamplingScheduleResponse> samplingSchedules;
 }

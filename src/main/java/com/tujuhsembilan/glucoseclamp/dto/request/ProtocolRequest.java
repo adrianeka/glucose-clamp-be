@@ -17,10 +17,6 @@ import java.util.List;
 @Builder
 public class ProtocolRequest {
 
-    // @JsonProperty("protocol_id")
-    // @NotBlank(message = "protocol_id is required")
-    // private String protocolId;
-
     @JsonProperty("protocol_code")
     @NotBlank(message = "protocol_code is required")
     private String protocolCode;

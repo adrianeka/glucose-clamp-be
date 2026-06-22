@@ -5,7 +5,9 @@ import lombok.*;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "sampling_schedules")
+@Table(
+    name = "sampling_schedules"
+)
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -15,8 +17,9 @@ import jakarta.persistence.*;
 public class SamplingSchedule extends BaseEntity {
     
     @Id
-    @Column(name = "sampling_schedule_id", length = 50)
-    private String samplingScheduleId;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "sampling_schedule_id")
+    private Long samplingScheduleId;
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "protocol_id", nullable = false)

@@ -18,7 +18,7 @@ public interface ProtocolRepository extends JpaRepository<Protocol, Long> {
     @Query("SELECT p FROM Protocol p WHERE p.deletedAt IS NULL")
     List<Protocol> findAllActive();
 
-    @Query("SELECT p FROM Protocol p WHERE p.deletedAt IS NULL")
+    @Query("SELECT p FROM Protocol p WHERE p.deletedAt IS NULL ORDER BY p.protocolId ASC")
     Page<Protocol> findAllActive(Pageable pageable);
 
     @Query("SELECT p FROM Protocol p WHERE p.protocolId = ?1 AND p.deletedAt IS NULL")
@@ -43,6 +43,7 @@ public interface ProtocolRepository extends JpaRepository<Protocol, Long> {
         )
         AND p.createdAt >= COALESCE(:startDate, p.createdAt)
         AND p.createdAt <= COALESCE(:endDate, p.createdAt)
+        ORDER BY p.protocolId ASC
     """)
     List<Protocol> searchProtocols(
         @Param("search") String search,

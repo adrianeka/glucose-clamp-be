@@ -25,7 +25,7 @@ public class SamplingSchedulesController {
             @RequestParam(required = false) String search,
             @RequestParam(required = false) String startDate,
             @RequestParam(required = false) String endDate,
-            @RequestParam(required = false) String protocolId,
+            @RequestParam(required = false) Long protocolId,
             @RequestParam(defaultValue = "1") int pageNumber,
             @RequestParam(defaultValue = "10") int pageSize
     ) {
@@ -38,9 +38,24 @@ public class SamplingSchedulesController {
     }
 
     @GetMapping(path = "/{detailId}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Object> getSamplingScheduleById(@PathVariable String detailId) {
+    public ResponseEntity<Object> getSamplingScheduleById(@PathVariable Long detailId) {
         ApiDataResponseBuilder result = samplingSchedulesService.getSamplingScheduleById(detailId);
         return ResponseEntity.status(result.getStatus()).body(result);
+    }
+
+    @GetMapping(
+        path = "/protocol/{protocolId}",
+        produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    public ResponseEntity<Object> getSamplingSchedulesByProtocolId(
+            @PathVariable Long protocolId
+    ) {
+        ApiDataResponseBuilder result =
+                samplingSchedulesService.getSamplingSchedulesByProtocolId(protocolId);
+
+        return ResponseEntity
+                .status(result.getStatus())
+                .body(result);
     }
 
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
@@ -50,14 +65,14 @@ public class SamplingSchedulesController {
     }
 
     @PutMapping(path = "/{detailId}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Object> updateSamplingSchedule(@PathVariable String detailId, @Valid @RequestBody SamplingScheduleRequest request) {
+    public ResponseEntity<Object> updateSamplingSchedule(@PathVariable Long detailId, @Valid @RequestBody SamplingScheduleRequest request) {
         ApiDataResponseBuilder result = samplingSchedulesService.updateSamplingSchedule(detailId, request);
         return ResponseEntity.status(result.getStatus()).body(result);
     }
 
     @PatchMapping(path = "/{detailId}/status", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Object> updateSamplingScheduleStatus(
-            @PathVariable String detailId,
+            @PathVariable Long detailId,
             @RequestParam String status
     ) {
         ApiDataResponseBuilder result = samplingSchedulesService.updateSamplingScheduleStatus(detailId, status);
@@ -65,7 +80,7 @@ public class SamplingSchedulesController {
     }
 
     @DeleteMapping(path = "/{detailId}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Object> deleteSamplingSchedule(@PathVariable String detailId) {
+    public ResponseEntity<Object> deleteSamplingSchedule(@PathVariable Long detailId) {
         ApiDataResponseBuilder result = samplingSchedulesService.deleteSamplingSchedule(detailId);
         return ResponseEntity.status(result.getStatus()).body(result);
     }

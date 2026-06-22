@@ -133,7 +133,7 @@ public class UsersService {
                     .findFirst();
 
             return ApiDataResponseBuilder.builder()
-                    .data(new JwtResponse(jwt, userDetails.getId(), userDetails.getUsername(), roles.get()))
+                    .data(new JwtResponse(jwt, userDetails.getId(), userDetails.getUsername(),userDetails.getName(), roles.get()))
                     .message(messageUtil.get("application.success.auth.user"))
                     .statusCode(statusOK.value())
                     .status(statusOK)

@@ -28,4 +28,10 @@ public class GlobalConfiguration extends BaseEntity {
     @Column(name = "gconf_value", nullable = false, length = 255)
     private String gconfValue;
 
+    @Column(name = "gconf_title", length = 255)
+    private String gconfTitle;
+
+    @Column(name = "gconf_desc", length = 500)
+    private String gconfDescription;
+
 }

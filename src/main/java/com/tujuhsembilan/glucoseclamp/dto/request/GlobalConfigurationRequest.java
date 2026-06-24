@@ -23,4 +23,12 @@ public class GlobalConfigurationRequest {
     @NotBlank(message = "gconf_value is required")
     @Size(max = 255, message = "gconf_value must not exceed 255 characters")
     private String gconfValue;
+
+    @Schema(description = "Title of the global configuration", example = "Detik Peringatan Sebelum ACT")
+    @Size(max = 255, message = "gconf_title must not exceed 255 characters")
+    private String gconfTitle;
+
+    @Schema(description = "Description of the global configuration", example = "Detik peringatan sebelum ACT")
+    @Size(max = 500, message = "gconf_description must not exceed 500 characters")
+    private String gconfDescription;
 }

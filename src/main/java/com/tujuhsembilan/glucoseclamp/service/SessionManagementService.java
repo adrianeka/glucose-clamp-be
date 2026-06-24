@@ -104,7 +104,7 @@ public class SessionManagementService {
                 .build();
     }
 
-    public MessageResponse startSession(Integer sessionId) {
+    public MessageResponse startSession(Long sessionId) {
         Optional<Session> sessionOptional = sessionRepository.findByIdAndDeletedAtIsNull(sessionId);
         if (sessionOptional.isEmpty()) {
             return new MessageResponse("Data session tidak ditemukan", HttpStatus.NOT_FOUND.value(), "NOT_FOUND");
@@ -216,7 +216,7 @@ public class SessionManagementService {
     }
 
     @Transactional
-    public ApiDataResponseBuilder complete(Integer sessionId, SessionCompleteRequest request) {
+    public ApiDataResponseBuilder complete(Long sessionId, SessionCompleteRequest request) {
         Optional<Session> sessionOptional = sessionRepository.findByIdAndDeletedAtIsNull(sessionId);
         if (sessionOptional.isEmpty()) {
             return ApiDataResponseBuilder.builder()
@@ -251,7 +251,7 @@ public class SessionManagementService {
     }
 
     @Transactional
-    public ApiDataResponseBuilder update(Integer sessionId, SessionUpdateRequest request) {
+    public ApiDataResponseBuilder update(Long sessionId, SessionUpdateRequest request) {
         Integer actorId = currentUserService.getCurrentUserId();
         User actor = currentUserService.getCurrentUserEntity();
 
@@ -342,7 +342,7 @@ public class SessionManagementService {
     }
 
     @Transactional
-    public ApiDataResponseBuilder updateSessionStatus(Integer sessionId, com.tujuhsembilan.glucoseclamp.dto.request.SessionStatusUpdateRequest request) {
+    public ApiDataResponseBuilder updateSessionStatus(Long sessionId, com.tujuhsembilan.glucoseclamp.dto.request.SessionStatusUpdateRequest request) {
         if (EntityStatus.DELETED.equals(request.getStatus())) {
             return ApiDataResponseBuilder.builder()
                     .message("Status tidak valid")
@@ -397,7 +397,7 @@ public class SessionManagementService {
     }
 
     @Transactional
-    public ApiDataResponseBuilder deleteSession(Integer sessionId) {
+    public ApiDataResponseBuilder deleteSession(Long sessionId) {
         Session session = sessionRepository.findByIdAndDeletedAtIsNull(sessionId).orElse(null);
         if (session == null) {
             return ApiDataResponseBuilder.builder()
@@ -461,7 +461,7 @@ public class SessionManagementService {
     }
 
     private SessionCreateResponse buildSessionCreateResponse(Session session, List<Activity> activities) {
-        List<String> activityIds = activities.stream()
+        List<Long> activityIds = activities.stream()
                 .map(Activity::getActivityId)
                 .collect(Collectors.toList());
 

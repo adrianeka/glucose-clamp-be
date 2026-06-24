@@ -15,8 +15,8 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 public class ActivityResponse {
-    private String activityId;
-    private Integer sessionId;
+    private Long activityId;
+    private Long sessionId;
     private Integer actorId;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")

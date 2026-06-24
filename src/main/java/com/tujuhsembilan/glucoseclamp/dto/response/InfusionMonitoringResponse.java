@@ -15,8 +15,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 @Builder
 public class InfusionMonitoringResponse {
     private String infusionId;
-    private Integer sessionId;
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
+    private Long sessionId;
     private LocalDateTime time;
     private BigDecimal glucoseValue;
     private BigDecimal confirmationRateMinKg;

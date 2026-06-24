@@ -12,11 +12,11 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class SessionCreateResponse {
-    private Integer sessionId;
+    private Long sessionId;
     private String participantId;
     private Long protocolId;
     private int generatedActivityCount;
-    private List<String> activityIds;
+    private List<Long> activityIds;
     private Integer vitalId;
     private Integer anamnesisId;
     private Integer anthropometryId;

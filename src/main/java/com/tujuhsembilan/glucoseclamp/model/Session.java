@@ -20,9 +20,13 @@ public class Session extends BaseEntity {
     
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "session_id_seq")
-    @SequenceGenerator(name = "session_id_seq", sequenceName = "session_id_seq", allocationSize = 1)
+    @SequenceGenerator(
+            name = "session_id_seq",
+            sequenceName = "session_id_seq",
+            allocationSize = 1
+    )
     @Column(name = "session_id")
-    private Integer sessionId;
+    private Long sessionId;
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "participant_id", nullable = false)

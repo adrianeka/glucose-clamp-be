@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 @Builder
 public class BloodSampleResponse {
     private String bloodSampleId;
-    private String activityId;
+    private Long activityId;
     private String sampleCode;
     private Integer collectedBy;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")

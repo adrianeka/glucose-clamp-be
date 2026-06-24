@@ -14,10 +14,10 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class SessionSummaryResponse {
-    private Integer sessionId;
+    private Long sessionId;
     private String participantId;
     private String participantName;
-    private String protocolId;
+    private Long protocolId;
     private String protocolName;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDate visitDate;

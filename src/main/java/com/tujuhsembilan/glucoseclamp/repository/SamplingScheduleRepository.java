@@ -4,6 +4,7 @@ import com.tujuhsembilan.glucoseclamp.model.SamplingSchedule;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -54,5 +55,40 @@ public interface SamplingScheduleRepository extends JpaRepository<SamplingSchedu
     List<SamplingSchedule>
     findByProtocolProtocolIdAndDeletedAtIsNullOrderByRelativeMinuteAsc(
             Long protocolId
+    );
+
+    Optional<SamplingSchedule>
+    findTopByProtocolProtocolIdAndScheduleCodeStartingWithAndStatusOrderBySamplingScheduleIdDesc(
+            Long protocolId,
+            String prefix,
+            EntityStatus status
+    );
+    
+    List<SamplingSchedule> findByProtocolProtocolIdAndPhaseCodeAndDeletedAtIsNull(Long protocolId, String phaseCode);
+
+    long countByProtocolProtocolIdAndPhaseCodeNotAndPhaseCodeNotAndStatus(Long protocolId, String pc1, String pc2, EntityStatus status);
+
+    List<SamplingSchedule> findByProtocolProtocolIdAndStatusOrderByRelativeMinuteAsc(Long protocolId, EntityStatus status);
+    List<SamplingSchedule> findByProtocolProtocolIdAndPhaseCodeAndStatus(Long protocolId,String phaseCode, EntityStatus status);
+
+    @Modifying
+    @Query("""
+        UPDATE SamplingSchedule s
+        SET
+            s.status = :deletedStatus,
+            s.deletedAt = :deletedAt,
+            s.deletedBy = :deletedBy,
+            s.scheduleCode = concat(s.scheduleCode, '_DEL_', cast(gen_random_uuid() as text))
+        WHERE s.protocol.protocolId = :protocolId
+        AND s.phaseCode = :phaseCode
+        AND s.status = :activeStatus
+    """)
+    int bulkSoftDeleteByProtocolAndPhase(
+            @Param("protocolId") Long protocolId,
+            @Param("phaseCode") String phaseCode,
+            @Param("deletedStatus") EntityStatus deletedStatus,
+            @Param("activeStatus") EntityStatus activeStatus, // Tambahkan parameter ini
+            @Param("deletedAt") LocalDateTime deletedAt,
+            @Param("deletedBy") Integer deletedBy
     );
 }

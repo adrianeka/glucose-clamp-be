@@ -14,7 +14,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class SessionTimelineResponse {
-    private Integer sessionId;
+    private Long sessionId;
     private String participantId;
     private String participantName;
     private Long protocolId;

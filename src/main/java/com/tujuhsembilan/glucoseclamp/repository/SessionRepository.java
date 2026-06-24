@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface SessionRepository extends JpaRepository<Session, Integer> {
+public interface SessionRepository extends JpaRepository<Session, Long> {
     @Query("SELECT s FROM Session s WHERE s.deletedAt IS NULL")
     Page<Session> findAllActive(Pageable pageable);
 
@@ -42,14 +42,14 @@ public interface SessionRepository extends JpaRepository<Session, Integer> {
     Page<SessionSummaryResponse> findAllSessionSummaries(Pageable pageable);
 
     @Query("SELECT s FROM Session s WHERE s.sessionId = ?1 AND s.deletedAt IS NULL")
-    Optional<Session> findByIdAndDeletedAtIsNull(Integer sessionId);
+    Optional<Session> findByIdAndDeletedAtIsNull(Long sessionId);
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT s FROM Session s WHERE s.sessionId = ?1 AND s.deletedAt IS NULL")
-    Optional<Session> findByIdAndDeletedAtIsNullForUpdate(Integer sessionId);
+    Optional<Session> findByIdAndDeletedAtIsNullForUpdate(Long sessionId);
     @Query("SELECT s FROM Session s WHERE s.participant.participantId = ?1 AND s.deletedAt IS NULL")
     List<Session> findByParticipantIdAndDeletedAtIsNull(String participantId);
     @Query("SELECT s FROM Session s WHERE s.protocol.protocolId = ?1 AND s.deletedAt IS NULL")
-    List<Session> findByProtocolIdAndDeletedAtIsNull(String protocolId);
+    List<Session> findByProtocolIdAndDeletedAtIsNull(Long protocolId);
     @Query("SELECT s FROM Session s WHERE s.visitDate = ?1 AND s.deletedAt IS NULL")
     List<Session> findByVisitDateAndDeletedAtIsNull(LocalDate visitDate);
 }

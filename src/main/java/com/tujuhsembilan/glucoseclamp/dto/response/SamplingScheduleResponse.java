@@ -17,11 +17,20 @@ public class SamplingScheduleResponse {
     @JsonProperty("sampling_schedule_id")
     private Long samplingScheduleId;
 
+    @JsonProperty("schedule_code")
+    private String scheduleCode;
+
     @JsonProperty("protocol_id")
     private Long protocolId;
 
     @JsonProperty("phase_code")
     private String phaseCode;
+
+    @JsonProperty("phase_name")
+    private String phaseName;
+
+    @JsonProperty("phase_type")
+    private String phaseType;
 
     @JsonProperty("time_interval")
     private Integer timeInterval;

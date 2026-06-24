@@ -17,7 +17,7 @@ import java.time.LocalDateTime;
 @Builder
 public class AnamnesisResponse {
     private Integer anamnesisId;
-    private Integer sessionId;
+    private Long sessionId;
     private LocalDate date;
     private String chiefComplaint;
     private String medicalHistory;

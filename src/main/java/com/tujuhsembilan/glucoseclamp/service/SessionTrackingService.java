@@ -28,7 +28,7 @@ public class SessionTrackingService {
     private final ActivityRepository activityRepository;
 
         @Transactional(readOnly = true)
-    public ApiDataResponseBuilder getTimeline(Integer sessionId) {
+    public ApiDataResponseBuilder getTimeline(Long sessionId) {
         Optional<Session> sessionOptional = sessionRepository.findByIdAndDeletedAtIsNull(sessionId);
         if (sessionOptional.isEmpty()) {
             return ApiDataResponseBuilder.builder()

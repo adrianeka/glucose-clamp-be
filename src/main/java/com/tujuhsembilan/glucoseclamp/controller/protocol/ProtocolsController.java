@@ -42,6 +42,12 @@ public class ProtocolsController {
         return ResponseEntity.status(result.getStatus()).body(result);
     }
 
+    @GetMapping(path = "/dropdown", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Object> getProtocolsDropdown() {
+        ApiDataResponseBuilder result = protocolsService.getProtocolsDropdown();
+        return ResponseEntity.status(result.getStatus()).body(result);
+    }
+
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Object> addProtocol(@Valid @RequestBody ProtocolRequest request) {
         ApiDataResponseBuilder result = protocolsService.addProtocol(request);

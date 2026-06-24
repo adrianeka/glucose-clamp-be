@@ -521,24 +521,9 @@ public class BloodSampleService {
         return String.format("BS-%03d", seq);
     }
 
-    private String deriveSampleCode(String activityId) {
-        if (activityId == null || activityId.isBlank()) {
-            return null;
-        }
-
-        String[] parts = activityId.split("-");
-        if (parts.length < 4) {
-            return activityId;
-        }
-
-        StringBuilder sampleCode = new StringBuilder();
-        for (int i = 2; i < parts.length - 1; i++) {
-            if (sampleCode.length() > 0) {
-                sampleCode.append("-");
-            }
-            sampleCode.append(parts[i]);
-        }
-
-        return sampleCode.length() == 0 ? activityId : sampleCode.toString();
+    private String deriveSampleCode(Long activityId) {
+        return activityId == null
+                ? null
+                : "SA-" + activityId;
     }
 }

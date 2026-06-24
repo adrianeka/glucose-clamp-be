@@ -240,7 +240,7 @@ public class InfusionMonitoringService {
                 .build();
     }
 
-    public ApiDataResponseBuilder getLatestGirRecommendation(Integer sessionId) {
+    public ApiDataResponseBuilder getLatestGirRecommendation(Long sessionId) {
         Session session = sessionRepository.findByIdAndDeletedAtIsNull(sessionId).orElse(null);
         if (session == null) {
             return ApiDataResponseBuilder.builder()

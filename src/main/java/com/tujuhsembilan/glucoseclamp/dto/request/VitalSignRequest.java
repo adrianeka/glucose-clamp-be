@@ -17,7 +17,7 @@ public class VitalSignRequest {
 
     @Schema(description = "ID sesi terkait", example = "101")
     @NotNull(message = "session_id is required")
-    private Integer sessionId;
+    private Long sessionId;
 
     @Schema(description = "Waktu pengukuran dalam format ISO (YYYY-MM-DDTHH:mm:ss) atau 'YYYY-MM-DD HH:mm:ss'", example = "2026-05-21T07:10:00")
     @NotNull(message = "measured_at is required")

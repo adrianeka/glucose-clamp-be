@@ -1,5 +1,6 @@
 package com.tujuhsembilan.glucoseclamp.repository;
 
+import com.tujuhsembilan.glucoseclamp.dto.response.ProtocolDropdownProjection;
 import com.tujuhsembilan.glucoseclamp.model.Protocol;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -20,6 +21,10 @@ public interface ProtocolRepository extends JpaRepository<Protocol, Long> {
 
     @Query("SELECT p FROM Protocol p WHERE p.deletedAt IS NULL ORDER BY p.protocolId ASC")
     Page<Protocol> findAllActive(Pageable pageable);
+
+    @Query("SELECT p.protocolId as protocolId, p.protocolCode as protocolCode, p.protocolName as protocolName " +
+           "FROM Protocol p WHERE p.deletedAt IS NULL ORDER BY p.protocolName ASC")
+    List<ProtocolDropdownProjection> findAllDropdown();
 
     @Query("SELECT p FROM Protocol p WHERE p.protocolId = ?1 AND p.deletedAt IS NULL")
     Optional<Protocol> findByIdAndDeletedAtIsNull(Long protocolId);

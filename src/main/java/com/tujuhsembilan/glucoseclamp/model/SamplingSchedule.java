@@ -1,6 +1,8 @@
 package com.tujuhsembilan.glucoseclamp.model;
 
 import com.tujuhsembilan.glucoseclamp.model.base.BaseEntity;
+import com.tujuhsembilan.glucoseclamp.model.base.EntityStatus;
+
 import lombok.*;
 import jakarta.persistence.*;
 
@@ -25,6 +27,9 @@ public class SamplingSchedule extends BaseEntity {
     @JoinColumn(name = "protocol_id", nullable = false)
     private Protocol protocol;
     
+    @Column(name = "schedule_code", length = 255, nullable = false)
+    private String scheduleCode;
+    
     @Column(name = "phase_code", length = 50)
     private String phaseCode;
 
@@ -33,6 +38,9 @@ public class SamplingSchedule extends BaseEntity {
 
     @Column(name = "phase_type", length = 100)
     private String phaseType;
+
+    @Column(name = "phase_duration")
+    private Integer phaseDuration;
 
     @Column(name = "relative_minute")
     private Integer relativeMinute; // Menyimpan nilai 0, 10, 30
@@ -48,4 +56,7 @@ public class SamplingSchedule extends BaseEntity {
     
     @Column(name = "pk_sample_collection")
     private Boolean pkSampleCollection;
+
+    @Column(name = "status")
+    private EntityStatus status;
 }

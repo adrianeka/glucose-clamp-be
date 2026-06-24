@@ -75,7 +75,7 @@ public class InfusionMonitoringsController {
         return ResponseEntity.status(result.getStatus()).body(result);
     }
     @GetMapping("/recommendation")
-    public ResponseEntity<ApiDataResponseBuilder> getRecommendation(@RequestParam Integer sessionId) {
+    public ResponseEntity<ApiDataResponseBuilder> getRecommendation(@RequestParam Long sessionId) {
         ApiDataResponseBuilder response = infusionMonitoringService.getLatestGirRecommendation(sessionId);
         return ResponseEntity.status(response.getStatusCode()).body(response);
     }

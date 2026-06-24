@@ -21,12 +21,25 @@ public class SamplingScheduleRequest {
     @NotBlank(message = "phase_code is required")
     private String phaseCode;
 
+    @JsonProperty("phase_name")
+    @NotBlank(message = "phase_name is required")
+    private String phaseName;
+
+    @JsonProperty("phase_type")
+    @NotBlank(message = "phase_type is required")
+    private String phaseType;
+
     @JsonProperty("time_interval")
     @NotNull(message = "time_interval is required")
     private Integer timeInterval;
-    // @JsonProperty("relative_minute")
-    // @NotNull(message = "relative_minute is required")
-    // private Integer relativeMinute;
+
+    @JsonProperty("label_prefix")
+    @NotNull(message = "label_prefix is required")
+    private String labelPrefix;
+
+    @JsonProperty("phase_duration")
+    @NotNull(message = "phase_duration is required")
+    private Integer phaseDuration;
 
     @JsonProperty("blood_raw")
     @NotNull(message = "blood_raw is required")

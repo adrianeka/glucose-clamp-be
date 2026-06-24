@@ -37,7 +37,7 @@ public class SseService {
     }
 
     // Mengirim pesan ke semua client yang terhubung ke sessionId tertentu
-    public void sendEvent(Integer sessionId, String eventName, Object data) {
+    public void sendEvent(Long sessionId, String eventName, Object data) {
         List<SseEmitter> sessionEmitters = this.emitters.get(sessionId);
         if (sessionEmitters != null) {
             List<SseEmitter> deadEmitters = new CopyOnWriteArrayList<>();

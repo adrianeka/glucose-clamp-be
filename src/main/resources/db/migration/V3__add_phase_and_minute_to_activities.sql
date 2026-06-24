@@ -1,0 +1,5 @@
+ALTER TABLE activities
+ADD COLUMN IF NOT EXISTS phase_name VARCHAR(255);
+
+ALTER TABLE activities
+ADD COLUMN IF NOT EXISTS phase_code VARCHAR(255);

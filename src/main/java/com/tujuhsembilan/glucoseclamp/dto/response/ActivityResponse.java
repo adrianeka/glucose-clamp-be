@@ -19,6 +19,9 @@ public class ActivityResponse {
     private Long sessionId;
     private Integer actorId;
 
+    private String phaseCode;
+    private String phaseName;
+
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime time;
     private Integer relativeMinute;

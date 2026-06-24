@@ -17,5 +17,7 @@ public class SessionActivityItemResponse {
     private LocalDateTime time;
     private String activityType;
     private String activityDesc;
+    private String phaseCode;
+    private String phaseName;
     private ActivityStatus activityStatus;
 }

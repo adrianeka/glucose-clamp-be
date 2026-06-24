@@ -100,7 +100,10 @@ public class SessionTrackingService {
                 activity.getTime(),
                 activity.getActivityType(),
                 activity.getActivityDesc(),
-                activity.getActivityStatus());
+                activity.getPhaseCode(),
+                activity.getPhaseName(),
+                activity.getActivityStatus()
+        );
     }
 
     private boolean isCompletedActivity(Activity activity) {

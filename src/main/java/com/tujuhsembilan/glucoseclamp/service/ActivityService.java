@@ -6,6 +6,7 @@ import com.tujuhsembilan.glucoseclamp.dto.request.ActivityUpdateRequest;
 import com.tujuhsembilan.glucoseclamp.dto.response.ActivityResponse;
 import com.tujuhsembilan.glucoseclamp.dto.response.ApiDataResponseBuilder;
 import com.tujuhsembilan.glucoseclamp.exception.classes.DataNotFoundException;
+import com.tujuhsembilan.glucoseclamp.exception.classes.BadRequestExceptionHendler;
 import com.tujuhsembilan.glucoseclamp.model.Activity;
 import com.tujuhsembilan.glucoseclamp.model.SamplingSchedule;
 import com.tujuhsembilan.glucoseclamp.model.Session;
@@ -18,6 +19,8 @@ import com.tujuhsembilan.glucoseclamp.repository.SamplingScheduleRepository;
 import com.tujuhsembilan.glucoseclamp.repository.SessionRepository;
 import com.tujuhsembilan.glucoseclamp.security.service.CurrentUserService;
 import lombok.RequiredArgsConstructor;
+
+import org.apache.coyote.BadRequestException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -26,7 +29,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -96,22 +101,53 @@ public class ActivityService {
 
     @Transactional
     public ApiDataResponseBuilder addActivity(ActivityRequest request) {
+
         Session session = sessionRepository.findByIdAndDeletedAtIsNull(request.getSessionId())
                 .orElseThrow(() -> new DataNotFoundException("Session tidak ditemukan"));
 
+        Activity referenceActivity = activityRepository
+                .findFirstBySessionSessionIdAndDeletedAtIsNull(request.getSessionId())
+                .orElseThrow(() -> new DataNotFoundException(
+                        "Tidak ditemukan activity referensi pada session"));
+
+        LocalDate referenceDate = referenceActivity.getTime().toLocalDate();
+
+        LocalTime inputTime = LocalTime.parse(request.getStartTime());
+
+        LocalDateTime activityTime = LocalDateTime.of(
+                referenceDate,
+                inputTime
+        );
+
+        if (activityRepository.existsSameHourMinute(
+                request.getSessionId(),
+                activityTime.getHour(),   
+                activityTime.getMinute() 
+        )) {
+            throw new BadRequestExceptionHendler(
+                    "Time tersebut sudah digunakan oleh aktivitas lain"
+            );
+        }
+
         Activity activity = new Activity();
-        // activity.setActivityId(buildActivityId(nextSequence(), request.getActivityType(), session.getSessionId()));
         activity.setSession(session);
         activity.setActor(currentUserService.getCurrentUserEntity());
-        activity.setTime(normalizeToSeconds(request.getTime()));
+        activity.setTime(activityTime);
         activity.setActivityType(request.getActivityType());
         activity.setActivityDesc(request.getActivityDesc());
-        activity.setActivityStatus(request.getActivityStatus() == null ? ActivityStatus.INQUEUE : request.getActivityStatus());
+        activity.setPhaseCode(request.getPhaseCode());
+        activity.setPhaseName(request.getPhaseName());
+        activity.setActivityStatus(
+                request.getActivityStatus() == null
+                        ? ActivityStatus.INQUEUE
+                        : request.getActivityStatus()
+        );
         activity.setStatus(EntityStatus.ACTIVE);
         activity.setCreatedBy(currentUserService.getCurrentUserId());
         activity.setUpdatedBy(currentUserService.getCurrentUserId());
 
         activityRepository.save(activity);
+
         syncSessionStatus(session);
 
         return ApiDataResponseBuilder.builder()
@@ -125,10 +161,36 @@ public class ActivityService {
     @Transactional
     public ApiDataResponseBuilder updateActivity(Long activityId, ActivityUpdateRequest request) {
         Activity activity = requireActiveActivity(activityId);
+        
+        // 1. Ambil referensi tanggal dari session (seperti logic add)
+        Activity referenceActivity = activityRepository
+                .findFirstBySessionSessionIdAndDeletedAtIsNull(request.getSessionId())
+                .orElseThrow(() -> new DataNotFoundException(
+                        "Tidak ditemukan activity referensi pada session"));
 
-        if (request.getTime() != null) {
-            activity.setTime(normalizeToSeconds(request.getTime()));
+        LocalDate referenceDate = referenceActivity.getTime().toLocalDate();
+        LocalTime inputTime = LocalTime.parse(request.getStartTime());
+        LocalDateTime activityTime = LocalDateTime.of(referenceDate, inputTime);
+
+        // 2. Cek apakah jam/menit sudah dipakai oleh activity LAIN dalam session ini
+        // Kita kirimkan activityId agar query mengabaikan record ini sendiri
+        if (activityRepository.existsSameHourMinuteExcludeId(
+                request.getSessionId(),
+                activityTime.getHour(),   
+                activityTime.getMinute(),
+                activityId // Parameter ID yang sedang di-update
+        )) {
+            throw new BadRequestExceptionHendler(
+                    "Time tersebut sudah digunakan oleh aktivitas lain"
+            );
         }
+
+        // 3. Update field jika ada perubahan
+        if (request.getStartTime() != null) {
+            activity.setTime(activityTime);
+        }
+        
+        // ... logic update field lainnya tetap sama ...
         if (request.getActivityType() != null && !request.getActivityType().isBlank()) {
             activity.setActivityType(request.getActivityType().trim());
         }
@@ -137,6 +199,12 @@ public class ActivityService {
         }
         if (request.getActivityStatus() != null) {
             activity.setActivityStatus(request.getActivityStatus());
+        }
+        if (request.getPhaseCode() != null) {
+            activity.setPhaseCode(request.getPhaseCode());
+        }
+        if (request.getPhaseName() != null) {
+            activity.setPhaseName(request.getPhaseName());
         }
 
         activity.setUpdatedBy(currentUserService.getCurrentUserId());
@@ -334,6 +402,10 @@ public class ActivityService {
                 .activityId(activity.getActivityId())
                 .sessionId(activity.getSession() == null ? null : activity.getSession().getSessionId())
                 .actorId(activity.getActor() == null ? null : activity.getActor().getUserId())
+
+                .phaseCode(activity.getPhaseCode())
+                .phaseName(activity.getPhaseName())
+
                 .time(activity.getTime())
                 
                 // Mengirim hasil kalkulasi dinamis ke frontend
@@ -491,8 +563,8 @@ public class ActivityService {
             String activityDesc, 
             ActivityGenerationState generationState, 
             String type,
-            String PhaseName,
-            String PhaseCode
+            String phaseName,
+            String phaseCode
         ) {
             
         Activity activity = new Activity();
@@ -507,6 +579,8 @@ public class ActivityService {
         activity.setActivityDesc(activityDesc);
         activity.setActivityStatus(ActivityStatus.INQUEUE);
         activity.setStatus(EntityStatus.ACTIVE);
+        activity.setPhaseCode(phaseCode);
+        activity.setPhaseName(phaseName);
         activity.setCreatedBy(actorId);
         activity.setUpdatedBy(actorId);
         return activity;

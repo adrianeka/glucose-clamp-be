@@ -1,0 +1,1 @@
+DROP INDEX IF EXISTS uk_sampling_schedule_protocol_phase_minute;

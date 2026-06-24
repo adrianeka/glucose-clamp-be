@@ -14,8 +14,11 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 public class ActivityUpdateRequest {
+    @Schema(description = "ID session terkait", example = "2")
+    private Long sessionId;
+
     @Schema(description = "Waktu activity", example = "2026-05-30T10:52:00")
-    private LocalDateTime time;
+    private String startTime;
 
     @Schema(description = "Tipe activity", example = "BLOOD_RAW")
     private String activityType;
@@ -23,6 +26,12 @@ public class ActivityUpdateRequest {
     @Schema(description = "Deskripsi activity", example = "Pengambilan darah basal")
     private String activityDesc;
 
-    @Schema(description = "Status workflow activity", example = "IN_PROGRESS")
+    @Schema(description = "Phase Name", example = "Pengambilan darah basal")
+    private String phaseName;
+
+    @Schema(description = "Phase Code", example = "Pengambilan darah basal")
+    private String phaseCode;
+
+    @Schema(description = "Status workflow activity", example = "INQUEUE")
     private ActivityStatus activityStatus;
 }

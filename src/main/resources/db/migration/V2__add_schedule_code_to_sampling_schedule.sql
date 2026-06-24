@@ -1,8 +1,8 @@
 ALTER TABLE sampling_schedules
-ADD COLUMN schedule_code VARCHAR(255);
+ADD COLUMN IF NOT EXISTS schedule_code VARCHAR(255);
 
 ALTER TABLE sampling_schedules
-ADD COLUMN phase_duration Integer;
+ADD COLUMN IF NOT EXISTS phase_duration Integer;
 
 WITH numbered AS (
     SELECT

@@ -22,7 +22,7 @@ public class ActivityRequest {
 
     @Schema(description = "Waktu activity", example = "2026-05-30T10:52:00")
     @NotNull(message = "Kolom time tidak boleh kosong")
-    private LocalDateTime time;
+    private String startTime;
 
     @Schema(description = "Tipe activity", example = "BLOOD_RAW")
     @NotBlank(message = "Kolom activityType tidak boleh kosong")
@@ -31,6 +31,14 @@ public class ActivityRequest {
     @Schema(description = "Deskripsi activity", example = "Pengambilan darah basal")
     @NotBlank(message = "Kolom activityDesc tidak boleh kosong")
     private String activityDesc;
+
+    @Schema(description = "Phase Name", example = "Pengambilan darah basal")
+    @NotBlank(message = "Kolom phaseName tidak boleh kosong")
+    private String phaseName;
+
+    @Schema(description = "Phase Code", example = "Pengambilan darah basal")
+    @NotBlank(message = "Kolom phase code tidak boleh kosong")
+    private String phaseCode;
 
     @Schema(description = "Status workflow activity", example = "INQUEUE")
     private ActivityStatus activityStatus;

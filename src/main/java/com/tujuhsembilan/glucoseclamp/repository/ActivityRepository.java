@@ -5,10 +5,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Optional;
 import java.lang.Long;
+import java.time.LocalDateTime;
 
 @Repository
 public interface ActivityRepository extends JpaRepository<Activity, Long> {
@@ -32,4 +34,36 @@ public interface ActivityRepository extends JpaRepository<Activity, Long> {
     List<Activity> findByActorIdAndDeletedAtIsNull(Long actorId);
 
     Optional<Activity> findTopByDeletedAtIsNullOrderByActivityIdDesc();
+
+    @Query("""
+        SELECT COUNT(a) > 0
+        FROM Activity a
+        WHERE a.session.sessionId = :sessionId
+        AND EXTRACT(HOUR FROM a.time) = :hour
+        AND EXTRACT(MINUTE FROM a.time) = :minute
+        AND a.deletedAt IS NULL
+    """)
+    boolean existsSameHourMinute(
+            @Param("sessionId") Long sessionId,
+            @Param("hour") int hour,
+            @Param("minute") int minute
+    );
+
+    @Query("""
+        SELECT COUNT(a) > 0
+        FROM Activity a
+        WHERE a.session.sessionId = :sessionId
+        AND EXTRACT(HOUR FROM a.time) = :hour
+        AND EXTRACT(MINUTE FROM a.time) = :minute
+        AND a.activityId <> :activityId
+        AND a.deletedAt IS NULL
+    """)
+    boolean existsSameHourMinuteExcludeId(
+            @Param("sessionId") Long sessionId,
+            @Param("hour") int hour,
+            @Param("minute") int minute,
+            @Param("activityId") Long activityId
+    );
+
+    Optional<Activity> findFirstBySessionSessionIdAndDeletedAtIsNull(Long sessionId);
 }

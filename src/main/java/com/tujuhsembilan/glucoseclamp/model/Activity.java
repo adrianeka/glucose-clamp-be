@@ -43,6 +43,12 @@ public class Activity extends BaseEntity {
     
     @Column(name = "activity_desc", length = 500)
     private String activityDesc;
+
+    @Column(name = "phase_name")
+    private String phaseName;
+
+    @Column(name = "phase_code")
+    private String phaseCode;
     
     @Column(name = "activity_status", length = 50)
     @Enumerated(EnumType.STRING)

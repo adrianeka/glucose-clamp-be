@@ -438,15 +438,15 @@ public class ActivityService {
         if ("preparation".equals(phaseType)) {
             activities.add(buildActivity(session, actor, actorId, activityClockTime, 
                     phaseCode, "Pemeriksaan fisik awal (Vital Signs, Anthropometry, & Anamneses) pada fase " + phaseName, 
-                    generationState, "PREPARATION_CHECK"));
+                    generationState, "PREPARATION_CHECK", phaseName, phaseCode));
         } 
         else if ("finalization".equals(phaseType)) {
             activities.add(buildActivity(session, actor, actorId, activityClockTime, 
                     phaseCode, "Evaluasi penghentian infus Dextrose 10% (GIR kembali mendekati 2 mg/kgBB/menit)", 
-                    generationState, "DEXTROSE_STOP_CHECK"));
+                    generationState, "DEXTROSE_STOP_CHECK", phaseName, phaseCode));
             activities.add(buildActivity(session, actor, actorId, activityClockTime, 
                     phaseCode, "Partisipan makan, diobservasi, pemeriksaan klinis dan antropometri akhir pada fase " + phaseName, 
-                    generationState, "FINAL_OBSERVATION"));
+                    generationState, "FINAL_OBSERVATION", phaseName, phaseCode));
         } 
 
         else {
@@ -458,24 +458,24 @@ public class ActivityService {
             if (Boolean.TRUE.equals(detail.getInsulinInject())) {
                 int baselineNumber = generationState.nextBaselineNumber();
                 String basalCode = buildBaselineCode(minutesBeforeInjection);
-                activities.add(buildActivity(session, actor, actorId, activityClockTime, basalCode, buildBaselineSampleDescription(baselineNumber, minutesBeforeInjection), generationState, "BLOOD_DRAW"));
-                activities.add(buildActivity(session, actor, actorId, activityClockTime, "T0", buildInsulinInjectDescription(), generationState, "INSULIN_INJECTION"));
+                activities.add(buildActivity(session, actor, actorId, activityClockTime, basalCode, buildBaselineSampleDescription(baselineNumber, minutesBeforeInjection), generationState, "BLOOD_DRAW", phaseName, phaseCode));
+                activities.add(buildActivity(session, actor, actorId, activityClockTime, "T0", buildInsulinInjectDescription(), generationState, "INSULIN_INJECTION", phaseName, phaseCode));
             } else if (Boolean.TRUE.equals(detail.getBloodRaw())) {
                 if ("pre-insulin".equals(phaseType)) {
                     int baselineNumber = generationState.nextBaselineNumber();
                     String basalCode = buildBaselineCode(minutesBeforeInjection);
-                    activities.add(buildActivity(session, actor, actorId, activityClockTime, basalCode, buildBaselineSampleDescription(baselineNumber, minutesBeforeInjection), generationState, "BLOOD_DRAW"));
+                    activities.add(buildActivity(session, actor, actorId, activityClockTime, basalCode, buildBaselineSampleDescription(baselineNumber, minutesBeforeInjection), generationState, "BLOOD_DRAW", phaseName, phaseCode));
                 } else {
                     int glucoseNumber = generationState.nextGlucoseNumber();
                     String gdCode = "GD" + glucoseNumber;
-                    activities.add(buildActivity(session, actor, actorId, activityClockTime, gdCode, buildGlucoseSampleDescription(glucoseNumber), generationState, "BLOOD_DRAW"));
+                    activities.add(buildActivity(session, actor, actorId, activityClockTime, gdCode, buildGlucoseSampleDescription(glucoseNumber), generationState, "BLOOD_DRAW", phaseName, phaseCode));
                 }
             }
 
             if (Boolean.TRUE.equals(detail.getPkSampleCollection())) {
                 int pkcNumber = generationState.nextInsulinCheckNumber();
                 String pkcCode = "PKC-" + pkcNumber;
-                activities.add(buildActivity(session, actor, actorId, activityClockTime, pkcCode, buildInsulinCheckDescription(pkcNumber), generationState, "INSULIN_CHECK"));
+                activities.add(buildActivity(session, actor, actorId, activityClockTime, pkcCode, buildInsulinCheckDescription(pkcNumber), generationState, "INSULIN_CHECK", phaseName, phaseCode));
             }
         }
 
@@ -490,7 +490,10 @@ public class ActivityService {
             String codePart, 
             String activityDesc, 
             ActivityGenerationState generationState, 
-            String type) {
+            String type,
+            String PhaseName,
+            String PhaseCode
+        ) {
             
         Activity activity = new Activity();
         // int seq = generationState.nextActivitySequence();

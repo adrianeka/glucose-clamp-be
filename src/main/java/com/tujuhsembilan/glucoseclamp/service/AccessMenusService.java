@@ -4,6 +4,7 @@ import com.tujuhsembilan.glucoseclamp.dto.request.AccessMenuRequest;
 import com.tujuhsembilan.glucoseclamp.dto.request.AccessMenuStatusUpdateRequest;
 import com.tujuhsembilan.glucoseclamp.dto.request.AccessMenuUpdateRequest;
 import com.tujuhsembilan.glucoseclamp.dto.response.ApiDataResponseBuilder;
+import com.tujuhsembilan.glucoseclamp.dto.response.RoleAccessResponse;
 import com.tujuhsembilan.glucoseclamp.dto.response.AccessMenuResponse;
 import com.tujuhsembilan.glucoseclamp.model.AccessMenu;
 import com.tujuhsembilan.glucoseclamp.model.base.EntityStatus;
@@ -22,6 +23,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -39,6 +42,8 @@ public class AccessMenusService {
         return userDetails.getId();
     }
 
+    // Tambahkan @Transactional(readOnly = true) agar Lazy Loading relasi roleAccesses aman dijalankan
+    @Transactional(readOnly = true)
     public ApiDataResponseBuilder getAllAccessMenus(int pageNumber, int pageSize) {
         Pageable pageable = PageRequest.of(pageNumber - 1, pageSize);
         Page<AccessMenuResponse> result = accessMenuRepository.findAllActive(pageable).map(this::mapToResponse);
@@ -51,6 +56,7 @@ public class AccessMenusService {
                 .build();
     }
 
+    @Transactional(readOnly = true)
     public ApiDataResponseBuilder getAccessMenuById(Integer menuId) {
         AccessMenu menu = accessMenuRepository.findByIdAndDeletedAtIsNull(menuId).orElse(null);
 
@@ -70,6 +76,7 @@ public class AccessMenusService {
                 .build();
     }
 
+    @Transactional(readOnly = true)
     public ApiDataResponseBuilder searchAccessMenus(String keyword, int pageNumber, int pageSize) {
         if (keyword == null || keyword.trim().isEmpty()) {
             return ApiDataResponseBuilder.builder()
@@ -256,6 +263,25 @@ public class AccessMenusService {
         response.setStatus(menu.getStatus() == null ? null : menu.getStatus().name());
         response.setCreatedAt(menu.getCreatedAt() == null ? null : menu.getCreatedAt().toString());
         response.setUpdatedAt(menu.getUpdatedAt() == null ? null : menu.getUpdatedAt().toString());
+
+        // Map relasi roleAccesses secara manual ke properti 'permissions' di DTO
+        if (menu.getRoleAccesses() != null) {
+            List<RoleAccessResponse> roleResponses = menu.getRoleAccesses().stream()
+                .map(ra -> RoleAccessResponse.builder()
+                    .roleAccessId(ra.getRoleAccessId())
+                    .roleId(ra.getRole() != null ? ra.getRole().getRoleId() : null)
+                    .roleName(ra.getRole() != null ? ra.getRole().getRoleName() : null)
+                    .canView(ra.getCanView() != null ? ra.getCanView() : false)
+                    .canAdd(ra.getCanAdd() != null ? ra.getCanAdd() : false)
+                    .canEdit(ra.getCanEdit() != null ? ra.getCanEdit() : false)
+                    .canDelete(ra.getCanDelete() != null ? ra.getCanDelete() : false)
+                    .build()
+                )
+                .collect(Collectors.toList());
+            
+            response.setPermissions(roleResponses); // Diubah ke setPermissions
+        }
+
         return response;
     }
 }

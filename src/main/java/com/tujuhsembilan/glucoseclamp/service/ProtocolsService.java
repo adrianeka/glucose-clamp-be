@@ -3,6 +3,7 @@ package com.tujuhsembilan.glucoseclamp.service;
 import com.tujuhsembilan.glucoseclamp.dto.request.SamplingScheduleRequest;
 import com.tujuhsembilan.glucoseclamp.dto.request.ProtocolRequest;
 import com.tujuhsembilan.glucoseclamp.dto.response.ApiDataResponseBuilder;
+import com.tujuhsembilan.glucoseclamp.dto.response.ProtocolDropdownProjection;
 import com.tujuhsembilan.glucoseclamp.dto.response.SamplingScheduleResponse;
 import com.tujuhsembilan.glucoseclamp.dto.response.ProtocolResponse;
 import com.tujuhsembilan.glucoseclamp.dto.response.ProtocolResponseDetail;
@@ -72,6 +73,21 @@ public class ProtocolsService {
                 .statusCode(HttpStatus.OK.value())
                 .status(HttpStatus.OK)
                 .build();
+    }
+
+    public ApiDataResponseBuilder getProtocolsDropdown() {
+        try {
+            List<ProtocolDropdownProjection> protocols = protocolRepository.findAllDropdown();
+            return ApiDataResponseBuilder.builder()
+                    .status(HttpStatus.OK)
+                    .data(protocols)
+                    .build();
+        } catch (Exception e) {
+            return ApiDataResponseBuilder.builder()
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .message("Error fetching dropdown: " + e.getMessage())
+                    .build();
+        }
     }
 
     public ApiDataResponseBuilder getProtocolById(Long id) {

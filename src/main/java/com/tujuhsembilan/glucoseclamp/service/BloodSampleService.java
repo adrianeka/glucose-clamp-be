@@ -63,6 +63,14 @@ public class BloodSampleService {
         }
     }
 
+    private boolean isPkCOrCpeptide(String sampleType) {
+        if (sampleType == null) return false;
+        String trimmed = sampleType.trim();
+        return "C-Peptide".equalsIgnoreCase(trimmed) 
+            || "PK-C".equalsIgnoreCase(trimmed) 
+            || "PK".equalsIgnoreCase(trimmed);
+    }
+
     public ApiDataResponseBuilder getAllBloodSamples(int pageNumber, int pageSize) {
         Pageable pageable = PageRequest.of(Math.max(0, pageNumber - 1), pageSize);
         Page<BloodSampleResponse> result = bloodSampleRepository.findAllActive(pageable).map(this::mapToResponse);
@@ -92,44 +100,13 @@ public class BloodSampleService {
                 .build();
     }
 
-    // @Transactional
-    // public ApiDataResponseBuilder addBloodSample(BloodSampleRequest request) {
-    //     Activity activity = activityRepository.findById(request.getActivityId()).orElseThrow(() -> new DataNotFoundException("Activity tidak ditemukan"));
-
-    //     BloodSample bs = new BloodSample();
-    //     bs.setBloodSampleId(buildBloodSampleId(nextSequence()));
-    //     bs.setActivity(activity);
-    //     bs.setSampleCode(deriveSampleCode(activity.getActivityId()));
-    //     bs.setCollectedBy(request.getCollectedBy());
-    //     try {
-    //         if (request.getSampleTime() != null) bs.setSampleTime(LocalDateTime.parse(request.getSampleTime()));
-    //     } catch (DateTimeParseException ignored) {
-    //     }
-    //     bs.setSampleType(request.getSampleType());
-    //     bs.setTubeType(request.getTubeType());
-    //     bs.setVolumeMl(request.getVolumeMl());
-    //     Integer uid = getCurrentUserId();
-    //     bs.setCreatedBy(uid);
-    //     bs.setUpdatedBy(uid);
-    //     bs.setStatus(EntityStatus.ACTIVE);
-
-    //     bloodSampleRepository.save(bs);
-
-    //     return ApiDataResponseBuilder.builder()
-    //             .data(mapToResponse(bs))
-    //             .message("Blood sample berhasil ditambahkan")
-    //             .statusCode(HttpStatus.CREATED.value())
-    //             .status(HttpStatus.CREATED)
-    //             .build();
-    // }
-
-     @Transactional
+    @Transactional
     public ApiDataResponseBuilder addBloodSample(BloodSampleRequest request) {
-        // 1. Validasi tipe sampel C-Peptide
-        if ("C-Peptide".equalsIgnoreCase(request.getSampleType())) {
+        // 1. Validasi tipe sampel C-Peptide / PK-C
+        if (isPkCOrCpeptide(request.getSampleType())) {
             if (request.getLabResults() == null || request.getLabResults().size() < 2) {
                 return ApiDataResponseBuilder.builder()
-                        .message("Untuk tipe sampel C-Peptide, wajib menyertakan minimal 2 lab result")
+                        .message("Untuk tipe sampel C-Peptide / PK-C, wajib menyertakan minimal 2 lab result")
                         .statusCode(HttpStatus.BAD_REQUEST.value())
                         .status(HttpStatus.BAD_REQUEST)
                         .build();
@@ -199,7 +176,6 @@ public class BloodSampleService {
                     }
                 }
             } else {
-                // Untuk non-glucose (misal C-Peptide), range di-set null atau sesuai kebutuhan default sistem Anda
                 calculatedFlag = null; 
             }
 
@@ -224,8 +200,8 @@ public class BloodSampleService {
             }
         }
 
-        // 5. Simpan ke Infusion Monitoring
-        if (session != null) {
+        // 5. Simpan ke Infusion Monitoring (Hanya jika BUKAN tipe PK-C / C-Peptide)
+        if (session != null && !isPkCOrCpeptide(request.getSampleType())) {
             InfusionMonitoring im = new InfusionMonitoring();
             im.setInfusionId("INF-" + bsId);
             im.setSession(session);
@@ -245,7 +221,6 @@ public class BloodSampleService {
             activityService.completeActivity(activity.getActivityId());
         } catch (Exception e) {
             log.error("Gagal mengubah status aktivitas {} menjadi complete: {}", activity.getActivityId(), e.getMessage());
-            // Dilempar kembali agar transaksi database melakukan rollback jika terjadi kesalahan fatal pada pembaruan aktivitas
             throw e; 
         }
 
@@ -258,7 +233,6 @@ public class BloodSampleService {
                 );
                 sseService.sendEvent(session.getSessionId(), "BLOOD_DRAW_ADDED", ssePayload);
             } catch (Exception e) {
-                // Dibungkus try-catch tersendiri agar kegagalan SSE/jaringan tidak membatalkan transaksi utama database
                 log.warn("Gagal mengirimkan event SSE untuk aktivitas {}: {}", activity.getActivityId(), e.getMessage());
             }
         }
@@ -287,11 +261,11 @@ public class BloodSampleService {
         Integer uid = getCurrentUserId();
         LocalDateTime now = LocalDateTime.now();
 
-        // 2. Validasi khusus C-Peptide
-        if ("C-Peptide".equalsIgnoreCase(request.getSampleType())) {
+        // 2. Validasi khusus C-Peptide / PK-C
+        if (isPkCOrCpeptide(request.getSampleType())) {
             if (request.getLabResults() == null || request.getLabResults().size() < 2) {
                 return ApiDataResponseBuilder.builder()
-                        .message("Untuk tipe sampel C-Peptide, wajib menyertakan minimal 2 lab result")
+                        .message("Untuk tipe sampel C-Peptide / PK-C, wajib menyertakan minimal 2 lab result")
                         .statusCode(HttpStatus.BAD_REQUEST.value())
                         .status(HttpStatus.BAD_REQUEST)
                         .build();
@@ -313,7 +287,6 @@ public class BloodSampleService {
         bloodSampleRepository.save(bs);
 
         // 4. Sinkronisasi Lab Results (Sequential Sync)
-        // Ambil data lab result aktif yang ada di DB saat ini untuk sampel ini
         List<LabResult> existingLrs = labResultRepository.findByBloodSampleAndDeletedAtIsNull(bs); 
         List<BloodSampleRequest.LabResultDetails> newLrs = request.getLabResults() != null ? request.getLabResults() : new java.util.ArrayList<>();
 
@@ -324,7 +297,6 @@ public class BloodSampleService {
         int maxCount = Math.max(existingLrs.size(), newLrs.size());
         for (int i = 0; i < maxCount; i++) {
             if (i < newLrs.size()) {
-                // A. Ambil nilai referensi & flag abnormal otomatis
                 BloodSampleRequest.LabResultDetails lrDetail = newLrs.get(i);
                 java.math.BigDecimal refMin = null;
                 java.math.BigDecimal refMax = null;
@@ -356,7 +328,6 @@ public class BloodSampleService {
                 }
 
                 if (i < existingLrs.size()) {
-                    // UPDATE data lab yang sudah ada
                     LabResult existingLr = existingLrs.get(i);
                     existingLr.setParameterName(lrDetail.getParameterName());
                     existingLr.setValue(lrDetail.getValue());
@@ -368,7 +339,6 @@ public class BloodSampleService {
                     existingLr.setUpdatedAt(now);
                     labResultRepository.save(existingLr);
                 } else {
-                    // INSERT data lab baru (karena inputan FE bertambah)
                     LabResult newLr = LabResult.builder()
                             .labResultId(String.format("LR-%s-%d", bs.getBloodSampleId(), i + 1))
                             .bloodSample(bs)
@@ -391,7 +361,6 @@ public class BloodSampleService {
                     glucoseValueForInfusion = lrDetail.getValue();
                 }
             } else {
-                // DELETE sisa data lab lama yang tidak dikirim lagi oleh FE
                 LabResult lrToDelete = existingLrs.get(i);
                 lrToDelete.setDeletedAt(now);
                 lrToDelete.setDeletedBy(uid);
@@ -400,28 +369,29 @@ public class BloodSampleService {
             }
         }
 
-        // 5. Update data Infusion Monitoring yang terkait
-        Optional<InfusionMonitoring> imOpt = infusionMonitoringRepository.findById("INF-" + bs.getBloodSampleId());
-        if (imOpt.isPresent()) {
-            InfusionMonitoring im = imOpt.get();
-            im.setGlucoseValue(glucoseValueForInfusion);
-            im.setUpdatedBy(uid);
-            im.setUpdatedAt(now);
-            infusionMonitoringRepository.save(im);
+        // 5. Update data Infusion Monitoring yang terkait (Hanya jika BUKAN tipe PK-C / C-Peptide)
+        if (!isPkCOrCpeptide(request.getSampleType())) {
+            Optional<InfusionMonitoring> imOpt = infusionMonitoringRepository.findById("INF-" + bs.getBloodSampleId());
+            if (imOpt.isPresent()) {
+                InfusionMonitoring im = imOpt.get();
+                im.setGlucoseValue(glucoseValueForInfusion);
+                im.setUpdatedBy(uid);
+                im.setUpdatedAt(now);
+                infusionMonitoringRepository.save(im);
+            }
         }
 
-        // 6. Jaring pengaman untuk memastikan aktivitas terkait berstatus COMPLETE
+        // 6. Jaring pengaman status COMPLETE
         if (bs.getActivity() != null) {
             try {
                 activityService.completeActivity(bs.getActivity().getActivityId());
             } catch (Exception e) {
                 log.error("Gagal menyinkronkan status aktivitas {} saat update blood sample: {}", 
                     bs.getActivity().getActivityId(), e.getMessage());
-                // Dapat dilempar kembali (throw e) jika ingin membatalkan transaksi saat aktivitas gagal diperbarui
             }
         }
 
-        // 7. Mengirimkan Event Real-Time melalui SSE untuk memberi tahu adanya pembaruan data
+        // 7. Event Real-Time SSE
         if (bs.getActivity() != null && bs.getActivity().getSession() != null) {
             Session session = bs.getActivity().getSession();
             if (session.getSessionId() != null) {
@@ -430,7 +400,6 @@ public class BloodSampleService {
                         "activityId", bs.getActivity().getActivityId(),
                         "activityName", bs.getActivity().getActivityType() != null ? bs.getActivity().getActivityType() : ""
                     );
-                    // Menggunakan nama event "BLOOD_DRAW_UPDATED" agar frontend dapat membedakan antara data baru dan perubahan data
                     sseService.sendEvent(session.getSessionId(), "BLOOD_DRAW_UPDATED", ssePayload);
                 } catch (Exception e) {
                     log.warn("Gagal mengirimkan event SSE update untuk aktivitas {}: {}", 

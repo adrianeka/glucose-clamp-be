@@ -1,6 +1,7 @@
 package com.tujuhsembilan.glucoseclamp.controller.samplingschedule;
 
 import com.tujuhsembilan.glucoseclamp.dto.request.SamplingScheduleRequest;
+import com.tujuhsembilan.glucoseclamp.dto.request.BulkUpdateSamplingScheduleRequest;
 import com.tujuhsembilan.glucoseclamp.dto.response.ApiDataResponseBuilder;
 import com.tujuhsembilan.glucoseclamp.service.SamplingSchedulesService;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -70,6 +71,22 @@ public class SamplingSchedulesController {
         return ResponseEntity.status(result.getStatus()).body(result);
     }
 
+    @PutMapping(
+            path = "/bulk",
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    public ResponseEntity<Object> bulkUpdateSamplingSchedules(
+            @Valid @RequestBody BulkUpdateSamplingScheduleRequest request
+    ) {
+        ApiDataResponseBuilder result =
+                samplingSchedulesService.bulkUpdateSamplingSchedules(request);
+
+        return ResponseEntity
+                .status(result.getStatus())
+                .body(result);
+    }
+
     @PatchMapping(path = "/{detailId}/status", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Object> updateSamplingScheduleStatus(
             @PathVariable Long detailId,
@@ -79,9 +96,9 @@ public class SamplingSchedulesController {
         return ResponseEntity.status(result.getStatus()).body(result);
     }
 
-    @DeleteMapping(path = "/{detailId}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Object> deleteSamplingSchedule(@PathVariable Long detailId) {
-        ApiDataResponseBuilder result = samplingSchedulesService.deleteSamplingSchedule(detailId);
+    @DeleteMapping(path = "/{protocolId}/{phaseCode}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Object> deleteSamplingSchedule(@PathVariable String phaseCode, @PathVariable Long protocolId) {
+        ApiDataResponseBuilder result = samplingSchedulesService.deleteSamplingSchedule(protocolId,phaseCode);
         return ResponseEntity.status(result.getStatus()).body(result);
     }
 }

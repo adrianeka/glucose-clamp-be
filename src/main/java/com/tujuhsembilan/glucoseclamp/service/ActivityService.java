@@ -2,6 +2,7 @@ package com.tujuhsembilan.glucoseclamp.service;
 
 import com.tujuhsembilan.glucoseclamp.dto.request.ActivityRequest;
 import com.tujuhsembilan.glucoseclamp.dto.request.ActivityStatusUpdateRequest;
+import com.tujuhsembilan.glucoseclamp.dto.request.StatusActivityUpdateRequest;
 import com.tujuhsembilan.glucoseclamp.dto.request.ActivityUpdateRequest;
 import com.tujuhsembilan.glucoseclamp.dto.response.ActivityResponse;
 import com.tujuhsembilan.glucoseclamp.dto.response.ApiDataResponseBuilder;
@@ -163,6 +164,24 @@ public class ActivityService {
         activity.setCreatedBy(currentUserService.getCurrentUserId());
         activity.setUpdatedBy(currentUserService.getCurrentUserId());
 
+        Activity previousActivity = activityRepository
+                .findFirstBySessionSessionIdAndTimeBeforeAndDeletedAtIsNullOrderByTimeDesc(
+                        request.getSessionId(),
+                        activityTime
+                )
+                .orElse(null);
+
+        Integer minute = 0;
+
+        if (previousActivity != null) {
+            minute = (int) ChronoUnit.MINUTES.between(
+                    previousActivity.getTime(),
+                    activityTime
+            );
+        }
+
+        activity.setMinute(minute);
+
         activityRepository.save(activity);
 
         syncSessionStatus(session);
@@ -231,6 +250,27 @@ public class ActivityService {
         return ApiDataResponseBuilder.builder()
                 .data(mapToResponse(activity))
                 .message("Activity berhasil diupdate")
+                .statusCode(HttpStatus.OK.value())
+                .status(HttpStatus.OK)
+                .build();
+    }
+
+    @Transactional
+    public ApiDataResponseBuilder updateStatusActivity(
+            Long activityId,
+            StatusActivityUpdateRequest request) {
+
+        Activity activity = activityRepository.findById(activityId)
+                .orElseThrow(() -> new DataNotFoundException(
+                        "Tidak ditemukan activity referensi pada session"));
+
+        activity.setActivityStatus(request.getActivityStatus());
+
+        activityRepository.save(activity);
+
+       return ApiDataResponseBuilder.builder()
+                .data(mapToResponse(activity))
+                .message("Status activity berhasil diupdate")
                 .statusCode(HttpStatus.OK.value())
                 .status(HttpStatus.OK)
                 .build();

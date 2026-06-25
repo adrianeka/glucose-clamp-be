@@ -75,7 +75,7 @@ public class LabResultsService {
                 .build();
     }
 
-    public ApiDataResponseBuilder getLabResultById(String id) {
+    public ApiDataResponseBuilder getLabResultById(Long id) { // Mengubah String ke Long
         LabResult labResult = labResultRepository.findByIdAndDeletedAtIsNull(id).orElse(null);
         if (labResult == null) {
             return ApiDataResponseBuilder.builder()
@@ -95,7 +95,8 @@ public class LabResultsService {
 
     @Transactional
     public ApiDataResponseBuilder addLabResult(LabResultRequest request) {
-        if (labResultRepository.findById(request.getLabResultId()).isPresent()) {
+        // Melakukan validasi ID jika disertakan di dalam request body
+        if (request.getLabResultId() != null && labResultRepository.findById(request.getLabResultId()).isPresent()) {
             return ApiDataResponseBuilder.builder()
                     .message("Lab Result ID sudah digunakan")
                     .statusCode(HttpStatus.BAD_REQUEST.value())
@@ -140,7 +141,6 @@ public class LabResultsService {
         LocalDateTime now = LocalDateTime.now();
 
         LabResult labResult = LabResult.builder()
-                .labResultId(request.getLabResultId())
                 .bloodSample(bloodSampleOpt.get())
                 .parameterName(request.getParameterName())
                 .verifiedByUser(verifier)
@@ -168,7 +168,7 @@ public class LabResultsService {
     }
 
     @Transactional
-    public ApiDataResponseBuilder updateLabResult(String id, LabResultRequest request) {
+    public ApiDataResponseBuilder updateLabResult(Long id, LabResultRequest request) { // Mengubah String ke Long
         Optional<LabResult> opt = labResultRepository.findByIdAndDeletedAtIsNull(id);
         if (opt.isEmpty()) {
             return ApiDataResponseBuilder.builder()
@@ -240,7 +240,7 @@ public class LabResultsService {
     }
 
     @Transactional
-    public ApiDataResponseBuilder updateLabResultStatus(String id, String statusStr) {
+    public ApiDataResponseBuilder updateLabResultStatus(Long id, String statusStr) { // Mengubah String ke Long
         Optional<LabResult> opt = labResultRepository.findById(id);
         if (opt.isEmpty() || EntityStatus.DELETED.equals(opt.get().getStatus())) {
             return ApiDataResponseBuilder.builder()
@@ -285,7 +285,7 @@ public class LabResultsService {
     }
 
     @Transactional
-    public ApiDataResponseBuilder deleteLabResult(String id) {
+    public ApiDataResponseBuilder deleteLabResult(Long id) { // Mengubah String ke Long
         Optional<LabResult> opt = labResultRepository.findById(id);
         if (opt.isEmpty() || EntityStatus.DELETED.equals(opt.get().getStatus())) {
             return ApiDataResponseBuilder.builder()
@@ -347,8 +347,6 @@ public class LabResultsService {
 
     public LabResultResponse mapToResponse(LabResult lr) {
         return LabResultResponse.builder()
-                .labResultId(lr.getLabResultId())
-                .bloodSampleId(lr.getBloodSample() != null ? lr.getBloodSample().getBloodSampleId() : null)
                 .parameterName(lr.getParameterName())
                 .verifiedBy(lr.getVerifiedByUser() != null ? lr.getVerifiedByUser().getUserId() : null)
                 .value(lr.getValue())

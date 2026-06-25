@@ -2,7 +2,6 @@ package com.tujuhsembilan.glucoseclamp.service;
 
 import com.tujuhsembilan.glucoseclamp.dto.request.BloodSampleRequest;
 import com.tujuhsembilan.glucoseclamp.dto.request.BloodSampleStatusUpdateRequest;
-import com.tujuhsembilan.glucoseclamp.dto.request.BloodSampleUpdateRequest;
 import com.tujuhsembilan.glucoseclamp.dto.response.ApiDataResponseBuilder;
 import com.tujuhsembilan.glucoseclamp.dto.response.BloodSampleResponse;
 import com.tujuhsembilan.glucoseclamp.exception.classes.DataNotFoundException;
@@ -31,7 +30,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -70,6 +68,14 @@ public class BloodSampleService {
             || "PK-C".equalsIgnoreCase(trimmed) 
             || "PK".equalsIgnoreCase(trimmed);
     }
+    
+    private boolean isBaselineActivity(Activity activity) {
+        if (activity == null || activity.getPhaseCode() == null) {
+            return false;
+        }
+        String phaseCode = activity.getPhaseCode();
+        return phaseCode.contains("BASE");
+    }
 
     public ApiDataResponseBuilder getAllBloodSamples(int pageNumber, int pageSize) {
         Pageable pageable = PageRequest.of(Math.max(0, pageNumber - 1), pageSize);
@@ -83,7 +89,7 @@ public class BloodSampleService {
                 .build();
     }
 
-    public ApiDataResponseBuilder getBloodSampleById(String id) {
+    public ApiDataResponseBuilder getBloodSampleById(Long id) {
         BloodSample bs = bloodSampleRepository.findByBloodSampleIdAndDeletedAtIsNull(id).orElse(null);
         if (bs == null) {
             return ApiDataResponseBuilder.builder()
@@ -102,7 +108,6 @@ public class BloodSampleService {
 
     @Transactional
     public ApiDataResponseBuilder addBloodSample(BloodSampleRequest request) {
-        // 1. Validasi tipe sampel C-Peptide / PK-C
         if (isPkCOrCpeptide(request.getSampleType())) {
             if (request.getLabResults() == null || request.getLabResults().size() < 2) {
                 return ApiDataResponseBuilder.builder()
@@ -113,22 +118,30 @@ public class BloodSampleService {
             }
         }
 
-        // 2. Cari Activity, Session, dan Protocol
         Activity activity = activityRepository.findById(request.getActivityId())
                 .orElseThrow(() -> new DataNotFoundException("Activity tidak ditemukan"));
         
+        boolean isDuplicate = bloodSampleRepository
+                .existsByActivityAndStatusAndDeletedAtIsNull(activity, EntityStatus.ACTIVE);
+        
+        if (isDuplicate) {
+            return ApiDataResponseBuilder.builder()
+                    .message("Sampel darah untuk aktivitas ini sudah terekam sebelumnya.")
+                    .statusCode(HttpStatus.BAD_REQUEST.value())
+                    .status(HttpStatus.BAD_REQUEST)
+                    .build();
+        }
+
         Session session = activity.getSession();
         Protocol protocol = (session != null) ? session.getProtocol() : null;
         
         Integer uid = getCurrentUserId();
         LocalDateTime now = LocalDateTime.now();
 
-        // 3. Simpan Blood Sample
+        // Simpan Blood Sample (ID otomatis digenerate database)
         BloodSample bs = new BloodSample();
-        String bsId = buildBloodSampleId(nextSequence());
-        bs.setBloodSampleId(bsId);
         bs.setActivity(activity);
-        bs.setSampleCode(deriveSampleCode(activity.getActivityId()));
+        bs.setSampleCode(deriveSampleCode(activity)); 
         bs.setCollectedBy(request.getCollectedBy());
         if (request.getSampleTime() != null) {
             try {
@@ -143,8 +156,6 @@ public class BloodSampleService {
         bs.setStatus(EntityStatus.ACTIVE);
         bloodSampleRepository.save(bs);
 
-        // 4. Simpan Lab Results dengan penentuan rentang referensi dan abnormal flag otomatis
-        int index = 1;
         java.math.BigDecimal glucoseValueForInfusion = null;
 
         for (BloodSampleRequest.LabResultDetails lrDetail : request.getLabResults()) {
@@ -152,7 +163,6 @@ public class BloodSampleService {
             java.math.BigDecimal refMax = null;
             String calculatedFlag = "NORMAL";
 
-            // Jika parameter adalah Glucose, ambil data batas dari Protocol
             if (protocol != null && "Glucose".equalsIgnoreCase(lrDetail.getParameterName())) {
                 refMin = protocol.getGlucoseTargetMin();
                 refMax = protocol.getGlucoseTargetMax();
@@ -162,7 +172,6 @@ public class BloodSampleService {
                     java.math.BigDecimal minExtreme = protocol.getGlucoseTargetMinExtreme();
                     java.math.BigDecimal maxExtreme = protocol.getGlucoseTargetMaxExtreme();
 
-                    // Logika penentuan Abnormal Flag berdasarkan batas Protocol
                     if (minExtreme != null && val.compareTo(minExtreme) < 0) {
                         calculatedFlag = "EXTREME_LOW";
                     } else if (refMin != null && val.compareTo(refMin) < 0) {
@@ -179,15 +188,15 @@ public class BloodSampleService {
                 calculatedFlag = null; 
             }
 
+            // Simpan LabResult (ID otomatis digenerate database)
             LabResult lr = LabResult.builder()
-                    .labResultId(String.format("LR-%s-%d", bsId, index++))
                     .bloodSample(bs)
                     .parameterName(lrDetail.getParameterName())
                     .value(lrDetail.getValue())
-                    .referenceRangeMin(refMin) // Otomatis terisi dari Protocol
-                    .referenceRangeMax(refMax) // Otomatis terisi dari Protocol
+                    .referenceRangeMin(refMin)
+                    .referenceRangeMax(refMax)
                     .unit(lrDetail.getUnit() != null ? lrDetail.getUnit() : (protocol != null && "Glucose".equalsIgnoreCase(lrDetail.getParameterName()) ? protocol.getGlucoseTargetUnit() : null))
-                    .abnormalFlag(calculatedFlag) // Otomatis terhitung di BE
+                    .abnormalFlag(calculatedFlag)
                     .build();
             
             lr.setCreatedBy(uid);
@@ -200,20 +209,20 @@ public class BloodSampleService {
             }
         }
 
-        // 5. Simpan ke Infusion Monitoring (Hanya jika BUKAN tipe PK-C / C-Peptide)
-        if (session != null && !isPkCOrCpeptide(request.getSampleType())) {
+        if (session != null && !isPkCOrCpeptide(request.getSampleType()) && !isBaselineActivity(activity)) {
             InfusionMonitoring im = new InfusionMonitoring();
-            im.setInfusionId("INF-" + bsId);
+            im.setInfusionId(bs.getBloodSampleId()); // Menggunakan ID numerik yang sama dengan Blood Sample
             im.setSession(session);
             im.setTime(now);
             im.setGlucoseValue(glucoseValueForInfusion);
 
             BigDecimal calculatedGir = infusionMonitoringService.calculateGir(session, glucoseValueForInfusion);
-            im.setRateMinKg(calculatedGir);
-            im.setMonitoredBy(uid);
+            im.setRecommendedGir(calculatedGir);
+            
+            im.setMonitoredBy(0); 
             im.setStatus(EntityStatus.ACTIVE);
-            im.setCreatedBy(uid);
-            im.setUpdatedBy(uid);
+            im.setCreatedBy(0); 
+            im.setUpdatedBy(0);
             infusionMonitoringRepository.save(im);
         }
 
@@ -224,7 +233,6 @@ public class BloodSampleService {
             throw e; 
         }
 
-        // 7. Mengirimkan Event Real-Time melalui SSE
         if (session != null && session.getSessionId() != null) {
             try {
                 Map<String, Object> ssePayload = Map.of(
@@ -246,8 +254,7 @@ public class BloodSampleService {
     }
 
     @Transactional
-    public ApiDataResponseBuilder updateBloodSample(String id, BloodSampleRequest request) {
-        // 1. Cari Blood Sample yang akan di-update
+    public ApiDataResponseBuilder updateBloodSample(Long id, BloodSampleRequest request) {
         Optional<BloodSample> opt = bloodSampleRepository.findById(id);
         if (opt.isEmpty() || EntityStatus.DELETED.equals(opt.get().getStatus())) {
             return ApiDataResponseBuilder.builder()
@@ -261,7 +268,6 @@ public class BloodSampleService {
         Integer uid = getCurrentUserId();
         LocalDateTime now = LocalDateTime.now();
 
-        // 2. Validasi khusus C-Peptide / PK-C
         if (isPkCOrCpeptide(request.getSampleType())) {
             if (request.getLabResults() == null || request.getLabResults().size() < 2) {
                 return ApiDataResponseBuilder.builder()
@@ -272,8 +278,8 @@ public class BloodSampleService {
             }
         }
 
-        // 3. Update data utama Blood Sample
-        bs.setSampleCode(deriveSampleCode(bs.getActivity() == null ? null : bs.getActivity().getActivityId()));
+        // Update data utama Blood Sample
+        bs.setSampleCode(deriveSampleCode(bs.getActivity())); 
         if (request.getCollectedBy() != null) bs.setCollectedBy(request.getCollectedBy());
         if (request.getSampleTime() != null) {
             try {
@@ -286,7 +292,6 @@ public class BloodSampleService {
         bs.setUpdatedBy(uid);
         bloodSampleRepository.save(bs);
 
-        // 4. Sinkronisasi Lab Results (Sequential Sync)
         List<LabResult> existingLrs = labResultRepository.findByBloodSampleAndDeletedAtIsNull(bs); 
         List<BloodSampleRequest.LabResultDetails> newLrs = request.getLabResults() != null ? request.getLabResults() : new java.util.ArrayList<>();
 
@@ -340,7 +345,6 @@ public class BloodSampleService {
                     labResultRepository.save(existingLr);
                 } else {
                     LabResult newLr = LabResult.builder()
-                            .labResultId(String.format("LR-%s-%d", bs.getBloodSampleId(), i + 1))
                             .bloodSample(bs)
                             .parameterName(lrDetail.getParameterName())
                             .value(lrDetail.getValue())
@@ -369,19 +373,21 @@ public class BloodSampleService {
             }
         }
 
-        // 5. Update data Infusion Monitoring yang terkait (Hanya jika BUKAN tipe PK-C / C-Peptide)
-        if (!isPkCOrCpeptide(request.getSampleType())) {
-            Optional<InfusionMonitoring> imOpt = infusionMonitoringRepository.findById("INF-" + bs.getBloodSampleId());
+        if (!isPkCOrCpeptide(request.getSampleType()) && !isBaselineActivity(bs.getActivity())) {
+            Optional<InfusionMonitoring> imOpt = infusionMonitoringRepository.findById(bs.getBloodSampleId()); // Cari berdasarkan Long ID
             if (imOpt.isPresent()) {
                 InfusionMonitoring im = imOpt.get();
                 im.setGlucoseValue(glucoseValueForInfusion);
+                
+                BigDecimal calculatedGir = infusionMonitoringService.calculateGir(bs.getActivity().getSession(), glucoseValueForInfusion);
+                im.setRecommendedGir(calculatedGir);
+
                 im.setUpdatedBy(uid);
                 im.setUpdatedAt(now);
                 infusionMonitoringRepository.save(im);
             }
         }
 
-        // 6. Jaring pengaman status COMPLETE
         if (bs.getActivity() != null) {
             try {
                 activityService.completeActivity(bs.getActivity().getActivityId());
@@ -391,7 +397,6 @@ public class BloodSampleService {
             }
         }
 
-        // 7. Event Real-Time SSE
         if (bs.getActivity() != null && bs.getActivity().getSession() != null) {
             Session session = bs.getActivity().getSession();
             if (session.getSessionId() != null) {
@@ -417,7 +422,7 @@ public class BloodSampleService {
     }
 
     @Transactional
-    public ApiDataResponseBuilder deleteBloodSample(String id) {
+    public ApiDataResponseBuilder deleteBloodSample(Long id) { // Mengubah String ke Long
         Optional<BloodSample> opt = bloodSampleRepository.findById(id);
         if (opt.isEmpty() || EntityStatus.DELETED.equals(opt.get().getStatus())) {
             return ApiDataResponseBuilder.builder()
@@ -444,7 +449,7 @@ public class BloodSampleService {
     }
 
     @Transactional
-    public ApiDataResponseBuilder updateBloodSampleStatus(String id, BloodSampleStatusUpdateRequest request) {
+    public ApiDataResponseBuilder updateBloodSampleStatus(Long id, BloodSampleStatusUpdateRequest request) { // Mengubah String ke Long
         Optional<BloodSample> opt = bloodSampleRepository.findById(id);
         if (opt.isEmpty() || EntityStatus.DELETED.equals(opt.get().getStatus())) {
             return ApiDataResponseBuilder.builder()
@@ -501,29 +506,28 @@ public class BloodSampleService {
         return resp;
     }
 
-    private int nextSequence() {
-        try {
-            Optional<BloodSample> lastOpt = bloodSampleRepository.findTopByDeletedAtIsNullOrderByBloodSampleIdDesc();
-            if (lastOpt.isPresent()) {
-                String lastId = lastOpt.get().getBloodSampleId();
-                if (lastId != null && lastId.startsWith("BS-")) {
-                    String num = lastId.substring(3).replaceAll("[^0-9]", "");
-                    if (!num.isBlank()) return Integer.parseInt(num) + 1;
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace(); 
-        }
-        return 1;
-    }
+    // private int nextSequence() {
+    //     try {
+    //         Optional<BloodSample> lastOpt = bloodSampleRepository.findTopByDeletedAtIsNullOrderByBloodSampleIdDesc();
+    //         if (lastOpt.isPresent()) {
+    //             String lastId = lastOpt.get().getBloodSampleId();
+    //             if (lastId != null && lastId.startsWith("BS-")) {
+    //                 String num = lastId.substring(3).replaceAll("[^0-9]", "");
+    //                 if (!num.isBlank()) return Integer.parseInt(num) + 1;
+    //             }
+    //         }
+    //     } catch (Exception e) {
+    //         e.printStackTrace(); 
+    //     }
+    //     return 1;
+    // }
 
     private String buildBloodSampleId(int seq) {
         return String.format("BS-%03d", seq);
     }
 
-    private String deriveSampleCode(Long activityId) {
-        return activityId == null
-                ? null
-                : "SA-" + activityId;
+    // Metode diubah untuk mengambil data scheduleCode dari objek Activity
+    private String deriveSampleCode(Activity activity) {
+        return activity == null ? null : activity.getScheduleCode();
     }
 }

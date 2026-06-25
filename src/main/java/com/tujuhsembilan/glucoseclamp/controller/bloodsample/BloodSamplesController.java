@@ -33,7 +33,7 @@ public class BloodSamplesController {
     }
 
     @GetMapping(path = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Object> getById(@PathVariable String id) {
+    public ResponseEntity<Object> getById(@PathVariable Long id) {
         ApiDataResponseBuilder result = bloodSampleService.getBloodSampleById(id);
         return ResponseEntity.status(result.getStatus()).body(result);
     }
@@ -46,7 +46,7 @@ public class BloodSamplesController {
 
     @PutMapping(path = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Object> update(
-            @PathVariable String id, 
+            @PathVariable Long id, 
             @Valid @RequestBody BloodSampleRequest request
     ) {
         ApiDataResponseBuilder result = bloodSampleService.updateBloodSample(id, request);
@@ -54,13 +54,13 @@ public class BloodSamplesController {
     }
 
     @PatchMapping(path = "/{id}/status", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Object> updateStatus(@PathVariable String id, @Valid @RequestBody BloodSampleStatusUpdateRequest request) {
+    public ResponseEntity<Object> updateStatus(@PathVariable Long id, @Valid @RequestBody BloodSampleStatusUpdateRequest request) {
         ApiDataResponseBuilder result = bloodSampleService.updateBloodSampleStatus(id, request);
         return ResponseEntity.status(result.getStatus()).body(result);
     }
 
     @DeleteMapping(path = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Object> delete(@PathVariable String id) {
+    public ResponseEntity<Object> delete(@PathVariable Long id) {
         ApiDataResponseBuilder result = bloodSampleService.deleteBloodSample(id);
         return ResponseEntity.status(result.getStatus()).body(result);
     }

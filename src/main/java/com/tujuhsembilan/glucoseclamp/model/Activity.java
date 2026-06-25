@@ -49,6 +49,12 @@ public class Activity extends BaseEntity {
 
     @Column(name = "phase_code")
     private String phaseCode;
+
+    @Column(name = "schedule_code")
+    private String scheduleCode;
+
+    @Column(name = "minute")
+    private Integer minute;
     
     @Column(name = "activity_status", length = 50)
     @Enumerated(EnumType.STRING)

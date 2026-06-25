@@ -29,14 +29,15 @@ public class InfusionMonitoringsController {
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Object> getAll(
             @RequestParam(defaultValue = "1") int pageNumber,
-            @RequestParam(defaultValue = "10") int pageSize
+            @RequestParam(defaultValue = "10") int pageSize,
+            @RequestParam(required = false) Boolean includeSystemGenerated
     ) {
-        ApiDataResponseBuilder result = infusionMonitoringService.getAllInfusionMonitorings(pageNumber, pageSize);
+        ApiDataResponseBuilder result = infusionMonitoringService.getAllInfusionMonitorings(pageNumber, pageSize, includeSystemGenerated);
         return ResponseEntity.status(result.getStatus()).body(result);
     }
 
     @GetMapping(path = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Object> getById(@PathVariable String id) {
+    public ResponseEntity<Object> getById(@PathVariable Long id) {
         ApiDataResponseBuilder result = infusionMonitoringService.getInfusionMonitoringById(id);
         return ResponseEntity.status(result.getStatus()).body(result);
     }
@@ -48,19 +49,19 @@ public class InfusionMonitoringsController {
     }
 
     @PutMapping(path = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Object> update(@PathVariable String id, @Valid @RequestBody InfusionMonitoringUpdateRequest request) {
+    public ResponseEntity<Object> update(@PathVariable Long id, @Valid @RequestBody InfusionMonitoringUpdateRequest request) {
         ApiDataResponseBuilder result = infusionMonitoringService.updateInfusionMonitoring(id, request);
         return ResponseEntity.status(result.getStatus()).body(result);
     }
 
     @PutMapping(path = "/{id}/status", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Object> updateStatus(@PathVariable String id, @Valid @RequestBody InfusionMonitoringStatusUpdateRequest request) {
+    public ResponseEntity<Object> updateStatus(@PathVariable Long id, @Valid @RequestBody InfusionMonitoringStatusUpdateRequest request) {
         ApiDataResponseBuilder result = infusionMonitoringService.updateInfusionMonitoringStatus(id, request);
         return ResponseEntity.status(result.getStatus()).body(result);
     }
 
     @DeleteMapping(path = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Object> delete(@PathVariable String id) {
+    public ResponseEntity<Object> delete(@PathVariable Long id) {
         ApiDataResponseBuilder result = infusionMonitoringService.deleteInfusionMonitoring(id);
         return ResponseEntity.status(result.getStatus()).body(result);
     }
@@ -69,9 +70,10 @@ public class InfusionMonitoringsController {
     public ResponseEntity<Object> search(
             @RequestParam(required = false) String keyword,
             @RequestParam(defaultValue = "1") int pageNumber,
-            @RequestParam(defaultValue = "10") int pageSize
+            @RequestParam(defaultValue = "10") int pageSize,
+            @RequestParam(required = false) Boolean includeSystemGenerated
     ) {
-        ApiDataResponseBuilder result = infusionMonitoringService.searchInfusionMonitorings(keyword, pageNumber, pageSize);
+        ApiDataResponseBuilder result = infusionMonitoringService.searchInfusionMonitorings(keyword, pageNumber, pageSize, includeSystemGenerated);
         return ResponseEntity.status(result.getStatus()).body(result);
     }
     @GetMapping("/recommendation")

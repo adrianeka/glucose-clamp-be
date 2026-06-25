@@ -1,0 +1,2 @@
+ALTER TABLE activities
+ADD COLUMN IF NOT EXISTS schedule_code VARCHAR(255);

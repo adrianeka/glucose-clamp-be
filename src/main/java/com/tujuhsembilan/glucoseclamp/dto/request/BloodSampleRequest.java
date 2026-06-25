@@ -14,7 +14,7 @@ import lombok.*;
 public class BloodSampleRequest {
 
     @Schema(description = "Activity ID yang terkait", example = "ACT-003-T-30-1")
-    @NotBlank(message = "activity_id is required")
+    @NotNull(message = "activity_id is required")
     private Long activityId;
 
     @Schema(description = "ID user yang mengumpulkan sample", example = "4")

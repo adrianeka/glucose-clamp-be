@@ -16,6 +16,8 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 public class InfusionMonitoringResponse {
     private String infusionId;
     private Long sessionId;
+    private String protocolCode;
+    private String protocolName;
     private LocalDateTime time;
     private BigDecimal glucoseValue;
     private BigDecimal confirmationRateMinKg;

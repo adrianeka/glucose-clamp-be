@@ -6,9 +6,11 @@ import com.tujuhsembilan.glucoseclamp.dto.request.InfusionMonitoringUpdateReques
 import com.tujuhsembilan.glucoseclamp.dto.response.ApiDataResponseBuilder;
 import com.tujuhsembilan.glucoseclamp.dto.response.InfusionMonitoringResponse;
 import com.tujuhsembilan.glucoseclamp.model.InfusionMonitoring;
+import com.tujuhsembilan.glucoseclamp.model.LabResult;
 import com.tujuhsembilan.glucoseclamp.model.Session;
 import com.tujuhsembilan.glucoseclamp.model.base.EntityStatus;
 import com.tujuhsembilan.glucoseclamp.repository.InfusionMonitoringRepository;
+import com.tujuhsembilan.glucoseclamp.repository.LabResultRepository;
 import com.tujuhsembilan.glucoseclamp.repository.SessionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,6 +28,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -36,6 +39,7 @@ public class InfusionMonitoringService {
 
     private final InfusionMonitoringRepository infusionMonitoringRepository;
     private final SessionRepository sessionRepository;
+    private final LabResultRepository labResultRepository;
     private final ModelMapper modelMapper;
 
     private Integer getCurrentUserId() {
@@ -50,9 +54,14 @@ public class InfusionMonitoringService {
         }
     }
 
-    public ApiDataResponseBuilder getAllInfusionMonitorings(int pageNumber, int pageSize) {
+    public ApiDataResponseBuilder getAllInfusionMonitorings(int pageNumber, int pageSize, Boolean includeSystemGenerated) {
+        boolean includeSystem = (includeSystemGenerated != null) && includeSystemGenerated;
+
         Pageable pageable = PageRequest.of(Math.max(0, pageNumber - 1), pageSize);
-        Page<InfusionMonitoringResponse> result = infusionMonitoringRepository.findAllActive(pageable).map(this::mapToResponse);
+        
+        Page<InfusionMonitoringResponse> result = infusionMonitoringRepository
+                .findAllActive(includeSystem, pageable)
+                .map(this::mapToResponse);
 
         return ApiDataResponseBuilder.builder()
                 .data(result)
@@ -62,8 +71,8 @@ public class InfusionMonitoringService {
                 .build();
     }
 
-    public ApiDataResponseBuilder getInfusionMonitoringById(String id) {
-        Optional<InfusionMonitoring> opt = infusionMonitoringRepository.findByIdAndDeletedAtIsNull(id);
+    public ApiDataResponseBuilder getInfusionMonitoringById(Long id) {
+        Optional<InfusionMonitoring> opt = infusionMonitoringRepository.findByIdWithSessionAndProtocol(id);
         if (opt.isEmpty()) {
             return ApiDataResponseBuilder.builder()
                     .message("Data infusion monitoring tidak ditemukan")
@@ -89,9 +98,34 @@ public class InfusionMonitoringService {
                     .status(HttpStatus.NOT_FOUND)
                     .build();
         }
+        
+        LocalDateTime parsedTime = null;
+        try {
+            if (request.getTime() != null) {
+                parsedTime = LocalDateTime.parse(request.getTime());
+            }
+        } catch (DateTimeParseException ignored) {
+            return ApiDataResponseBuilder.builder()
+                    .message("Format waktu tidak valid")
+                    .statusCode(HttpStatus.BAD_REQUEST.value())
+                    .status(HttpStatus.BAD_REQUEST)
+                    .build();
+        }
+
+        if (parsedTime != null) {
+            boolean isDuplicate = infusionMonitoringRepository
+                    .existsBySessionAndTimeAndStatusAndDeletedAtIsNull(session, parsedTime, EntityStatus.ACTIVE);
+            
+            if (isDuplicate) {
+                return ApiDataResponseBuilder.builder()
+                        .message("Data monitoring untuk sesi pada waktu tersebut sudah terekam")
+                        .statusCode(HttpStatus.BAD_REQUEST.value())
+                        .status(HttpStatus.BAD_REQUEST)
+                        .build();
+            }
+        }
 
         InfusionMonitoring im = new InfusionMonitoring();
-        im.setInfusionId(nextInfusionId());
         im.setSession(session);
         try {
             if (request.getTime() != null) im.setTime(LocalDateTime.parse(request.getTime()));
@@ -100,11 +134,10 @@ public class InfusionMonitoringService {
         
         im.setGlucoseValue(request.getGlucoseValue());
         
-        // 1. Hitung nilai GIR otomatis menggunakan formula khusus
         BigDecimal calculatedGir = calculateGir(session, request.getGlucoseValue());
-        im.setRateMinKg(calculatedGir);
+        im.setRecommendedGir(request.getRateMinKg());
 
-        im.setConfirmationRateMinKg(request.getConfirmationRateMinKg());
+        im.setActualGir(request.getConfirmationRateMinKg());
         im.setFlowRateMlHr(request.getFlowRateMlHr());
         im.setAdjustmentNote(request.getAdjustmentNote());
         im.setMonitoredBy(request.getMonitoredBy());
@@ -125,7 +158,7 @@ public class InfusionMonitoringService {
     }
 
     @Transactional
-    public ApiDataResponseBuilder updateInfusionMonitoring(String id, InfusionMonitoringUpdateRequest request) {
+    public ApiDataResponseBuilder updateInfusionMonitoring(Long id, InfusionMonitoringUpdateRequest request) {
         Optional<InfusionMonitoring> opt = infusionMonitoringRepository.findById(id);
         if (opt.isEmpty() || EntityStatus.DELETED.equals(opt.get().getStatus())) {
             return ApiDataResponseBuilder.builder()
@@ -143,13 +176,12 @@ public class InfusionMonitoringService {
         
         if (request.getGlucoseValue() != null) {
             im.setGlucoseValue(request.getGlucoseValue());
-            // Hitung ulang GIR jika kadar glukosa diubah
             BigDecimal calculatedGir = calculateGir(im.getSession(), request.getGlucoseValue());
-            im.setRateMinKg(calculatedGir);
+            im.setRecommendedGir(calculatedGir);
         }
         
-        if (request.getConfirmationRateMinKg() != null) im.setConfirmationRateMinKg(request.getConfirmationRateMinKg());
-        if (request.getRateMinKg() != null) im.setRateMinKg(request.getRateMinKg());
+        if (request.getConfirmationRateMinKg() != null) im.setActualGir(request.getConfirmationRateMinKg());
+        if (request.getRateMinKg() != null) im.setRecommendedGir(request.getRateMinKg());
         if (request.getFlowRateMlHr() != null) im.setFlowRateMlHr(request.getFlowRateMlHr());
         if (request.getAdjustmentNote() != null) im.setAdjustmentNote(request.getAdjustmentNote());
         if (request.getMonitoredBy() != null) im.setMonitoredBy(request.getMonitoredBy());
@@ -167,7 +199,7 @@ public class InfusionMonitoringService {
     }
 
     @Transactional
-    public ApiDataResponseBuilder deleteInfusionMonitoring(String id) {
+    public ApiDataResponseBuilder deleteInfusionMonitoring(Long id) {
         Optional<InfusionMonitoring> opt = infusionMonitoringRepository.findById(id);
         if (opt.isEmpty() || EntityStatus.DELETED.equals(opt.get().getStatus())) {
             return ApiDataResponseBuilder.builder()
@@ -194,7 +226,7 @@ public class InfusionMonitoringService {
     }
 
     @Transactional
-    public ApiDataResponseBuilder updateInfusionMonitoringStatus(String id, InfusionMonitoringStatusUpdateRequest request) {
+    public ApiDataResponseBuilder updateInfusionMonitoringStatus(Long id, InfusionMonitoringStatusUpdateRequest request) {
         Optional<InfusionMonitoring> opt = infusionMonitoringRepository.findById(id);
         if (opt.isEmpty() || EntityStatus.DELETED.equals(opt.get().getStatus())) {
             return ApiDataResponseBuilder.builder()
@@ -223,13 +255,16 @@ public class InfusionMonitoringService {
                 .build();
     }
 
-    public ApiDataResponseBuilder searchInfusionMonitorings(String keyword, int pageNumber, int pageSize) {
+    public ApiDataResponseBuilder searchInfusionMonitorings(String keyword, int pageNumber, int pageSize, Boolean includeSystemGenerated) {
+        boolean includeSystem = (includeSystemGenerated != null) && includeSystemGenerated;
+        
         Pageable pageable = PageRequest.of(Math.max(0, pageNumber - 1), pageSize);
         Page<InfusionMonitoringResponse> result;
+
         if (keyword == null || keyword.isBlank()) {
-            result = infusionMonitoringRepository.findAllActive(pageable).map(this::mapToResponse);
+            result = infusionMonitoringRepository.findAllActive(includeSystem, pageable).map(this::mapToResponse);
         } else {
-            result = infusionMonitoringRepository.searchByKeyword(keyword.trim(), pageable).map(this::mapToResponse);
+            result = infusionMonitoringRepository.searchByKeyword(keyword.trim(), includeSystem, pageable).map(this::mapToResponse);
         }
 
         return ApiDataResponseBuilder.builder()
@@ -261,91 +296,112 @@ public class InfusionMonitoringService {
                     .build();
         }
 
-        BigDecimal latestGlucose = lastActiveOpt.get().getGlucoseValue();
+        InfusionMonitoring draft = lastActiveOpt.get();
+        BigDecimal latestGlucose = draft.getGlucoseValue();
         
-        // PERBAIKAN: Ambil nilai GIR yang sudah dihitung dan disimpan sebelumnya
-        BigDecimal recommendedGir = lastActiveOpt.get().getRateMinKg();
-        
-        // Jika karena suatu hal nilainya kosong di DB, baru lakukan kalkulasi ulang sebagai pengaman
-        if (recommendedGir == null) {
-            recommendedGir = calculateGir(session, latestGlucose);
-        }
+        BigDecimal recommendedGir = calculateGir(session, latestGlucose);
 
         return ApiDataResponseBuilder.builder()
                 .data(Map.of(
+                    "infusionId", draft.getInfusionId(),
                     "sessionId", sessionId,
                     "latestGlucoseValue", latestGlucose,
                     "recommendedGir", recommendedGir
                 ))
-                .message("Rekomendasi GIR berhasil diambil dari data glukosa terakhir")
+                .message("Rekomendasi GIR berhasil diambil berdasarkan data aktual terakhir")
                 .statusCode(HttpStatus.OK.value())
                 .status(HttpStatus.OK)
                 .build();
     }
 
+    public BigDecimal calculateActualGb(Session session) {
+        if (session == null) {
+            return new BigDecimal("95"); 
+        }
+
+        List<LabResult> baselineResults = labResultRepository.findBaselineGlucoseBySessionId(session.getSessionId());
+        if (baselineResults.isEmpty()) {
+            return new BigDecimal("95"); 
+        }
+
+        BigDecimal sum = BigDecimal.ZERO;
+        int count = 0;
+        for (LabResult lr : baselineResults) {
+            if (lr.getValue() != null) {
+                sum = sum.add(lr.getValue());
+                count++;
+            }
+        }
+
+        return count > 0 
+                ? sum.divide(BigDecimal.valueOf(count), 2, RoundingMode.HALF_UP) 
+                : new BigDecimal("95");
+    }
+
     /**
-     * Logika Perhitungan GIR Matematis & Fallback Berdasarkan Gambar Rekomendasi
+     * Logika Penentuan Fase GIR (Sesuai Simulasi Data Excel - Pendekatan 1: Sequential Hybrid)
      */
     public BigDecimal calculateGir(Session session, BigDecimal currentGlucose) {
         if (currentGlucose == null || currentGlucose.compareTo(BigDecimal.ZERO) <= 0) {
             return BigDecimal.ZERO;
         }
 
-        // A. Cari Nilai GIR Sebelumnya (gir_current) dari monitoring aktif terakhir pada sesi ini
-        BigDecimal girCurrent = null;
-        if (session != null) {
-            Optional<InfusionMonitoring> lastActiveOpt = infusionMonitoringRepository.findTopBySessionAndStatusAndDeletedAtIsNullOrderByTimeDesc(session, EntityStatus.ACTIVE);
-            if (lastActiveOpt.isPresent()) {
-                girCurrent = lastActiveOpt.get().getRateMinKg();
-            }
+        BigDecimal gb = calculateActualGb(session);
+
+        // Ambil semua riwayat monitoring aktif, urut descending (terbaru di indeks 0)
+        List<InfusionMonitoring> activeMonitorings = infusionMonitoringRepository
+                .findBySessionAndStatusAndDeletedAtIsNull(session, EntityStatus.ACTIVE)
+                .stream()
+                .sorted((im1, im2) -> im2.getInfusionId().compareTo(im1.getInfusionId()))
+                .toList();
+
+        // Hitung jumlah langkah infus yang sudah berjalan (rate > 0)
+        long activeInfusionCount = activeMonitorings.stream()
+                .filter(im -> {
+                    BigDecimal effectiveRate = im.getActualGir() != null 
+                            ? im.getActualGir() 
+                            : im.getRecommendedGir();
+                    return effectiveRate != null && effectiveRate.compareTo(BigDecimal.ZERO) > 0;
+                })
+                .count();
+
+        // Fase 0: Belum ada infus aktif yang berjalan
+        if (activeInfusionCount == 0) {
+            // // Cek apakah glukosa turun >= 10% dari Gb
+            // BigDecimal threshold = gb.multiply(new BigDecimal("0.90"));
+            // if (currentGlucose.compareTo(threshold) <= 0) {
+            //     return new BigDecimal("2.00"); // Mulai Fase 1 (Dosis Awal)
+            // } else {
+            //     return BigDecimal.ZERO; // Tetap Fase 0
+            // }
+            return BigDecimal.ZERO;
         }
 
-        // B. FALLBACK JIKA GIR SEBELUMNYA KOSONG (Menggunakan aturan berjenjang pada gambar Anda)
-        if (girCurrent == null || girCurrent.compareTo(BigDecimal.ZERO) == 0) {
-            double glc = currentGlucose.doubleValue();
-            if (glc > 250) {
-                return new BigDecimal("2.00");
-            } else if (glc >= 180) {
-                return new BigDecimal("3.00");
-            } else if (glc >= 100) {
-                return new BigDecimal("4.00");
-            } else {
-                return new BigDecimal("5.00");
-            }
+        BigDecimal girCurrent = activeMonitorings.stream()
+                    .map(InfusionMonitoring::getActualGir)
+                    .filter(rate -> rate != null && rate.compareTo(BigDecimal.ZERO) > 0)
+                    .findFirst()
+                    .orElseGet(() -> {
+                        // Fallback jika belum pernah ada konfirmasi sama sekali, ambil recommended terdekat
+                        return activeMonitorings.stream()
+                                .map(InfusionMonitoring::getRecommendedGir)
+                                .filter(rate -> rate != null && rate.compareTo(BigDecimal.ZERO) > 0)
+                                .findFirst()
+                                .orElse(null);
+                    });
+
+
+        BigDecimal fmi = gb.divide(currentGlucose, 4, RoundingMode.HALF_UP);
+
+        return girCurrent.multiply(fmi).setScale(2, RoundingMode.HALF_UP);
+    }
+
+    public BigDecimal calculateFlowRate(BigDecimal gir, BigDecimal weight) {
+        if (gir == null || gir.compareTo(BigDecimal.ZERO) <= 0 || weight == null || weight.compareTo(BigDecimal.ZERO) <= 0) {
+            return BigDecimal.ZERO;
         }
-
-        // C. Tentukan Target Glucose (Default ke 120, atau rata-rata target Protocol)
-        BigDecimal targetGlucose = new BigDecimal("120");
-        if (session != null && session.getProtocol() != null) {
-            BigDecimal min = session.getProtocol().getGlucoseTargetMin();
-            BigDecimal max = session.getProtocol().getGlucoseTargetMax();
-            if (min != null && max != null) {
-                targetGlucose = min.add(max).divide(BigDecimal.valueOf(2), 2, RoundingMode.HALF_UP);
-            } else if (min != null) {
-                targetGlucose = min;
-            } else if (max != null) {
-                targetGlucose = max;
-            }
-        }
-
-        // D. fmi = target_glucose / current_glucose
-        BigDecimal fmi = targetGlucose.divide(currentGlucose, 4, RoundingMode.HALF_UP);
-
-        // E. gir_new = gir_current * fmi
-        BigDecimal girNew = girCurrent.multiply(fmi).setScale(2, RoundingMode.HALF_UP);
-
-        // F. Safety Limit (Pembatasan Perubahan Maksimal 25%)
-        BigDecimal maxChange = new BigDecimal("0.25");
-        BigDecimal upper = girCurrent.multiply(BigDecimal.ONE.add(maxChange)).setScale(2, RoundingMode.HALF_UP);
-        BigDecimal lower = girCurrent.multiply(BigDecimal.ONE.subtract(maxChange)).setScale(2, RoundingMode.HALF_UP);
-
-        if (girNew.compareTo(upper) > 0) {
-            girNew = upper;
-        } else if (girNew.compareTo(lower) < 0) {
-            girNew = lower;
-        }
-
-        return girNew;
+        BigDecimal factor = new BigDecimal("0.6");
+        return gir.multiply(weight).multiply(factor).setScale(1, RoundingMode.HALF_UP);
     }
 
     private InfusionMonitoringResponse mapToResponse(InfusionMonitoring im) {
@@ -355,22 +411,22 @@ public class InfusionMonitoringService {
         return resp;
     }
 
-    private String nextInfusionId() {
-        Optional<InfusionMonitoring> lastOpt = infusionMonitoringRepository.findTopByDeletedAtIsNullOrderByInfusionIdDesc();
-        if (lastOpt.isEmpty() || lastOpt.get().getInfusionId() == null || lastOpt.get().getInfusionId().isBlank()) {
-            return "INF-001";
-        }
+    // private String nextInfusionId() {
+    //     Optional<InfusionMonitoring> lastOpt = infusionMonitoringRepository.findTopByDeletedAtIsNullOrderByInfusionIdDesc();
+    //     if (lastOpt.isEmpty() || lastOpt.get().getInfusionId() == null || lastOpt.get().getInfusionId().isBlank()) {
+    //         return "INF-001";
+    //     }
 
-        String lastId = lastOpt.get().getInfusionId().trim();
-        if (!lastId.startsWith("INF-")) {
-            return "INF-001";
-        }
+    //     String lastId = lastOpt.get().getInfusionId().trim();
+    //     if (!lastId.startsWith("INF-")) {
+    //         return "INF-001";
+    //     }
 
-        try {
-            int sequence = Integer.parseInt(lastId.substring(4));
-            return String.format("INF-%03d", sequence + 1);
-        } catch (NumberFormatException ex) {
-            return "INF-001";
-        }
-    }
+    //     try {
+    //         int sequence = Integer.parseInt(lastId.substring(4));
+    //         return String.format("INF-%03d", sequence + 1);
+    //     } catch (NumberFormatException ex) {
+    //         return "INF-001";
+    //     }
+    // }
 }

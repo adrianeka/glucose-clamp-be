@@ -15,6 +15,8 @@ public class GlobalConfigurationResponse {
     private BigInteger gconfId;
     private String gconfCode;
     private String gconfValue;
+    private String gconfTitle;
+    private String gconfDescription;
     private String status;
     private String createdAt;
     private Integer createdBy;

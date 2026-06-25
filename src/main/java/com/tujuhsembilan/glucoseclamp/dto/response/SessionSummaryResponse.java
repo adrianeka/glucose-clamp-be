@@ -19,12 +19,16 @@ public class SessionSummaryResponse {
     private String participantName;
     private Long protocolId;
     private String protocolName;
+    
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDate visitDate;
+    
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime startTime;
+    
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime endTime;
+    
     private SessionStatus sessionStatus;
     private Long totalActivities;
     private Long completedActivities;

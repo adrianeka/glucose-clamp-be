@@ -16,8 +16,9 @@ import java.time.LocalDateTime;
 public class BloodSample extends BaseEntity {
 
     @Id
-    @Column(name = "blood_sample_id", length = 50)
-    private String bloodSampleId;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "blood_sample_id")
+    private Long bloodSampleId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "activity_id")

@@ -37,7 +37,7 @@ public class LabResultsController {
     }
 
     @GetMapping(path = "/{labResultId}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Object> getLabResultById(@PathVariable String labResultId) {
+    public ResponseEntity<Object> getLabResultById(@PathVariable Long labResultId) {
         ApiDataResponseBuilder result = labResultsService.getLabResultById(labResultId);
         return ResponseEntity.status(result.getStatus()).body(result);
     }
@@ -49,14 +49,14 @@ public class LabResultsController {
     }
 
     @PutMapping(path = "/{labResultId}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Object> updateLabResult(@PathVariable String labResultId, @Valid @RequestBody LabResultRequest request) {
+    public ResponseEntity<Object> updateLabResult(@PathVariable Long labResultId, @Valid @RequestBody LabResultRequest request) {
         ApiDataResponseBuilder result = labResultsService.updateLabResult(labResultId, request);
         return ResponseEntity.status(result.getStatus()).body(result);
     }
 
     @PatchMapping(path = "/{labResultId}/status", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Object> updateLabResultStatus(
-            @PathVariable String labResultId,
+            @PathVariable Long labResultId,
             @RequestParam String status
     ) {
         ApiDataResponseBuilder result = labResultsService.updateLabResultStatus(labResultId, status);
@@ -64,7 +64,7 @@ public class LabResultsController {
     }
 
     @DeleteMapping(path = "/{labResultId}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Object> deleteLabResult(@PathVariable String labResultId) {
+    public ResponseEntity<Object> deleteLabResult(@PathVariable Long labResultId) {
         ApiDataResponseBuilder result = labResultsService.deleteLabResult(labResultId);
         return ResponseEntity.status(result.getStatus()).body(result);
     }

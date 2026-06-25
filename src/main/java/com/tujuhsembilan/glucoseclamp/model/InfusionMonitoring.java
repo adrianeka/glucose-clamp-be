@@ -18,8 +18,9 @@ import java.time.LocalDateTime;
 public class InfusionMonitoring extends BaseEntity {
     
     @Id
-    @Column(name = "infusion_id", length = 10)
-    private String infusionId;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "infusion_id")
+    private Long infusionId;
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "session_id", nullable = false)
@@ -31,11 +32,11 @@ public class InfusionMonitoring extends BaseEntity {
     @Column(name = "glucose_value", precision = 10, scale = 2)
     private BigDecimal glucoseValue;
     
-    @Column(name = "confirmation_rate_min_kg", precision = 10, scale = 2)
-    private BigDecimal confirmationRateMinKg;
-    
-    @Column(name = "rate_min_kg", precision = 10, scale = 2)
-    private BigDecimal rateMinKg;
+    @Column(name = "actual_gir", precision = 10, scale = 2)
+    private BigDecimal actualGir;
+
+    @Column(name = "recommended_gir", precision = 10, scale = 2)
+    private BigDecimal recommendedGir;
     
     @Column(name = "flow_rate_ml_hr", precision = 10, scale = 2)
     private BigDecimal flowRateMlHr;

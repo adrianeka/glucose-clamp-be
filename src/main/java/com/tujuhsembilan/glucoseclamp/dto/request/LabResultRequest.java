@@ -18,11 +18,11 @@ public class LabResultRequest {
 
     @JsonProperty("lab_result_id")
     @NotBlank(message = "lab_result_id is required")
-    private String labResultId;
+    private Long labResultId;
 
     @JsonProperty("blood_sample_id")
     @NotBlank(message = "blood_sample_id is required")
-    private String bloodSampleId;
+    private Long bloodSampleId;
 
     @JsonProperty("parameter_name")
     @NotBlank(message = "parameter_name is required")

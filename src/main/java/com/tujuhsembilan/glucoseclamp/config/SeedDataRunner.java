@@ -129,28 +129,28 @@ public class SeedDataRunner implements CommandLineRunner {
     private void seedActivities() {
         batch(
                 "INSERT INTO activities (activity_id, session_id, actor_id, time, activity_type, activity_desc, activity_status, created_at, created_by, updated_at, updated_by, deleted_at, deleted_by, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT (activity_id) DO UPDATE SET session_id = EXCLUDED.session_id, actor_id = EXCLUDED.actor_id, time = EXCLUDED.time, activity_type = EXCLUDED.activity_type, activity_desc = EXCLUDED.activity_desc, activity_status = EXCLUDED.activity_status, created_at = EXCLUDED.created_at, created_by = EXCLUDED.created_by, updated_at = EXCLUDED.updated_at, updated_by = EXCLUDED.updated_by, deleted_at = EXCLUDED.deleted_at, deleted_by = EXCLUDED.deleted_by, status = EXCLUDED.status",
-                row("ACT-001-T-30-101", 101, 3, ts("2026-05-21 08:00:00"), "BLOOD_DRAW", "T-30", "COMPLETED", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row("ACT-002-PK-C 1-101", 101, 3, ts("2026-05-21 08:00:00"), "PK_SAMPLE_COLLECTION", "PK-C 1", "COMPLETED", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row("ACT-003-T-20-101", 101, 3, ts("2026-05-21 08:10:00"), "BLOOD_DRAW", "T-20", "COMPLETED", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row("ACT-004-T-10-101", 101, 3, ts("2026-05-21 08:20:00"), "BLOOD_DRAW", "T-10", "COMPLETED", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row("ACT-005-T-0-101", 101, 3, ts("2026-05-21 08:30:00"), "BLOOD_DRAW", "T-0", "COMPLETED", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row("ACT-006-SC-101", 101, 3, ts("2026-05-21 08:30:00"), "INSULIN_INJECTION", "SC", "COMPLETED", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row("ACT-007-GD1-101", 101, 3, ts("2026-05-21 08:40:00"), "BLOOD_DRAW", "GD1", "COMPLETED", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row("ACT-008-GD2-101", 101, 3, ts("2026-05-21 08:50:00"), "BLOOD_DRAW", "GD2", "COMPLETED", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row("ACT-009-GD3-101", 101, 3, ts("2026-05-21 09:00:00"), "BLOOD_DRAW", "GD3", "COMPLETED", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row("ACT-010-PK-C 2-101", 101, 3, ts("2026-05-21 09:00:00"), "PK_SAMPLE_COLLECTION", "PK-C 2", "COMPLETED", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row("ACT-001", 101, 3, ts("2026-05-21 08:00:00"), "BLOOD_DRAW", "T-30", "COMPLETED", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row("ACT-002", 101, 3, ts("2026-05-21 08:00:00"), "PK_SAMPLE_COLLECTION", "PK-C 1", "COMPLETED", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row("ACT-003", 101, 3, ts("2026-05-21 08:10:00"), "BLOOD_DRAW", "T-20", "COMPLETED", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row("ACT-004", 101, 3, ts("2026-05-21 08:20:00"), "BLOOD_DRAW", "T-10", "COMPLETED", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row("ACT-005", 101, 3, ts("2026-05-21 08:30:00"), "BLOOD_DRAW", "T-0", "COMPLETED", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row("ACT-006", 101, 3, ts("2026-05-21 08:30:00"), "INSULIN_INJECTION", "SC", "COMPLETED", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row("ACT-007", 101, 3, ts("2026-05-21 08:40:00"), "BLOOD_DRAW", "GD1", "COMPLETED", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row("ACT-008", 101, 3, ts("2026-05-21 08:50:00"), "BLOOD_DRAW", "GD2", "COMPLETED", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row("ACT-009", 101, 3, ts("2026-05-21 09:00:00"), "BLOOD_DRAW", "GD3", "COMPLETED", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row("ACT-010", 101, 3, ts("2026-05-21 09:00:00"), "PK_SAMPLE_COLLECTION", "PK-C 2", "COMPLETED", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row("ACT-011", 101, 3, ts("2026-05-21 09:10:00"), "BLOOD_DRAW", "GD4", "COMPLETED", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row("ACT-012", 101, 3, ts("2026-05-21 09:20:00"), "BLOOD_DRAW", "GD5", "COMPLETED", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE")
+                row(1, 101, 3, ts("2026-05-21 08:00:00"), "BLOOD_DRAW", "T-30", "COMPLETED", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row(2, 101, 3, ts("2026-05-21 08:00:00"), "PK_SAMPLE_COLLECTION", "PK-C 1", "COMPLETED", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row(3, 101, 3, ts("2026-05-21 08:10:00"), "BLOOD_DRAW", "T-20", "COMPLETED", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row(4, 101, 3, ts("2026-05-21 08:20:00"), "BLOOD_DRAW", "T-10", "COMPLETED", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row(5, 101, 3, ts("2026-05-21 08:30:00"), "BLOOD_DRAW", "T-0", "COMPLETED", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row(6, 101, 3, ts("2026-05-21 08:30:00"), "INSULIN_INJECTION", "SC", "COMPLETED", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row(7, 101, 3, ts("2026-05-21 08:40:00"), "BLOOD_DRAW", "GD1", "COMPLETED", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row(8, 101, 3, ts("2026-05-21 08:50:00"), "BLOOD_DRAW", "GD2", "COMPLETED", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row(9, 101, 3, ts("2026-05-21 09:00:00"), "BLOOD_DRAW", "GD3", "COMPLETED", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row(10, 101, 3, ts("2026-05-21 09:00:00"), "PK_SAMPLE_COLLECTION", "PK-C 2", "COMPLETED", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row(11, 101, 3, ts("2026-05-21 08:00:00"), "BLOOD_DRAW", "T-30", "COMPLETED", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row(12, 101, 3, ts("2026-05-21 08:00:00"), "PK_SAMPLE_COLLECTION", "PK-C 1", "COMPLETED", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row(13, 101, 3, ts("2026-05-21 08:10:00"), "BLOOD_DRAW", "T-20", "COMPLETED", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row(14, 101, 3, ts("2026-05-21 08:20:00"), "BLOOD_DRAW", "T-10", "COMPLETED", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row(15, 101, 3, ts("2026-05-21 08:30:00"), "BLOOD_DRAW", "T-0", "COMPLETED", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row(16, 101, 3, ts("2026-05-21 08:30:00"), "INSULIN_INJECTION", "SC", "COMPLETED", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row(17, 101, 3, ts("2026-05-21 08:40:00"), "BLOOD_DRAW", "GD1", "COMPLETED", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row(18, 101, 3, ts("2026-05-21 08:50:00"), "BLOOD_DRAW", "GD2", "COMPLETED", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row(19, 101, 3, ts("2026-05-21 09:00:00"), "BLOOD_DRAW", "GD3", "COMPLETED", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row(20, 101, 3, ts("2026-05-21 09:00:00"), "PK_SAMPLE_COLLECTION", "PK-C 2", "COMPLETED", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row(21, 101, 3, ts("2026-05-21 09:10:00"), "BLOOD_DRAW", "GD4", "COMPLETED", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row(22, 101, 3, ts("2026-05-21 09:20:00"), "BLOOD_DRAW", "GD5", "COMPLETED", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE")
         );
     }
 
@@ -237,119 +237,151 @@ public class SeedDataRunner implements CommandLineRunner {
         );
     }
 
+
     private void seedSamplingSchedules() {
         batch(
                 "INSERT INTO sampling_schedules (" +
-                "protocol_id, phase_code, phase_name, phase_type, relative_minute, time_interval, " +
+                "schedule_code, protocol_id, phase_code, phase_name, phase_type, relative_minute, time_interval, " +
                 "blood_raw, insulin_inject, pk_sample_collection, created_at, created_by, " +
                 "updated_at, updated_by, deleted_at, deleted_by, status" +
-                ") VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? ) " +
+                ") VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? ) " +
                 "ON CONFLICT DO NOTHING",
                 
-                // PREPARATION (D-001 menit 0, D-002 menit 30)
-                row( 1, "PREP1", "Pemeriksaan Awal", "preparation", 0, 30, false, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row( 1, "PREP2", "Pra - Tindakan", "preparation", 30, 30, false, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                // PREPARATION (PREP1 & PREP2)
+                row("PREP1", 1, "PREP1", "Pemeriksaan Awal", "preparation", 0, 30, false, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("PREP2", 1, "PREP2", "Pra - Tindakan", "preparation", 30, 30, false, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
             
-                // BASELINE (Langkah interval masing-masing 10m dimulai dari menit ke-60)
-                row( 1, "BASE", "Baseline", "pre-insulin", 60, 10, true, false, true, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row( 1, "BASE", "Baseline", "pre-insulin", 70, 10, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row( 1, "BASE", "Baseline", "pre-insulin", 80, 10, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row( 1, "BASE", "Baseline", "pre-insulin", 90, 10, true, true, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                // PHASE 1 (GD1 s.d GD48 - Interval 10m, dimulai dari menit ke-100 s.d 570)
-                row( 1, "PH1", "Phase 1", "post-insulin", 100, 10, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row( 1, "PH1", "Phase 1", "post-insulin", 110, 10, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row( 1, "PH1", "Phase 1", "post-insulin", 120, 10, true, false, true, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row( 1, "PH1", "Phase 1", "post-insulin", 130, 10, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row( 1, "PH1", "Phase 1", "post-insulin", 140, 10, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row( 1, "PH1", "Phase 1", "post-insulin", 150, 10, true, false, true, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row( 1, "PH1", "Phase 1", "post-insulin", 160, 10, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row( 1, "PH1", "Phase 1", "post-insulin", 170, 10, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row( 1, "PH1", "Phase 1", "post-insulin", 180, 10, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row( 1, "PH1", "Phase 1", "post-insulin", 190, 10, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row( 1, "PH1", "Phase 1", "post-insulin", 200, 10, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row( 1, "PH1", "Phase 1", "post-insulin", 210, 10, true, false, true, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row( 1, "PH1", "Phase 1", "post-insulin", 220, 10, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row( 1, "PH1", "Phase 1", "post-insulin", 230, 10, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row( 1, "PH1", "Phase 1", "post-insulin", 240, 10, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row( 1, "PH1", "Phase 1", "post-insulin", 250, 10, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row( 1, "PH1", "Phase 1", "post-insulin", 260, 10, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row( 1, "PH1", "Phase 1", "post-insulin", 270, 10, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row( 1, "PH1", "Phase 1", "post-insulin", 280, 10, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row( 1, "PH1", "Phase 1", "post-insulin", 290, 10, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row( 1, "PH1", "Phase 1", "post-insulin", 300, 10, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row( 1, "PH1", "Phase 1", "post-insulin", 310, 10, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row( 1, "PH1", "Phase 1", "post-insulin", 320, 10, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row( 1, "PH1", "Phase 1", "post-insulin", 330, 10, true, false, true, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row( 1, "PH1", "Phase 1", "post-insulin", 340, 10, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row( 1, "PH1", "Phase 1", "post-insulin", 350, 10, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row( 1, "PH1", "Phase 1", "post-insulin", 360, 10, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row( 1, "PH1", "Phase 1", "post-insulin", 370, 10, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row( 1, "PH1", "Phase 1", "post-insulin", 380, 10, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row( 1, "PH1", "Phase 1", "post-insulin", 390, 10, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row( 1, "PH1", "Phase 1", "post-insulin", 400, 10, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row( 1, "PH1", "Phase 1", "post-insulin", 410, 10, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row( 1, "PH1", "Phase 1", "post-insulin", 420, 10, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row( 1, "PH1", "Phase 1", "post-insulin", 430, 10, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row( 1, "PH1", "Phase 1", "post-insulin", 440, 10, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row( 1, "PH1", "Phase 1", "post-insulin", 450, 10, true, false, true, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row( 1, "PH1", "Phase 1", "post-insulin", 460, 10, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row( 1, "PH1", "Phase 1", "post-insulin", 470, 10, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row( 1, "PH1", "Phase 1", "post-insulin", 480, 10, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row( 1, "PH1", "Phase 1", "post-insulin", 490, 10, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row( 1, "PH1", "Phase 1", "post-insulin", 500, 10, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row( 1, "PH1", "Phase 1", "post-insulin", 510, 10, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row( 1, "PH1", "Phase 1", "post-insulin", 520, 10, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row( 1, "PH1", "Phase 1", "post-insulin", 530, 10, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row( 1, "PH1", "Phase 1", "post-insulin", 540, 10, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row( 1, "PH1", "Phase 1", "post-insulin", 550, 10, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row( 1, "PH1", "Phase 1", "post-insulin", 560, 10, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row( 1, "PH1", "Phase 1", "post-insulin", 570, 20, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                // PHASE 2 (GD49 s.d GD66 - tipe 'post-insulin' PH2, dimulai dari menit ke-590 s.d 930)
-                row( 1, "PH2", "Phase 2", "post-insulin", 590, 20, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row( 1, "PH2", "Phase 2", "post-insulin", 610, 20, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row( 1, "PH2", "Phase 2", "post-insulin", 630, 20, true, false, true, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row( 1, "PH2", "Phase 2", "post-insulin", 650, 20, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row( 1, "PH2", "Phase 2", "post-insulin", 670, 20, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row( 1, "PH2", "Phase 2", "post-insulin", 690, 20, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row( 1, "PH2", "Phase 2", "post-insulin", 710, 20, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row( 1, "PH2", "Phase 2", "post-insulin", 730, 20, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row( 1, "PH2", "Phase 2", "post-insulin", 750, 20, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row( 1, "PH2", "Phase 2", "post-insulin", 770, 20, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row( 1, "PH2", "Phase 2", "post-insulin", 790, 20, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row( 1, "PH2", "Phase 2", "post-insulin", 810, 20, true, false, true, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row( 1, "PH2", "Phase 2", "post-insulin", 830, 20, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row( 1, "PH2", "Phase 2", "post-insulin", 850, 20, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row( 1, "PH2", "Phase 2", "post-insulin", 870, 20, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row( 1, "PH2", "Phase 2", "post-insulin", 890, 20, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row( 1, "PH2", "Phase 2", "post-insulin", 910, 20, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row( 1, "PH2", "Phase 2", "post-insulin", 930, 30, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                // PHASE 3 (GD67 s.d GD86 - tipe 'post-insulin' PH3, dimulai dari menit ke-960 s.d 1530)
-                row( 1, "PH3", "Phase 3", "post-insulin", 960, 30, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row( 1, "PH3", "Phase 3", "post-insulin", 990, 30, true, false, true, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row( 1, "PH3", "Phase 3", "post-insulin", 1020, 30, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row( 1, "PH3", "Phase 3", "post-insulin", 1050, 30, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row( 1, "PH3", "Phase 3", "post-insulin", 1080, 30, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row( 1, "PH3", "Phase 3", "post-insulin", 1110, 30, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row( 1, "PH3", "Phase 3", "post-insulin", 1140, 30, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row( 1, "PH3", "Phase 3", "post-insulin", 1170, 30, true, false, true, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row( 1, "PH3", "Phase 3", "post-insulin", 1200, 30, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row( 1, "PH3", "Phase 3", "post-insulin", 1230, 30, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row( 1, "PH3", "Phase 3", "post-insulin", 1260, 30, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row( 1, "PH3", "Phase 3", "post-insulin", 1290, 30, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row( 1, "PH3", "Phase 3", "post-insulin", 1320, 30, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row( 1, "PH3", "Phase 3", "post-insulin", 1350, 30, true, false, true, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row( 1, "PH3", "Phase 3", "post-insulin", 1380, 30, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row( 1, "PH3", "Phase 3", "post-insulin", 1410, 30, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row( 1, "PH3", "Phase 3", "post-insulin", 1440, 30, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row( 1, "PH3", "Phase 3", "post-insulin", 1470, 30, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row( 1, "PH3", "Phase 3", "post-insulin", 1500, 30, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row( 1, "PH3", "Phase 3", "post-insulin", 1530, 30, true, false, true, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                // BASELINE (Langkah interval masing-masing 10m dimulai dari menit ke-60, berujung di T-00 saat injeksi insulin)
+                row("T-30", 1, "BASE", "Baseline", "pre-insulin", 60, 10, true, false, true, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("T-20", 1, "BASE", "Baseline", "pre-insulin", 70, 10, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("T-10", 1, "BASE", "Baseline", "pre-insulin", 80, 10, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("T-00", 1, "BASE", "Baseline", "pre-insulin", 90, 10, true, true, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                
+                // PHASE 1 (GD-01 s.d GD-48 - Interval 10m, dimulai dari menit ke-100 s.d 570)
+                row("GD-01", 1, "PH1", "Phase 1", "post-insulin", 100, 10, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("GD-02", 1, "PH1", "Phase 1", "post-insulin", 110, 10, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("GD-03", 1, "PH1", "Phase 1", "post-insulin", 120, 10, true, false, true, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // PK-C2
+                row("GD-04", 1, "PH1", "Phase 1", "post-insulin", 130, 10, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("GD-05", 1, "PH1", "Phase 1", "post-insulin", 140, 10, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("GD-06", 1, "PH1", "Phase 1", "post-insulin", 150, 10, true, false, true, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // PK-C3
+                row("GD-07", 1, "PH1", "Phase 1", "post-insulin", 160, 10, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("GD-08", 1, "PH1", "Phase 1", "post-insulin", 170, 10, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("GD-09", 1, "PH1", "Phase 1", "post-insulin", 180, 10, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("GD-10", 1, "PH1", "Phase 1", "post-insulin", 190, 10, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("GD-11", 1, "PH1", "Phase 1", "post-insulin", 200, 10, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("GD-12", 1, "PH1", "Phase 1", "post-insulin", 210, 10, true, false, true, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // PK-C4
+                row("GD-13", 1, "PH1", "Phase 1", "post-insulin", 220, 10, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("GD-14", 1, "PH1", "Phase 1", "post-insulin", 230, 10, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("GD-15", 1, "PH1", "Phase 1", "post-insulin", 240, 10, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("GD-16", 1, "PH1", "Phase 1", "post-insulin", 250, 10, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("GD-17", 1, "PH1", "Phase 1", "post-insulin", 260, 10, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("GD-18", 1, "PH1", "Phase 1", "post-insulin", 270, 10, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("GD-19", 1, "PH1", "Phase 1", "post-insulin", 280, 10, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("GD-20", 1, "PH1", "Phase 1", "post-insulin", 290, 10, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("GD-21", 1, "PH1", "Phase 1", "post-insulin", 300, 10, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("GD-22", 1, "PH1", "Phase 1", "post-insulin", 310, 10, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("GD-23", 1, "PH1", "Phase 1", "post-insulin", 320, 10, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("GD-24", 1, "PH1", "Phase 1", "post-insulin", 330, 10, true, false, true, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // PK-C5
+                row("GD-25", 1, "PH1", "Phase 1", "post-insulin", 340, 10, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("GD-26", 1, "PH1", "Phase 1", "post-insulin", 350, 10, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("GD-27", 1, "PH1", "Phase 1", "post-insulin", 360, 10, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("GD-28", 1, "PH1", "Phase 1", "post-insulin", 370, 10, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("GD-29", 1, "PH1", "Phase 1", "post-insulin", 380, 10, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("GD-30", 1, "PH1", "Phase 1", "post-insulin", 390, 10, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("GD-31", 1, "PH1", "Phase 1", "post-insulin", 400, 10, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("GD-32", 1, "PH1", "Phase 1", "post-insulin", 410, 10, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("GD-33", 1, "PH1", "Phase 1", "post-insulin", 420, 10, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("GD-34", 1, "PH1", "Phase 1", "post-insulin", 430, 10, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("GD-35", 1, "PH1", "Phase 1", "post-insulin", 440, 10, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("GD-36", 1, "PH1", "Phase 1", "post-insulin", 450, 10, true, false, true, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // PK-C6
+                row("GD-37", 1, "PH1", "Phase 1", "post-insulin", 460, 10, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("GD-38", 1, "PH1", "Phase 1", "post-insulin", 470, 10, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("GD-39", 1, "PH1", "Phase 1", "post-insulin", 480, 10, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("GD-40", 1, "PH1", "Phase 1", "post-insulin", 490, 10, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("GD-41", 1, "PH1", "Phase 1", "post-insulin", 500, 10, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("GD-42", 1, "PH1", "Phase 1", "post-insulin", 510, 10, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("GD-43", 1, "PH1", "Phase 1", "post-insulin", 520, 10, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("GD-44", 1, "PH1", "Phase 1", "post-insulin", 530, 10, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("GD-45", 1, "PH1", "Phase 1", "post-insulin", 540, 10, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("GD-46", 1, "PH1", "Phase 1", "post-insulin", 550, 10, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("GD-47", 1, "PH1", "Phase 1", "post-insulin", 560, 10, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("GD-48", 1, "PH1", "Phase 1", "post-insulin", 570, 20, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                
+                // PHASE 2 (GD-49 s.d GD-66 - tipe 'post-insulin' PH2, dimulai dari menit ke-590 s.d 930)
+                row("GD-49", 1, "PH2", "Phase 2", "post-insulin", 590, 20, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("GD-50", 1, "PH2", "Phase 2", "post-insulin", 610, 20, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("GD-51", 1, "PH2", "Phase 2", "post-insulin", 630, 20, true, false, true, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // PK-C7
+                row("GD-52", 1, "PH2", "Phase 2", "post-insulin", 650, 20, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("GD-53", 1, "PH2", "Phase 2", "post-insulin", 670, 20, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("GD-54", 1, "PH2", "Phase 2", "post-insulin", 690, 20, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("GD-55", 1, "PH2", "Phase 2", "post-insulin", 710, 20, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("GD-56", 1, "PH2", "Phase 2", "post-insulin", 730, 20, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("GD-57", 1, "PH2", "Phase 2", "post-insulin", 750, 20, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("GD-58", 1, "PH2", "Phase 2", "post-insulin", 770, 20, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("GD-59", 1, "PH2", "Phase 2", "post-insulin", 790, 20, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("GD-60", 1, "PH2", "Phase 2", "post-insulin", 810, 20, true, false, true, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // PK-C8
+                row("GD-61", 1, "PH2", "Phase 2", "post-insulin", 830, 20, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("GD-62", 1, "PH2", "Phase 2", "post-insulin", 850, 20, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("GD-63", 1, "PH2", "Phase 2", "post-insulin", 870, 20, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("GD-64", 1, "PH2", "Phase 2", "post-insulin", 890, 20, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("GD-65", 1, "PH2", "Phase 2", "post-insulin", 910, 20, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("GD-66", 1, "PH2", "Phase 2", "post-insulin", 930, 30, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                
+                // PHASE 3 (GD-67 s.d GD-86 - tipe 'post-insulin' PH3, dimulai dari menit ke-960 s.d 1530)
+                row("GD-67", 1, "PH3", "Phase 3", "post-insulin", 960, 30, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("GD-68", 1, "PH3", "Phase 3", "post-insulin", 990, 30, true, false, true, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // PK-C9
+                row("GD-69", 1, "PH3", "Phase 3", "post-insulin", 1020, 30, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("GD-70", 1, "PH3", "Phase 3", "post-insulin", 1050, 30, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("GD-71", 1, "PH3", "Phase 3", "post-insulin", 1080, 30, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("GD-72", 1, "PH3", "Phase 3", "post-insulin", 1110, 30, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("GD-73", 1, "PH3", "Phase 3", "post-insulin", 1140, 30, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("GD-74", 1, "PH3", "Phase 3", "post-insulin", 1170, 30, true, false, true, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // PK-C10
+                row("GD-75", 1, "PH3", "Phase 3", "post-insulin", 1200, 30, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("GD-76", 1, "PH3", "Phase 3", "post-insulin", 1230, 30, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("GD-77", 1, "PH3", "Phase 3", "post-insulin", 1260, 30, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("GD-78", 1, "PH3", "Phase 3", "post-insulin", 1290, 30, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("GD-79", 1, "PH3", "Phase 3", "post-insulin", 1320, 30, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("GD-80", 1, "PH3", "Phase 3", "post-insulin", 1350, 30, true, false, true, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // PK-C11
+                row("GD-81", 1, "PH3", "Phase 3", "post-insulin", 1380, 30, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("GD-82", 1, "PH3", "Phase 3", "post-insulin", 1410, 30, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("GD-83", 1, "PH3", "Phase 3", "post-insulin", 1440, 30, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("GD-84", 1, "PH3", "Phase 3", "post-insulin", 1470, 30, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("GD-85", 1, "PH3", "Phase 3", "post-insulin", 1500, 30, true, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("GD-86", 1, "PH3", "Phase 3", "post-insulin", 1530, 30, true, false, true, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // PK-C12
+                
                 // FINALIZATION (FINAL - menit 1560)
-                row( 1, "FINAL", "Pemeriksaan Akhir", "finalization", 1560, 30, false, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE")
+                row("FINAL", 1, "FINAL", "Pemeriksaan Akhir", "finalization", 1560, 30, false, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE")
         );
     }
 
-
+    private void seedGlobalConfigurations() {
+        batch(
+                "INSERT INTO global_configurations (gconf_id, gconf_code, gconf_title, gconf_desc, gconf_value, created_at, created_by, updated_at, updated_by, deleted_at, deleted_by, status) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) " +
+                "ON CONFLICT (gconf_id) DO UPDATE SET " +
+                "gconf_code = EXCLUDED.gconf_code, " +
+                "gconf_title = EXCLUDED.gconf_title, " +
+                "gconf_desc = EXCLUDED.gconf_desc, " +
+                "gconf_value = EXCLUDED.gconf_value, " +
+                "updated_at = EXCLUDED.updated_at, " +
+                "updated_by = EXCLUDED.updated_by, " +
+                "status = EXCLUDED.status",
+                row(
+                    1, 
+                    "ACTIVITY_CONFIRMATION_TIMER", 
+                    "Activity Confirmation Timer (seconds)", 
+                    "Configure the countdown duration before an activity can be confirmed.", 
+                    "60", 
+                    ts("2026-05-21 07:10:00"), 
+                    1, 
+                    ts("2026-05-21 07:10:00"), 
+                    1, 
+                    null, 
+                    null, 
+                    "ACTIVE"
+                )
+        );
+    }
 
     private void seedBloodSamples() {
         batch(
@@ -386,13 +418,12 @@ public class SeedDataRunner implements CommandLineRunner {
         );
     }
 
-
-
     private void syncSequences() {
         jdbcTemplate.execute("SELECT setval('role_id_seq', COALESCE((SELECT MAX(role_id) FROM roles), 0) + 1, false)");
         jdbcTemplate.execute("SELECT setval('user_id_seq', COALESCE((SELECT MAX(user_id) FROM users), 0) + 1, false)");
         jdbcTemplate.execute("SELECT setval('device_id_seq', COALESCE((SELECT MAX(device_id) FROM devices), 0) + 1, false)");
         jdbcTemplate.execute("SELECT setval('phase_conf_id_seq', COALESCE((SELECT MAX(phase_conf_id) FROM phase_configurations), 0) + 1, false)");
+        jdbcTemplate.execute("SELECT setval('global_config_id_seq', COALESCE((SELECT MAX(gconf_id) FROM global_configurations), 0) + 1, false)");
     }
 
     private void batch(String sql, Object[]... rows) {

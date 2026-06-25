@@ -17,8 +17,9 @@ import jakarta.persistence.*;
 public class LabResult extends BaseEntity {
     
     @Id
-    @Column(name = "lab_result_id", length = 50)
-    private String labResultId;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "lab_result_id")
+    private Long labResultId;
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "blood_sample_id", nullable = false)

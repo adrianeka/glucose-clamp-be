@@ -102,7 +102,8 @@ public class SessionTrackingService {
                 activity.getActivityDesc(),
                 activity.getPhaseCode(),
                 activity.getPhaseName(),
-                activity.getActivityStatus()
+                activity.getActivityStatus(),
+                activity.getMinute()
         );
     }
 

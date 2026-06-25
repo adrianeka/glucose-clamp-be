@@ -20,4 +20,5 @@ public class SessionActivityItemResponse {
     private String phaseCode;
     private String phaseName;
     private ActivityStatus activityStatus;
+    private Integer minute;
 }

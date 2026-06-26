@@ -250,7 +250,7 @@ public class SamplingSchedulesService {
             SamplingSchedule lastItem = existingSchedules.get(existingSchedules.size() - 1);
             lastType = lastItem.getPhaseType();
             
-            if ("Preparation".equals(lastType) || "Finalization".equals(lastType)) {
+            if ("Preparation".equals(lastType) || "Finalization".equals(lastType) || "Stabilization".equals(lastType)) {
                 previousEndBoundary = lastItem.getRelativeMinute() + lastItem.getPhaseDuration();
             } else {
                 previousEndBoundary = lastItem.getRelativeMinute();
@@ -262,9 +262,9 @@ public class SamplingSchedulesService {
         int duration = request.getPhaseDuration();
         int start = previousEndBoundary;
 
-        if ("Finalization".equals(phaseType) && lastType != null && !"Preparation".equals(lastType) && !"Finalization".equals(lastType)) {
+        if ("Finalization".equals(phaseType) && lastType != null && !"Preparation".equals(lastType) && !"Stabilization".equals(lastType) && !"Finalization".equals(lastType)) {
             start = previousEndBoundary;
-        } else if (lastType != null && !"Preparation".equals(lastType) && !"Finalization".equals(lastType)) {
+        } else if (lastType != null && !"Preparation".equals(lastType) && !"Stabilization".equals(lastType) && !"Finalization".equals(lastType)) {
             start = previousEndBoundary + interval;
         }
         int end = previousEndBoundary + duration;
@@ -274,7 +274,7 @@ public class SamplingSchedulesService {
         Integer currentUserId = getCurrentUserId();
         LocalDateTime now = LocalDateTime.now();
 
-        if ("Preparation".equals(phaseType) || "Finalization".equals(phaseType)) {
+        if ("Preparation".equals(phaseType) || "Finalization".equals(phaseType) || "Stabilization".equals(phaseType)) {
             if (!isDuplicate(existingSchedules, start, phaseName)) {
                 newSchedules.add(buildScheduleEntity(protocol, phaseCode, phaseName, phaseType, start, duration, interval, false, false, currentUserId, now));
             }
@@ -349,7 +349,10 @@ public class SamplingSchedulesService {
                 code = "FINAL";
             } else if ("Preparation".equals(s.getPhaseType())) {
                 code = "PREP";
-            } else if (Boolean.TRUE.equals(s.getBloodRaw())) {
+            } else if ("Stabilization".equals(s.getPhaseType())) {
+                code = "PREP2";
+            }
+            else if (Boolean.TRUE.equals(s.getBloodRaw())) {
                 if ("Pre-Insulin".equals(s.getPhaseType())) {
                     int offset = s.getRelativeMinute() - maxPreInsulinMinute;
                     code = "T" + (offset == 0 ? "0" : offset);
@@ -621,7 +624,7 @@ public class SamplingSchedulesService {
             String currentType = s.getPhaseType();
             String currentPhaseName = s.getPhaseName();
 
-            if ("Preparation".equalsIgnoreCase(currentType) || "Finalization".equalsIgnoreCase(currentType)) {
+            if ("Preparation".equalsIgnoreCase(currentType) || "Finalization".equalsIgnoreCase(currentType) || "Stabilization".equalsIgnoreCase(currentType)) {
                 s.setRelativeMinute(currentBoundary);
             } else {
                 if (lastPhaseName != null && !currentPhaseName.equals(lastPhaseName)) {
@@ -635,7 +638,7 @@ public class SamplingSchedulesService {
             }
 
             // Update Boundary
-            if ("Preparation".equalsIgnoreCase(currentType) || "Finalization".equalsIgnoreCase(currentType)) {
+            if ("Preparation".equalsIgnoreCase(currentType) || "Finalization".equalsIgnoreCase(currentType) || "Stabilization".equalsIgnoreCase(currentType)) {
                 currentBoundary = s.getRelativeMinute() + s.getPhaseDuration();
             } else {
                 currentBoundary = s.getRelativeMinute();

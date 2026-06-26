@@ -1,0 +1,2 @@
+ALTER TABLE glucose_clamp.lab_results
+DROP CONSTRAINT IF EXISTS lab_results_blood_sample_id_key;

@@ -570,6 +570,11 @@ public class ActivityService {
         LocalDateTime activityClockTime = session.getStartTime().plusMinutes(relativeMinute);
 
         if ("preparation".equals(phaseType)) {
+            if( "PREP2".equals(phaseCode) ) {
+                activities.add(buildActivity(session, actor, actorId, activityClockTime, 
+                    phaseCode, "Pemeriksaan fisik awal (Vital Signs, Anthropometry, & Anamneses) pada fase " + phaseName, 
+                    generationState, "STABILIZATION", phaseName, phaseCode, scheduleCode, relativeMinute, insulinDoseRule, insulinDoseUnit));
+            }
             activities.add(buildActivity(session, actor, actorId, activityClockTime, 
                     phaseCode, "Pemeriksaan fisik awal (Vital Signs, Anthropometry, & Anamneses) pada fase " + phaseName, 
                     generationState, "PREPARATION_CHECK", phaseName, phaseCode, scheduleCode, relativeMinute, insulinDoseRule, insulinDoseUnit));

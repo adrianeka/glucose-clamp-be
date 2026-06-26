@@ -1,10 +1,12 @@
 package com.tujuhsembilan.glucoseclamp.service;
 
 import com.tujuhsembilan.glucoseclamp.dto.response.ApiDataResponseBuilder;
+import com.tujuhsembilan.glucoseclamp.dto.response.LabResultItemResultResponse;
 import com.tujuhsembilan.glucoseclamp.dto.response.SessionActivityItemResponse;
 import com.tujuhsembilan.glucoseclamp.dto.response.SessionTimelineResponse;
 import com.tujuhsembilan.glucoseclamp.exception.classes.DataNotFoundException;
 import com.tujuhsembilan.glucoseclamp.model.Activity;
+import com.tujuhsembilan.glucoseclamp.model.LabResult;
 import com.tujuhsembilan.glucoseclamp.model.Session;
 import com.tujuhsembilan.glucoseclamp.model.base.ActivityStatus;
 import com.tujuhsembilan.glucoseclamp.model.base.SessionStatus;
@@ -23,6 +25,7 @@ import java.util.Optional;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import java.time.LocalTime;
+import java.util.Collections;
 
 @Service
 @RequiredArgsConstructor
@@ -32,7 +35,7 @@ public class SessionTrackingService {
     private final ActivityRepository activityRepository;
     private static final long TIME_TOLERANCE_SECONDS = 1;
 
-        @Transactional(readOnly = true)
+    @Transactional(readOnly = true)
     public ApiDataResponseBuilder getTimeline(Long sessionId) {
         Optional<Session> sessionOptional = sessionRepository.findByIdAndDeletedAtIsNull(sessionId);
         if (sessionOptional.isEmpty()) {
@@ -100,6 +103,15 @@ public class SessionTrackingService {
     }
 
     private SessionActivityItemResponse toActivityItemResponse(Activity activity) {
+        List<LabResultItemResultResponse> labResults =
+            Optional.ofNullable(activity.getBloodSamples())
+                    .orElse(Collections.emptyList())
+                    .stream()
+                    .flatMap(bs -> Optional.ofNullable(bs.getLabResults())
+                            .orElse(Collections.emptyList())
+                            .stream())
+                    .map(this::toLabResultResponse)
+                    .toList();
         return new SessionActivityItemResponse(
                 activity.getActivityId(),
                 activity.getTime(),
@@ -108,8 +120,27 @@ public class SessionTrackingService {
                 activity.getPhaseCode(),
                 activity.getPhaseName(),
                 activity.getActivityStatus(),
-                activity.getMinute()
+                activity.getMinute(),
+                activity.getScheduleCode(),
+                labResults
         );
+    }
+
+    private LabResultItemResultResponse toLabResultResponse(LabResult labResult) {
+        return LabResultItemResultResponse.builder()
+                .labResultId(labResult.getLabResultId().toString())
+                .bloodSampleId(
+                        labResult.getBloodSample() != null
+                                ? labResult.getBloodSample().getBloodSampleId().toString()
+                                : null
+                )
+                .parameterName(labResult.getParameterName())
+                .value(labResult.getValue())
+                .referenceRangeMin(labResult.getReferenceRangeMin())
+                .referenceRangeMax(labResult.getReferenceRangeMax())
+                .unit(labResult.getUnit())
+                .abnormalFlag(labResult.getAbnormalFlag())
+                .build();
     }
 
     private boolean isCompletedActivity(Activity activity) {
@@ -132,191 +163,124 @@ public class SessionTrackingService {
         // }
 
     private List<Activity> findNextActivities(List<Activity> activities) {
-
-        // Ambil semua activity yang sedang IN_PROGRESS
-        List<Activity> currentActivities = activities.stream()
-                .filter(a -> a.getActivityStatus() == ActivityStatus.IN_PROGRESS)
-                .collect(Collectors.toList());
-
         /*
         * ============================================================
-        * BELUM ADA ACTIVITY YANG BERJALAN
+        * SEMUA SUDAH SELESAI
         * ============================================================
         */
-        if (currentActivities.isEmpty()) {
+        if (activities.stream().allMatch(this::isCompletedActivity)) {
+            return List.of();
+        }
+        /*
+        * ============================================================
+        * MASIH ADA ACTIVITY IN_PROGRESS
+        * ============================================================
+        */
+        List<Activity> currentActivities = activities.stream()
+                .filter(a -> a.getActivityStatus() == ActivityStatus.IN_PROGRESS)
+                .toList();
 
-            // Jika semua activity sudah selesai
-            if (activities.stream().allMatch(this::isCompletedActivity)) {
-                return List.of();
-            }
+        if (!currentActivities.isEmpty()) {
 
-            // Session belum dimulai -> tampilkan activity pertama
-            Optional<LocalDateTime> firstTime = activities.stream()
+            LocalDateTime currentTime = currentActivities.get(0).getTime();
+
+            Optional<LocalDateTime> nextTime = activities.stream()
                     .map(Activity::getTime)
                     .filter(Objects::nonNull)
+                    .filter(time -> time.isAfter(currentTime))
                     .distinct()
                     .sorted()
                     .findFirst();
 
-            if (firstTime.isEmpty()) {
+            if (nextTime.isEmpty()) {
                 return List.of();
             }
 
             return activities.stream()
                     .filter(a -> a.getActivityStatus() != ActivityStatus.COMPLETED)
-                    .filter(a -> Objects.equals(a.getTime(), firstTime.get()))
-                    .collect(Collectors.toList());
+                    .filter(a -> Objects.equals(a.getTime(), nextTime.get()))
+                    .toList();
         }
 
         /*
         * ============================================================
-        * CARI WAKTU ACTIVITY BERIKUTNYA
+        * TIDAK ADA IN_PROGRESS
+        * TAMPILKAN ACTIVITY INQUEUE PERTAMA
+        * MESKIPUN BELUM WAKTUNYA
         * ============================================================
         */
-
-        // Semua IN_PROGRESS pasti memiliki waktu yang sama,
-        // ambil salah satunya.
-        LocalDateTime currentTime = currentActivities.get(0).getTime();
-
-        Optional<LocalDateTime> nextTime = activities.stream()
+        Optional<LocalDateTime> nextPendingTime = activities.stream()
+                .filter(a -> a.getActivityStatus() == ActivityStatus.INQUEUE)
                 .map(Activity::getTime)
                 .filter(Objects::nonNull)
-                .filter(time -> time.isAfter(currentTime))
                 .distinct()
                 .sorted()
                 .findFirst();
 
-        if (nextTime.isEmpty()) {
+        if (nextPendingTime.isEmpty()) {
             return List.of();
         }
 
-        // Ambil semua activity pada waktu berikutnya
         return activities.stream()
-                .filter(a -> Objects.equals(a.getTime(), nextTime.get()))
-                .collect(Collectors.toList());
+                .filter(a -> a.getActivityStatus() == ActivityStatus.INQUEUE)
+                .filter(a -> Objects.equals(a.getTime(), nextPendingTime.get()))
+                .toList();
     }
 
     @Transactional
     public ApiDataResponseBuilder nextProgressActivity(Long sessionId) {
 
         Session session = sessionRepository.findByIdAndDeletedAtIsNull(sessionId)
-                .orElseThrow(() -> new DataNotFoundException("Data session tidak ditemukan"));
+                .orElseThrow(() ->
+                        new DataNotFoundException(
+                                "Data session tidak ditemukan"));
 
-        List<Activity> activities = activityRepository.findBySessionIdAndDeletedAtIsNull(sessionId)
-                .stream()
-                .sorted(
-                        Comparator.comparing(Activity::getTime, Comparator.nullsLast(Comparator.naturalOrder()))
-                                .thenComparing(Activity::getActivityId))
-                .collect(Collectors.toList());
+        List<Activity> activities =
+                activityRepository
+                        .findBySessionIdAndDeletedAtIsNull(sessionId)
+                        .stream()
+                        .sorted(
+                                Comparator.comparing(
+                                        Activity::getTime,
+                                        Comparator.nullsLast(
+                                                Comparator.naturalOrder()
+                                        )
+                                )
+                                .thenComparing(
+                                        Activity::getActivityId
+                                )
+                        )
+                        .toList();
 
         if (activities.isEmpty()) {
+
             return ApiDataResponseBuilder.builder()
                     .message("Activity tidak ditemukan")
                     .status(HttpStatus.NOT_FOUND)
                     .statusCode(HttpStatus.NOT_FOUND.value())
                     .build();
+
         }
 
         LocalDateTime now = LocalDateTime.now();
 
         /*
-        * ============================================================
-        * CARI ACTIVITY YANG SEDANG BERJALAN
-        * ============================================================
+        * ==========================================================
+        * SESSION SUDAH SELESAI
+        * ==========================================================
         */
 
-        List<Activity> currentActivities = activities.stream()
-                .filter(a -> a.getActivityStatus() == ActivityStatus.IN_PROGRESS)
-                .collect(Collectors.toList());
+        boolean allCompleted =
+                activities.stream()
+                        .allMatch(a ->
+                                a.getActivityStatus()
+                                        == ActivityStatus.COMPLETED);
 
-        /*
-        * ============================================================
-        * SESSION BELUM DIMULAI
-        * ============================================================
-        */
+        if (allCompleted) {
 
-        if (currentActivities.isEmpty()) {
+            session.setSessionStatus(
+                    SessionStatus.COMPLETED);
 
-            Optional<LocalDateTime> firstTime = activities.stream()
-                    .map(Activity::getTime)
-                    .filter(Objects::nonNull)
-                    .distinct()
-                    .sorted()
-                    .findFirst();
-
-            if (firstTime.isEmpty()) {
-                return ApiDataResponseBuilder.builder()
-                        .message("Activity tidak memiliki waktu")
-                        .status(HttpStatus.BAD_REQUEST)
-                        .statusCode(HttpStatus.BAD_REQUEST.value())
-                        .build();
-            }
-
-            if (isTooEarly(now, firstTime.get())) {
-                return ApiDataResponseBuilder.builder()
-                        .message("Belum waktunya memulai session")
-                        .status(HttpStatus.OK)
-                        .statusCode(HttpStatus.OK.value())
-                        .build();
-            }
-
-            // Activity pertama menjadi IN_PROGRESS
-            activities.stream()
-                    .filter(a -> Objects.equals(a.getTime(), firstTime.get()))
-                    .forEach(a -> a.setActivityStatus(ActivityStatus.IN_PROGRESS));
-
-            session.setSessionStatus(SessionStatus.RUNNING);
-
-            activityRepository.saveAll(activities);
-            sessionRepository.save(session);
-
-            return ApiDataResponseBuilder.builder()
-                    .message("Activity pertama berhasil dijalankan")
-                    .status(HttpStatus.OK)
-                    .statusCode(HttpStatus.OK.value())
-                    .build();
-        }
-
-        /*
-        * ============================================================
-        * CARI WAKTU ACTIVITY BERIKUTNYA
-        * ============================================================
-        */
-
-        LocalDateTime currentTime = currentActivities.get(0).getTime();
-
-        Optional<LocalDateTime> nextTime = activities.stream()
-                .map(Activity::getTime)
-                .filter(Objects::nonNull)
-                .filter(time -> time.isAfter(currentTime))
-                .distinct()
-                .sorted()
-                .findFirst();
-
-        /*
-        * ============================================================
-        * TIDAK ADA NEXT
-        * ============================================================
-        */
-
-        if (nextTime.isEmpty()) {
-
-            // Activity terakhir baru boleh COMPLETE jika sudah waktunya
-            if (isTooEarly(now, currentTime)) {
-                return ApiDataResponseBuilder.builder()
-                        .message("Activity terakhir masih berjalan")
-                        .status(HttpStatus.OK)
-                        .statusCode(HttpStatus.OK.value())
-                        .build();
-            }
-
-            activities.stream()
-                    .filter(a -> Objects.equals(a.getTime(), currentTime))
-                    .forEach(a -> a.setActivityStatus(ActivityStatus.COMPLETED));
-
-            session.setSessionStatus(SessionStatus.COMPLETED);
-
-            activityRepository.saveAll(activities);
             sessionRepository.save(session);
 
             return ApiDataResponseBuilder.builder()
@@ -324,53 +288,110 @@ public class SessionTrackingService {
                     .status(HttpStatus.OK)
                     .statusCode(HttpStatus.OK.value())
                     .build();
+
         }
 
         /*
-        * ============================================================
-        * BELUM WAKTUNYA PINDAH
-        * ============================================================
+        * ==========================================================
+        * MASIH ADA YANG IN_PROGRESS
+        * ==========================================================
         */
-       System.out.println("Date Now ::"+ now);
-       System.out.println("Toleransi semenit ::"+ isTooEarly(now, nextTime.get()));
-        if (isTooEarly(now, nextTime.get())) {
+
+        boolean hasInProgress =
+                activities.stream()
+                        .anyMatch(a ->
+                                a.getActivityStatus()
+                                        == ActivityStatus.IN_PROGRESS);
+
+        if (hasInProgress) {
+
             return ApiDataResponseBuilder.builder()
                     .message("Activity saat ini masih berjalan")
+                    .status(HttpStatus.OK)
+                    .statusCode(HttpStatus.OK.value())
+                    .build();
+
+        }
+
+        /*
+        * ==========================================================
+        * CARI ACTIVITY INQUEUE PERTAMA
+        * ==========================================================
+        */
+
+        Optional<LocalDateTime> nextTime =
+                activities.stream()
+
+                        .filter(a ->
+                                a.getActivityStatus()
+                                        == ActivityStatus.INQUEUE)
+                        .map(Activity::getTime)
+                        .filter(Objects::nonNull)
+                        .sorted()
+                        .findFirst();
+
+        if (nextTime.isEmpty()) {
+
+            return ApiDataResponseBuilder.builder()
+                    .message("Tidak ada activity berikutnya")
+                    .status(HttpStatus.OK)
+                    .statusCode(HttpStatus.OK.value())
+                    .build();
+
+        }
+
+        /*
+        * ==========================================================
+        * BELUM WAKTUNYA DIMULAI
+        * ==========================================================
+        */
+
+        if (isTooEarly(now, nextTime.get())) {
+
+            return ApiDataResponseBuilder.builder()
+                    .message("Belum waktunya memulai activity berikutnya")
                     .status(HttpStatus.OK)
                     .statusCode(HttpStatus.OK.value())
                     .build();
         }
 
         /*
-        * ============================================================
-        * COMPLETE CURRENT
-        * ============================================================
+        * ==========================================================
+        * PROMOTE INQUEUE -> IN_PROGRESS
+        * ==========================================================
         */
 
-        activities.stream()
-                .filter(a -> Objects.equals(a.getTime(), currentTime))
-                .forEach(a -> a.setActivityStatus(ActivityStatus.COMPLETED));
+        List<Activity> activitiesToStart =
+                activities.stream()
+                        .filter(a ->
+                                a.getActivityStatus()
+                                        == ActivityStatus.INQUEUE)
+                        .filter(a ->
+                                Objects.equals(
+                                        a.getTime(),
+                                        nextTime.get()))
+                        .toList();
 
-        /*
-        * ============================================================
-        * NEXT MENJADI IN_PROGRESS
-        * ============================================================
-        */
+        activitiesToStart.forEach(a ->
+                a.setActivityStatus(
+                        ActivityStatus.IN_PROGRESS));
 
-        activities.stream()
-                .filter(a -> Objects.equals(a.getTime(), nextTime.get()))
-                .forEach(a -> a.setActivityStatus(ActivityStatus.IN_PROGRESS));
+        session.setSessionStatus(
+                SessionStatus.RUNNING);
 
-        session.setSessionStatus(SessionStatus.RUNNING);
+        activityRepository.saveAll(
+                activitiesToStart);
 
-        activityRepository.saveAll(activities);
         sessionRepository.save(session);
 
         return ApiDataResponseBuilder.builder()
-                .message("Berhasil berpindah ke activity berikutnya")
+                .message(
+                        "Berhasil menjalankan activity berikutnya"
+                )
                 .status(HttpStatus.OK)
                 .statusCode(HttpStatus.OK.value())
                 .build();
+
     }
 
     private boolean isTooEarly(LocalDateTime now, LocalDateTime targetTime) {

@@ -6,6 +6,7 @@ import lombok.*;
 import jakarta.persistence.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -60,4 +61,7 @@ public class Session extends BaseEntity {
     
     @OneToMany(mappedBy = "session")
     private List<SessionDevice> sessionDevices;
+
+    @OneToMany(mappedBy = "session", fetch = FetchType.LAZY)
+    private List<InfusionMonitoring> infusionMonitorings;
 }

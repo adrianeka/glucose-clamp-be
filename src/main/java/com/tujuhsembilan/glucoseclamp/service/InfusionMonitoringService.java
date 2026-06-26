@@ -75,6 +75,22 @@ public class InfusionMonitoringService {
                 .build();
     }
 
+    public ApiDataResponseBuilder getInfusionMonitoringsBySessionId(Long sessionId, int pageNumber, int pageSize) {
+        Pageable pageable = PageRequest.of(pageNumber - 1, pageSize);
+        Page<InfusionMonitoring> pageResult = infusionMonitoringRepository.findBySessionId(sessionId, pageable);
+
+        List<InfusionMonitoringResponse> responseList = pageResult.getContent().stream()
+                .map(monitoring -> modelMapper.map(monitoring, InfusionMonitoringResponse.class))
+                .toList();
+
+        return ApiDataResponseBuilder.builder()
+                .status(HttpStatus.OK)
+                .statusCode(HttpStatus.OK.value())
+                .message("Success fetch infusion monitoring by session ID")
+                .data(responseList)
+                .build();
+    }
+
     public ApiDataResponseBuilder getInfusionMonitoringById(Long id) {
         Optional<InfusionMonitoring> opt = infusionMonitoringRepository.findByIdWithSessionAndProtocol(id);
         if (opt.isEmpty()) {

@@ -52,6 +52,15 @@ public class Protocol extends BaseEntity {
     @Column(name = "duration_hours", precision = 10, scale = 2)
     private BigDecimal durationHours;
     
+    @Column(name = "glucose_drop_trigger_percentage", precision = 5, scale = 2)
+    private BigDecimal glucoseDropTriggerPercentage;
+
+    @Column(name = "initial_glucose_infusion_rate", precision = 10, scale = 2)
+    private BigDecimal initialGlucoseInfusionRate;
+
+    @Column(name = "initial_glucose_infusion_rate_unit", length = 50)
+    private String initialGlucoseInfusionRateUnit;
+
     @Column(name = "version", nullable = false)
     private Float version;
     

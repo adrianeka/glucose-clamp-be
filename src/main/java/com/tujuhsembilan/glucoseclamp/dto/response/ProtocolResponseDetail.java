@@ -49,6 +49,15 @@ public class ProtocolResponseDetail {
     @JsonProperty("duration_hours")
     private BigDecimal durationHours;
 
+    @JsonProperty("glucose_drop_trigger_percentage")
+    private BigDecimal glucoseDropTriggerPercentage;
+
+    @JsonProperty("initial_glucose_infusion_rate")
+    private BigDecimal initialGlucoseInfusionRate;
+
+    @JsonProperty("initial_glucose_infusion_rate_unit")
+    private String initialGlucoseInfusionRateUnit;
+
     @JsonProperty("version")
     private Float version;
 

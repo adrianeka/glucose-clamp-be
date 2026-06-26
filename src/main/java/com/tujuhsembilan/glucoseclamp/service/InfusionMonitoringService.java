@@ -5,10 +5,13 @@ import com.tujuhsembilan.glucoseclamp.dto.request.InfusionMonitoringStatusUpdate
 import com.tujuhsembilan.glucoseclamp.dto.request.InfusionMonitoringUpdateRequest;
 import com.tujuhsembilan.glucoseclamp.dto.response.ApiDataResponseBuilder;
 import com.tujuhsembilan.glucoseclamp.dto.response.InfusionMonitoringResponse;
+import com.tujuhsembilan.glucoseclamp.model.GlobalConfiguration;
 import com.tujuhsembilan.glucoseclamp.model.InfusionMonitoring;
 import com.tujuhsembilan.glucoseclamp.model.LabResult;
+import com.tujuhsembilan.glucoseclamp.model.Protocol;
 import com.tujuhsembilan.glucoseclamp.model.Session;
 import com.tujuhsembilan.glucoseclamp.model.base.EntityStatus;
+import com.tujuhsembilan.glucoseclamp.repository.GlobalConfigurationRepository;
 import com.tujuhsembilan.glucoseclamp.repository.InfusionMonitoringRepository;
 import com.tujuhsembilan.glucoseclamp.repository.LabResultRepository;
 import com.tujuhsembilan.glucoseclamp.repository.SessionRepository;
@@ -41,6 +44,7 @@ public class InfusionMonitoringService {
     private final SessionRepository sessionRepository;
     private final LabResultRepository labResultRepository;
     private final ModelMapper modelMapper;
+    private final GlobalConfigurationRepository globalConfigurationRepository;
 
     private Integer getCurrentUserId() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -367,14 +371,31 @@ public class InfusionMonitoringService {
 
         // Fase 0: Belum ada infus aktif yang berjalan
         if (activeInfusionCount == 0) {
-            // // Cek apakah glukosa turun >= 10% dari Gb
-            // BigDecimal threshold = gb.multiply(new BigDecimal("0.90"));
-            // if (currentGlucose.compareTo(threshold) <= 0) {
-            //     return new BigDecimal("2.00"); // Mulai Fase 1 (Dosis Awal)
-            // } else {
-            //     return BigDecimal.ZERO; // Tetap Fase 0
-            // }
-            return BigDecimal.ZERO;
+            Protocol protocol = session != null ? session.getProtocol() : null;
+            
+            // Membaca persentase trigger drop secara dinamis dari Protocol (default fallback: 10.00%)
+            BigDecimal dropPercent = (protocol != null && protocol.getGlucoseDropTriggerPercentage() != null)
+                    ? protocol.getGlucoseDropTriggerPercentage()
+                    : new BigDecimal("10.00");
+
+            // Membaca initial infusion rate secara dinamis dari Protocol (default fallback: 2.00)
+            BigDecimal initialRate = (protocol != null && protocol.getInitialGlucoseInfusionRate() != null)
+            ? protocol.getInitialGlucoseInfusionRate()
+            : new BigDecimal("2.00");
+            
+            // Ubah menjadi desimal (misal: 10.00% / 100 = 0.10)
+            BigDecimal dropDecimal = dropPercent.divide(new BigDecimal("100"), 4, RoundingMode.HALF_UP); 
+            // Kurangi dari 1 untuk mendapatkan faktor sisa (1 - 0.10 = 0.90)
+            BigDecimal initialDrop = BigDecimal.ONE.subtract(dropDecimal);
+            log.info("Initial Drop Threshold Factor: " + initialDrop);
+            BigDecimal threshold = gb.multiply(initialDrop);
+            // // Cek apakah glukosa turun >= threshold dari Gb
+            if (currentGlucose.compareTo(threshold) <= 0) {
+                return initialRate; // Mulai Fase 1 (Dosis Awal)
+            } else {
+                return BigDecimal.ZERO; // Tetap Fase 0
+            }
+            // return BigDecimal.ZERO;
         }
 
         BigDecimal girCurrent = activeMonitorings.stream()

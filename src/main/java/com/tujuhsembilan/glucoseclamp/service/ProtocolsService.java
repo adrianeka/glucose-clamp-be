@@ -110,14 +110,6 @@ public class ProtocolsService {
 
     @Transactional
     public ApiDataResponseBuilder addProtocol(ProtocolRequest request) {
-        // if (protocolRepository.findById(request.getProtocolId()).isPresent()) {
-        //     return ApiDataResponseBuilder.builder()
-        //             .message("Protocol ID sudah digunakan")
-        //             .statusCode(HttpStatus.BAD_REQUEST.value())
-        //             .status(HttpStatus.BAD_REQUEST)
-        //             .build();
-        // }
-
         if (protocolRepository.findByProtocolCode(request.getProtocolCode()).isPresent()) {
             return ApiDataResponseBuilder.builder()
                     .message("Protocol Code sudah digunakan")
@@ -126,23 +118,11 @@ public class ProtocolsService {
                     .build();
         }
 
-        // if (request.getSamplingSchedules() != null) {
-        //     for (SamplingScheduleRequest detailReq : request.getSamplingSchedules()) {
-        //         if (samplingScheduleRepository.findById(detailReq.getSamplingScheduleId()).isPresent()) {
-        //             return ApiDataResponseBuilder.builder()
-        //                     .message("Sampling Schedule ID " + detailReq.getSamplingScheduleId() + " sudah digunakan")
-        //                     .statusCode(HttpStatus.BAD_REQUEST.value())
-        //                     .status(HttpStatus.BAD_REQUEST)
-        //                     .build();
-        //         }
-        //     }
-        // }
-
         Integer currentUserId = getCurrentUserId();
         LocalDateTime now = LocalDateTime.now();
 
+        // Ditambahkan mapping untuk 3 field baru
         Protocol protocol = Protocol.builder()
-                // .protocolId(request.getProtocolId())
                 .protocolCode(request.getProtocolCode())
                 .protocolName(request.getProtocolName())
                 .insulinDoseRule(request.getInsulinDoseRule())
@@ -153,6 +133,9 @@ public class ProtocolsService {
                 .glucoseTargetMinExtreme(request.getGlucoseTargetMinExtreme())
                 .glucoseTargetMaxExtreme(request.getGlucoseTargetMaxExtreme())
                 .durationHours(request.getDurationHours())
+                .glucoseDropTriggerPercentage(request.getGlucoseDropTriggerPercentage())
+                .initialGlucoseInfusionRate(request.getInitialGlucoseInfusionRate())
+                .initialGlucoseInfusionRateUnit(request.getInitialGlucoseInfusionRateUnit())
                 .version(request.getVersion())
                 .build();
 
@@ -230,6 +213,12 @@ public class ProtocolsService {
         if (request.getGlucoseTargetMinExtreme() != null) protocol.setGlucoseTargetMinExtreme(request.getGlucoseTargetMinExtreme());
         if (request.getGlucoseTargetMaxExtreme() != null) protocol.setGlucoseTargetMaxExtreme(request.getGlucoseTargetMaxExtreme());
         if (request.getDurationHours() != null) protocol.setDurationHours(request.getDurationHours());
+        
+        // Ditambahkan pengecekan & pembaruan nilai untuk 3 field baru
+        if (request.getGlucoseDropTriggerPercentage() != null) protocol.setGlucoseDropTriggerPercentage(request.getGlucoseDropTriggerPercentage());
+        if (request.getInitialGlucoseInfusionRate() != null) protocol.setInitialGlucoseInfusionRate(request.getInitialGlucoseInfusionRate());
+        if (request.getInitialGlucoseInfusionRateUnit() != null) protocol.setInitialGlucoseInfusionRateUnit(request.getInitialGlucoseInfusionRateUnit());
+        
         if (request.getVersion() != null) protocol.setVersion(request.getVersion());
 
         protocol.setUpdatedBy(currentUserId);
@@ -247,7 +236,6 @@ public class ProtocolsService {
             }
 
             for (SamplingScheduleRequest detailReq : request.getSamplingSchedules()) {
-
                 SamplingSchedule detail = SamplingSchedule.builder()
                         .protocol(protocol)
                         .phaseCode(detailReq.getPhaseCode())
@@ -394,14 +382,7 @@ public class ProtocolsService {
     }
 
     public ProtocolResponse mapToResponse(Protocol protocol) {
-        // List<SamplingScheduleResponse> details = null;
-        // if (protocol.getSamplingSchedules() != null) {
-        //     details = protocol.getSamplingSchedules().stream()
-        //             .filter(pd -> pd.getDeletedAt() == null)
-        //             .map(this::mapDetailToResponse)
-        //             .collect(Collectors.toList());
-        // }
-
+        // Ditambahkan pemetaan untuk 3 field baru ke DTO ProtocolResponse
         return ProtocolResponse.builder()
                 .protocolId(protocol.getProtocolId())
                 .protocolCode(protocol.getProtocolCode())
@@ -414,6 +395,9 @@ public class ProtocolsService {
                 .glucoseTargetMinExtreme(protocol.getGlucoseTargetMinExtreme())
                 .glucoseTargetMaxExtreme(protocol.getGlucoseTargetMaxExtreme())
                 .durationHours(protocol.getDurationHours())
+                .glucoseDropTriggerPercentage(protocol.getGlucoseDropTriggerPercentage())
+                .initialGlucoseInfusionRate(protocol.getInitialGlucoseInfusionRate())
+                .initialGlucoseInfusionRateUnit(protocol.getInitialGlucoseInfusionRateUnit())
                 .version(protocol.getVersion())
                 .createdAt(protocol.getCreatedAt())
                 .createdBy(protocol.getCreatedBy())
@@ -422,9 +406,7 @@ public class ProtocolsService {
                 .deletedAt(protocol.getDeletedAt())
                 .deletedBy(protocol.getDeletedBy())
                 .status(protocol.getStatus() != null ? protocol.getStatus().name() : null)
-                .samplingScheduleSummary(
-                        buildSamplingScheduleSummary(protocol)
-                )
+                .samplingScheduleSummary(buildSamplingScheduleSummary(protocol))
                 .build();
     }
 
@@ -437,6 +419,7 @@ public class ProtocolsService {
                     .collect(Collectors.toList());
         }
 
+        // Ditambahkan pemetaan untuk 3 field baru ke DTO ProtocolResponseDetail
         return ProtocolResponseDetail.builder()
                 .protocolId(protocol.getProtocolId())
                 .protocolCode(protocol.getProtocolCode())
@@ -449,6 +432,9 @@ public class ProtocolsService {
                 .glucoseTargetMinExtreme(protocol.getGlucoseTargetMinExtreme())
                 .glucoseTargetMaxExtreme(protocol.getGlucoseTargetMaxExtreme())
                 .durationHours(protocol.getDurationHours())
+                .glucoseDropTriggerPercentage(protocol.getGlucoseDropTriggerPercentage())
+                .initialGlucoseInfusionRate(protocol.getInitialGlucoseInfusionRate())
+                .initialGlucoseInfusionRateUnit(protocol.getInitialGlucoseInfusionRateUnit())
                 .version(protocol.getVersion())
                 .createdAt(protocol.getCreatedAt())
                 .createdBy(protocol.getCreatedBy())
@@ -482,7 +468,6 @@ public class ProtocolsService {
     }
 
     private String buildSamplingScheduleSummary(Protocol protocol) {
-
         if (protocol.getSamplingSchedules() == null) {
             return "0 phase";
         }

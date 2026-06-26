@@ -31,18 +31,14 @@ public class SeedDataRunner implements CommandLineRunner {
     public void run(String... args) {
         // seedAccessMenus();
         // seedRoles();
-        // seedRoleAccess();
+        // seedRoleAccesses();
         // seedUsers();
         // seedParticipants();
         // seedProtocols();
         // seedPhaseConfigurations();
         // seedSessions();
-        // seedActivities();
-        // seedDevices();
         // seedSamplingSchedules();
-        // seedBloodSamples();
-        // seedLabResults();
-        // syncSequences();
+        // seedGlobalConfigurations();
     }
 
     private void seedRoles() {
@@ -272,10 +268,12 @@ public class SeedDataRunner implements CommandLineRunner {
             "insulin_dose_rule, insulin_dose_unit, " +
             "glucose_target_min, glucose_target_max, " +
             "glucose_target_min_extreme, glucose_target_max_extreme, " +
-            "glucose_target_unit, duration_hours, version, " +
+            "glucose_target_unit, duration_hours, " +
+            "glucose_drop_trigger_percentage, initial_glucose_infusion_rate, initial_glucose_infusion_rate_unit, " + // Kolom baru
+            "version, " +
             "created_at, created_by, updated_at, updated_by, " +
             "deleted_at, deleted_by, status" +
-            ") VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) " +
+            ") VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? ) " + // Total 21 parameter (tambah 3 tanda tanya)
             "ON CONFLICT (protocol_code) DO UPDATE SET " +
             "protocol_code = EXCLUDED.protocol_code, " +
             "protocol_name = EXCLUDED.protocol_name, " +
@@ -287,6 +285,9 @@ public class SeedDataRunner implements CommandLineRunner {
             "glucose_target_max_extreme = EXCLUDED.glucose_target_max_extreme, " +
             "glucose_target_unit = EXCLUDED.glucose_target_unit, " +
             "duration_hours = EXCLUDED.duration_hours, " +
+            "glucose_drop_trigger_percentage = EXCLUDED.glucose_drop_trigger_percentage, " + // Pembaruan konflik baru
+            "initial_glucose_infusion_rate = EXCLUDED.initial_glucose_infusion_rate, " +     // Pembaruan konflik baru
+            "initial_glucose_infusion_rate_unit = EXCLUDED.initial_glucose_infusion_rate_unit, " + // Pembaruan konflik baru
             "version = EXCLUDED.version, " +
             "created_at = EXCLUDED.created_at, " +
             "created_by = EXCLUDED.created_by, " +
@@ -307,6 +308,9 @@ public class SeedDataRunner implements CommandLineRunner {
                 bd("110"),     // glucose_target_max_extreme
                 "mg/dL",
                 bd("24"),
+                bd("10"),      // glucose_drop_trigger_percentage (Nilai baru: 10%)
+                bd("2"),       // initial_glucose_infusion_rate (Nilai baru: 2)
+                "mg/kgBB/min",   // initial_glucose_infusion_rate_unit (Nilai baru)
                 1.0f,
                 ts("2026-05-21 07:10:00"),
                 1,
@@ -467,6 +471,20 @@ public class SeedDataRunner implements CommandLineRunner {
                     "Activity Confirmation Timer (seconds)", 
                     "Configure the countdown duration before an activity can be confirmed.", 
                     "60", 
+                    ts("2026-05-21 07:10:00"), 
+                    1, 
+                    ts("2026-05-21 07:10:00"), 
+                    1, 
+                    null, 
+                    null, 
+                    "ACTIVE"
+                ),
+                row(
+                    2, 
+                    "INITIAL_GLUCOSE_DROP_BASELINE", 
+                    "Initial Glucose Drop (Baseline in %)", 
+                    "Configure the percentage threshold of glucose level drop from the baseline to trigger initial tracking or alerts.", 
+                    "10", 
                     ts("2026-05-21 07:10:00"), 
                     1, 
                     ts("2026-05-21 07:10:00"), 

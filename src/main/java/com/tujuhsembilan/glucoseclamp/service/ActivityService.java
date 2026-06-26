@@ -463,6 +463,7 @@ public class ActivityService {
 
                 .phaseCode(activity.getPhaseCode())
                 .phaseName(activity.getPhaseName())
+                .scheduleCode(activity.getScheduleCode())
 
                 .time(activity.getTime())
                 

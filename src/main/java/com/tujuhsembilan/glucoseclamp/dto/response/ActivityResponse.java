@@ -21,6 +21,7 @@ public class ActivityResponse {
 
     private String phaseCode;
     private String phaseName;
+    private String scheduleCode;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime time;

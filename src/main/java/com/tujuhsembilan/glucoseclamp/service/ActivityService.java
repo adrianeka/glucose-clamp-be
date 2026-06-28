@@ -332,7 +332,7 @@ public class ActivityService {
         activityRepository.save(activity);
 
         // Sinkronkan status sesi secara otomatis (logika bawaan Anda)
-        syncSessionStatus(activity.getSession());
+        // syncSessionStatus(activity.getSession());
 
         // Siapkan respon data untuk dikirim ke frontend
         ActivityResponse responseData = mapToResponse(activity);

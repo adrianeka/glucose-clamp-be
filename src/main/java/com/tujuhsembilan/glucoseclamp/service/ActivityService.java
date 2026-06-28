@@ -40,6 +40,8 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -325,6 +327,7 @@ public class ActivityService {
     public ApiDataResponseBuilder completeActivity(Long activityId) {
         // Ambil data aktivitas aktif, lemparkan Exception jika tidak ditemukan
         Activity activity = requireActiveActivity(activityId);
+        // Session session = activity.getSession();
 
         // Update status aktivitas menjadi COMPLETED
         activity.setActivityStatus(ActivityStatus.COMPLETED);
@@ -333,6 +336,56 @@ public class ActivityService {
 
         // Sinkronkan status sesi secara otomatis (logika bawaan Anda)
         // syncSessionStatus(activity.getSession());
+        // /*
+        // * ============================================================
+        // * PROMOTE NEXT INQUEUE → NEXT_ACTIVITY
+        // * ============================================================
+        // */
+
+        // List<Activity> activities = activityRepository
+        //         .findBySessionIdAndDeletedAtIsNull(session.getSessionId())
+        //         .stream()
+        //         .sorted(
+        //                 Comparator.comparing(
+        //                         Activity::getTime,
+        //                         Comparator.nullsLast(Comparator.naturalOrder())
+        //                 ).thenComparing(Activity::getActivityId)
+        //         )
+        //         .toList();
+
+        // boolean hasRunning = activities.stream()
+        //         .anyMatch(a -> a.getActivityStatus() == ActivityStatus.IN_PROGRESS);
+
+        // boolean hasNext = activities.stream()
+        //         .anyMatch(a -> a.getActivityStatus() == ActivityStatus.NEXT_ACTIVITY);
+
+        // /*
+        // * Kalau tidak ada yang berjalan
+        // * dan belum ada NEXT_ACTIVITY
+        // */
+        // if (!hasRunning && !hasNext) {
+
+        //     Optional<LocalDateTime> nextTime = activities.stream()
+        //             .filter(a -> a.getActivityStatus() == ActivityStatus.INQUEUE)
+        //             .map(Activity::getTime)
+        //             .filter(Objects::nonNull)
+        //             .sorted()
+        //             .findFirst();
+
+        //     if (nextTime.isPresent()) {
+
+        //         List<Activity> nextActivities = activities.stream()
+        //                 .filter(a -> a.getActivityStatus() == ActivityStatus.INQUEUE)
+        //                 .filter(a -> Objects.equals(a.getTime(), nextTime.get()))
+        //                 .toList();
+
+        //         nextActivities.forEach(a ->
+        //                 a.setActivityStatus(ActivityStatus.NEXT_ACTIVITY)
+        //         );
+
+        //         activityRepository.saveAll(nextActivities);
+        //     }
+        // }
 
         // Siapkan respon data untuk dikirim ke frontend
         ActivityResponse responseData = mapToResponse(activity);

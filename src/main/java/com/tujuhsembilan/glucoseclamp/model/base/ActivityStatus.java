@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
 public enum ActivityStatus {
     INQUEUE,
     IN_PROGRESS,
+    NEXT_ACTIVITY,
     COMPLETED;
 
     @JsonValue

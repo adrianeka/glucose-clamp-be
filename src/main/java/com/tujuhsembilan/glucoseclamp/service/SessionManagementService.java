@@ -15,6 +15,7 @@ import com.tujuhsembilan.glucoseclamp.model.Protocol;
 import com.tujuhsembilan.glucoseclamp.model.Session;
 import com.tujuhsembilan.glucoseclamp.model.SessionDevice;
 import com.tujuhsembilan.glucoseclamp.model.User;
+import com.tujuhsembilan.glucoseclamp.model.Activity;
 import com.tujuhsembilan.glucoseclamp.model.base.ActivityStatus;
 import com.tujuhsembilan.glucoseclamp.model.base.EntityStatus;
 import com.tujuhsembilan.glucoseclamp.model.base.SessionStatus;
@@ -26,6 +27,7 @@ import com.tujuhsembilan.glucoseclamp.repository.ProtocolRepository;
 import com.tujuhsembilan.glucoseclamp.repository.SessionDeviceRepository;
 import com.tujuhsembilan.glucoseclamp.repository.SessionRepository;
 import com.tujuhsembilan.glucoseclamp.repository.VitalSignRepository;
+import com.tujuhsembilan.glucoseclamp.repository.ActivityRepository;
 import com.tujuhsembilan.glucoseclamp.repository.UserRepository;
 import com.tujuhsembilan.glucoseclamp.security.service.CurrentUserService;
 // Removed Lombok constructor annotation to avoid IDE/compiler mismatch issues
@@ -49,6 +51,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -63,6 +66,7 @@ public class SessionManagementService {
     private final AnamnesisRepository anamnesisRepository;
     private final AnthropometryRepository anthropometryRepository;
     private final UserRepository userRepository;
+    private final ActivityRepository activityRepository;
     private final CurrentUserService currentUserService;
     private final ActivityService activityService;
 
@@ -77,7 +81,8 @@ public class SessionManagementService {
             AnthropometryRepository anthropometryRepository,
             UserRepository userRepository,
                 CurrentUserService currentUserService,
-                ActivityService activityService
+                ActivityService activityService,
+            ActivityRepository activityRepository
     ) {
         this.sessionRepository = sessionRepository;
         this.participantRepository = participantRepository;
@@ -90,6 +95,7 @@ public class SessionManagementService {
         this.userRepository = userRepository;
         this.currentUserService = currentUserService;
         this.activityService = activityService;
+        this.activityRepository = activityRepository;
     }
 
     public ApiDataResponseBuilder getAllSessions(int pageNumber, int pageSize) {
@@ -113,6 +119,39 @@ public class SessionManagementService {
         Session session = sessionOptional.get();
         if (session.getSessionStatus() != SessionStatus.PREP) {
             return new MessageResponse("Session ini tidak bisa dimulai", HttpStatus.CONFLICT.value(), "CONFLICT");
+        }
+
+        List<Activity> activities =
+                activityRepository
+                        .findBySessionIdAndDeletedAtIsNull(sessionId);
+
+        Optional<LocalDateTime> firstTime =
+                activities.stream()
+                        .filter(a ->
+                                a.getActivityStatus()
+                                        == ActivityStatus.INQUEUE)
+                        .map(Activity::getTime)
+                        .filter(Objects::nonNull)
+                        .sorted()
+                        .findFirst();
+
+        if (firstTime.isPresent()) {
+            activities.stream()
+                    .filter(a ->
+                            a.getActivityStatus()
+                                    == ActivityStatus.INQUEUE)
+                    .filter(a ->
+                            Objects.equals(
+                                    a.getTime(),
+                                    firstTime.get()
+                            ))
+                    .forEach(a ->
+                            a.setActivityStatus(
+                                    ActivityStatus.NEXT_ACTIVITY
+                            ));
+            activityRepository.saveAll(
+                    activities
+            );
         }
 
         session.setSessionStatus(SessionStatus.RUNNING);

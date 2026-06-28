@@ -123,19 +123,6 @@ public class SessionTrackingService {
                             .stream())
                     .map(this::toLabResultResponse)
                     .toList();
-        // return new SessionActivityItemResponse(
-        //         activity.getActivityId(),
-        //         activity.getTime(),
-        //         activity.getActivityType(),
-        //         activity.getActivityDesc(),
-        //         activity.getPhaseCode(),
-        //         activity.getPhaseName(),
-        //         activity.getActivityStatus(),
-        //         activity.getMinute(),
-        //         activity.getScheduleCode(),
-        //         activity.getPhaseType(),
-        //         labResults
-        // );
         return SessionActivityItemResponse.builder()
                 .activityId(activity.getActivityId())
                 .time(activity.getTime())
@@ -204,68 +191,22 @@ public class SessionTrackingService {
         // }
 
     private List<Activity> findNextActivities(List<Activity> activities) {
-        /*
-        * ============================================================
-        * SEMUA SUDAH SELESAI
-        * ============================================================
-        */
-        if (activities.stream().allMatch(this::isCompletedActivity)) {
-            return List.of();
-        }
-        /*
-        * ============================================================
-        * MASIH ADA ACTIVITY IN_PROGRESS
-        * ============================================================
-        */
-        List<Activity> currentActivities = activities.stream()
-                .filter(a -> a.getActivityStatus() == ActivityStatus.IN_PROGRESS)
-                .toList();
-
-        if (!currentActivities.isEmpty()) {
-
-            LocalDateTime currentTime = currentActivities.get(0).getTime();
-
-            Optional<LocalDateTime> nextTime = activities.stream()
-                    .map(Activity::getTime)
-                    .filter(Objects::nonNull)
-                    .filter(time -> time.isAfter(currentTime))
-                    .distinct()
-                    .sorted()
-                    .findFirst();
-
-            if (nextTime.isEmpty()) {
-                return List.of();
-            }
-
-            return activities.stream()
-                    .filter(a -> a.getActivityStatus() != ActivityStatus.COMPLETED)
-                    .filter(a -> Objects.equals(a.getTime(), nextTime.get()))
-                    .toList();
-        }
-
-        /*
-        * ============================================================
-        * TIDAK ADA IN_PROGRESS
-        * TAMPILKAN ACTIVITY INQUEUE PERTAMA
-        * MESKIPUN BELUM WAKTUNYA
-        * ============================================================
-        */
-        Optional<LocalDateTime> nextPendingTime = activities.stream()
-                .filter(a -> a.getActivityStatus() == ActivityStatus.INQUEUE)
-                .map(Activity::getTime)
-                .filter(Objects::nonNull)
-                .distinct()
-                .sorted()
-                .findFirst();
-
-        if (nextPendingTime.isEmpty()) {
-            return List.of();
-        }
-
         return activities.stream()
-                .filter(a -> a.getActivityStatus() == ActivityStatus.INQUEUE)
-                .filter(a -> Objects.equals(a.getTime(), nextPendingTime.get()))
-                .toList();
+            .filter(a ->
+                a.getActivityStatus()
+                        == ActivityStatus.NEXT_ACTIVITY)
+            .sorted(
+                Comparator.comparing(
+                        Activity::getTime,
+                        Comparator.nullsLast(
+                                Comparator.naturalOrder()
+                        )
+                )
+                .thenComparing(
+                        Activity::getActivityId
+                )
+            )
+            .toList();
     }
 
     @Transactional
@@ -334,15 +275,15 @@ public class SessionTrackingService {
         */
 
         Optional<LocalDateTime> nextTime =
-                activities.stream()
-
-                        .filter(a ->
-                                a.getActivityStatus()
-                                        == ActivityStatus.INQUEUE)
-                        .map(Activity::getTime)
-                        .filter(Objects::nonNull)
-                        .sorted()
-                        .findFirst();
+            activities.stream()
+                    .filter(a ->
+                            a.getActivityStatus()
+                                    ==
+                            ActivityStatus.NEXT_ACTIVITY)
+                    .map(Activity::getTime)
+                    .filter(Objects::nonNull)
+                    .sorted()
+                    .findFirst();
 
         if (nextTime.isEmpty()) {
 
@@ -376,19 +317,48 @@ public class SessionTrackingService {
         */
 
         List<Activity> activitiesToStart =
-                activities.stream()
-                        .filter(a ->
-                                a.getActivityStatus()
-                                        == ActivityStatus.INQUEUE)
-                        .filter(a ->
-                                Objects.equals(
-                                        a.getTime(),
-                                        nextTime.get()))
-                        .toList();
+            activities.stream()
+                .filter(a ->
+                    a.getActivityStatus()
+                            ==
+                    ActivityStatus.NEXT_ACTIVITY)
+                .filter(a ->
+                    Objects.equals(
+                        a.getTime(),
+                        nextTime.get()))
+                .toList();
 
         activitiesToStart.forEach(a ->
                 a.setActivityStatus(
                         ActivityStatus.IN_PROGRESS));
+
+        Optional<LocalDateTime> nextQueueTime =
+                activities.stream()
+                        .filter(a ->
+                                a.getActivityStatus()
+                                        == ActivityStatus.INQUEUE)
+                        .map(Activity::getTime)
+                        .filter(Objects::nonNull)
+                        .sorted()
+                        .findFirst();
+
+        if (nextQueueTime.isPresent()) {
+
+            activities.stream()
+                    .filter(a ->
+                            a.getActivityStatus()
+                                    == ActivityStatus.INQUEUE)
+                    .filter(a ->
+                            Objects.equals(
+                                    a.getTime(),
+                                    nextQueueTime.get()))
+                    .forEach(a ->
+                            a.setActivityStatus(
+                                    ActivityStatus.NEXT_ACTIVITY));
+
+        }
+
+        activityRepository.saveAll(activities);
 
         session.setSessionStatus(
                 SessionStatus.RUNNING);

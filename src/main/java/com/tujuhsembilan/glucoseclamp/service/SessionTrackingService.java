@@ -112,18 +112,19 @@ public class SessionTrackingService {
                             .stream())
                     .map(this::toLabResultResponse)
                     .toList();
-        return new SessionActivityItemResponse(
-                activity.getActivityId(),
-                activity.getTime(),
-                activity.getActivityType(),
-                activity.getActivityDesc(),
-                activity.getPhaseCode(),
-                activity.getPhaseName(),
-                activity.getActivityStatus(),
-                activity.getMinute(),
-                activity.getScheduleCode(),
-                labResults
-        );
+        return SessionActivityItemResponse.builder()
+                .activityId(activity.getActivityId())
+                .time(activity.getTime())
+                .activityType(activity.getActivityType())
+                .activityDesc(activity.getActivityDesc())
+                .phaseCode(activity.getPhaseCode())
+                .phaseName(activity.getPhaseName())
+                .phaseType(activity.getPhaseType())
+                .activityStatus(activity.getActivityStatus())
+                .minute(activity.getMinute())
+                .scheduleCode(activity.getScheduleCode())
+                .labResults(labResults)
+                .build();
     }
 
     private LabResultItemResultResponse toLabResultResponse(LabResult labResult) {

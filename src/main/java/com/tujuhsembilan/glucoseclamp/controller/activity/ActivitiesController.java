@@ -3,6 +3,7 @@ package com.tujuhsembilan.glucoseclamp.controller.activity;
 import com.tujuhsembilan.glucoseclamp.dto.request.ActivityRequest;
 import com.tujuhsembilan.glucoseclamp.dto.request.ActivityStatusUpdateRequest;
 import com.tujuhsembilan.glucoseclamp.dto.request.ActivityUpdateRequest;
+import com.tujuhsembilan.glucoseclamp.dto.request.StatusActivityUpdateRequest;
 import com.tujuhsembilan.glucoseclamp.dto.response.ApiDataResponseBuilder;
 import com.tujuhsembilan.glucoseclamp.service.ActivityService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -69,6 +70,21 @@ public class ActivitiesController {
     @PostMapping(path = "/{activityId}/complete", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Object> completeActivity(@PathVariable Long activityId) {
         ApiDataResponseBuilder result = activityService.completeActivity(activityId);
+        return ResponseEntity.status(result.getStatus()).body(result);
+    }
+
+    @PatchMapping(
+        path = "/{activityId}/activity-status",
+        consumes = MediaType.APPLICATION_JSON_VALUE,
+        produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    public ResponseEntity<Object> updateActivityStatus(
+            @PathVariable Long activityId,
+            @Valid @RequestBody StatusActivityUpdateRequest request) {
+
+        ApiDataResponseBuilder result =
+                activityService.updateStatusActivity(activityId, request);
+
         return ResponseEntity.status(result.getStatus()).body(result);
     }
 }

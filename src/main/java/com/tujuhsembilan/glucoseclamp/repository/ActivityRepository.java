@@ -78,4 +78,9 @@ public interface ActivityRepository extends JpaRepository<Activity, Long> {
         LocalDateTime time, 
         EntityStatus status
     );
+
+    Optional<Activity> findFirstBySessionSessionIdAndTimeBeforeAndDeletedAtIsNullOrderByTimeDesc(
+        Long sessionId,
+        LocalDateTime time
+    );
 }

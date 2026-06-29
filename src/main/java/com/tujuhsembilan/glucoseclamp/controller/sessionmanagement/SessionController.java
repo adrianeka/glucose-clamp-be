@@ -87,4 +87,13 @@ public class SessionController {
         ApiDataResponseBuilder result = sessionManagementService.complete(sessionId, request);
         return ResponseEntity.status(result.getStatus()).body(result);
     }
+
+    @PostMapping("/{sessionId}/next-progress-activity")
+    public ResponseEntity<Object> nextProgressActivity(
+            @PathVariable Long sessionId) {
+
+        ApiDataResponseBuilder result = sessionTrackingService.nextProgressActivity(sessionId);
+
+        return ResponseEntity.status(result.getStatus()).body(result);
+    }
 }

@@ -4,6 +4,7 @@ import com.tujuhsembilan.glucoseclamp.model.base.BaseEntity;
 import lombok.*;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "blood_samples")
@@ -41,4 +42,7 @@ public class BloodSample extends BaseEntity {
 
     @Column(name = "volume_ml")
     private Integer volumeMl;
+
+    @OneToMany(mappedBy = "bloodSample")
+    private List<LabResult> labResults;
 }

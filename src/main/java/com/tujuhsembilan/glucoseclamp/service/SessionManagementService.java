@@ -145,6 +145,8 @@ public class SessionManagementService {
                     .build();
         }
 
+        Protocol protocol = protocolOptional.get();
+
         // if (request.getDeviceIds() == null || request.getDeviceIds().isEmpty()) {
         //     return ApiDataResponseBuilder.builder()
         //             .message("Device minimal 1 harus diisi")
@@ -188,7 +190,7 @@ public class SessionManagementService {
         // }
         // sessionDeviceRepository.saveAll(sessionDevices);
 
-        List<Activity> activities = activityService.generateActivitiesForSession(session, actor, actorId);
+        List<Activity> activities = activityService.generateActivitiesForSession(session, actor, actorId, protocol );
         activityService.saveActivities(activities);
 
         LocalDateTime estimatedEndTime = activities.stream()
@@ -281,6 +283,8 @@ public class SessionManagementService {
                     .build();
         }
 
+        Protocol protocol = protocolOptional.get();
+
         boolean protocolChanged = !session.getProtocol().getProtocolId().equals(request.getProtocolId());
         session.setProtocol(protocolOptional.get());
         session.setVisitDate(request.getVisitDate());
@@ -295,7 +299,7 @@ public class SessionManagementService {
             sessionRepository.save(session);
 
             activityService.softDeleteActivitiesForSession(sessionId, actorId);
-            List<Activity> activities = activityService.generateActivitiesForSession(session, actor, actorId);
+            List<Activity> activities = activityService.generateActivitiesForSession(session, actor, actorId, protocol);
             activityService.saveActivities(activities);
 
             return ApiDataResponseBuilder.builder()

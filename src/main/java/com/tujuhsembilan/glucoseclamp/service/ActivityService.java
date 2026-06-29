@@ -569,23 +569,24 @@ public class ActivityService {
         
         LocalDateTime activityClockTime = session.getStartTime().plusMinutes(relativeMinute);
 
+        if("stabilization".equals(phaseType)) {
+            activities.add(buildActivity(session, actor, actorId, activityClockTime
+                    , "Persiapan pra-tindakan, stabilisasi ", 
+                    generationState, "STABILIZATION", phaseName, phaseCode, phaseType, scheduleCode, relativeMinute, insulinDoseRule, insulinDoseUnit));
+        } 
+
         if ("preparation".equals(phaseType)) {
-            if( "PREP2".equals(phaseCode) ) {
-                activities.add(buildActivity(session, actor, actorId, activityClockTime, 
-                    phaseCode, "Pemeriksaan fisik awal (Vital Signs, Anthropometry, & Anamneses) pada fase " + phaseName, 
-                    generationState, "STABILIZATION", phaseName, phaseCode, scheduleCode, relativeMinute, insulinDoseRule, insulinDoseUnit));
-            }
             activities.add(buildActivity(session, actor, actorId, activityClockTime, 
-                    phaseCode, "Pemeriksaan fisik awal (Vital Signs, Anthropometry, & Anamneses) pada fase " + phaseName, 
-                    generationState, "PREPARATION_CHECK", phaseName, phaseCode, scheduleCode, relativeMinute, insulinDoseRule, insulinDoseUnit));
+                "Pemeriksaan fisik awal (Vital Signs, Anthropometry, & Anamneses) pada fase " + phaseName, 
+                    generationState, "PREPARATION_CHECK", phaseName, phaseCode, phaseType, scheduleCode, relativeMinute, insulinDoseRule, insulinDoseUnit));
         } 
         else if ("finalization".equals(phaseType)) {
             activities.add(buildActivity(session, actor, actorId, activityClockTime, 
-                    phaseCode, "Evaluasi penghentian infus Dextrose 10% (GIR kembali mendekati 2 mg/kgBB/menit)", 
-                    generationState, "DEXTROSE_STOP_CHECK", phaseName, phaseCode, scheduleCode, relativeMinute, insulinDoseRule, insulinDoseUnit));
+                    "Evaluasi penghentian infus Dextrose 10% (GIR kembali mendekati 2 mg/kgBB/menit)", 
+                    generationState, "DEXTROSE_STOP_CHECK", phaseName, phaseCode, phaseType, scheduleCode, relativeMinute, insulinDoseRule, insulinDoseUnit));
             activities.add(buildActivity(session, actor, actorId, activityClockTime, 
-                    phaseCode, "Partisipan makan, diobservasi, pemeriksaan klinis dan antropometri akhir pada fase " + phaseName, 
-                    generationState, "FINAL_OBSERVATION", phaseName, phaseCode, scheduleCode, relativeMinute, insulinDoseRule, insulinDoseUnit));
+                    "Partisipan makan, diobservasi, pemeriksaan klinis dan antropometri akhir pada fase " + phaseName, 
+                    generationState, "FINAL_OBSERVATION", phaseName, phaseCode, phaseType, scheduleCode, relativeMinute, insulinDoseRule, insulinDoseUnit));
         } 
 
         else {
@@ -597,24 +598,24 @@ public class ActivityService {
             if (Boolean.TRUE.equals(detail.getInsulinInject())) {
                 int baselineNumber = generationState.nextBaselineNumber();
                 String basalCode = buildBaselineCode(minutesBeforeInjection);
-                activities.add(buildActivity(session, actor, actorId, activityClockTime, basalCode, buildBaselineSampleDescription(baselineNumber, minutesBeforeInjection), generationState, "BLOOD_DRAW", phaseName, phaseCode, scheduleCode, relativeMinute, insulinDoseRule, insulinDoseUnit));
-                activities.add(buildActivity(session, actor, actorId, activityClockTime, "T0", buildInsulinInjectDescription(insulinDoseRule, insulinDoseUnit), generationState, "INSULIN_INJECTION", phaseName, phaseCode, scheduleCode, relativeMinute, insulinDoseRule, insulinDoseUnit));
+                activities.add(buildActivity(session, actor, actorId, activityClockTime, buildBaselineSampleDescription(baselineNumber, minutesBeforeInjection), generationState, "BLOOD_DRAW", phaseName, phaseCode, phaseType, scheduleCode, relativeMinute, insulinDoseRule, insulinDoseUnit));
+                activities.add(buildActivity(session, actor, actorId, activityClockTime, buildInsulinInjectDescription(insulinDoseRule, insulinDoseUnit), generationState, "INSULIN_INJECTION", phaseName, phaseCode, phaseType, scheduleCode, relativeMinute, insulinDoseRule, insulinDoseUnit));
             } else if (Boolean.TRUE.equals(detail.getBloodRaw())) {
                 if ("pre-insulin".equals(phaseType)) {
                     int baselineNumber = generationState.nextBaselineNumber();
                     String basalCode = buildBaselineCode(minutesBeforeInjection);
-                    activities.add(buildActivity(session, actor, actorId, activityClockTime, basalCode, buildBaselineSampleDescription(baselineNumber, minutesBeforeInjection), generationState, "BLOOD_DRAW", phaseName, phaseCode, scheduleCode, relativeMinute, insulinDoseRule, insulinDoseUnit ));
+                    activities.add(buildActivity(session, actor, actorId, activityClockTime, buildBaselineSampleDescription(baselineNumber, minutesBeforeInjection), generationState, "BLOOD_DRAW", phaseName, phaseCode, phaseType, scheduleCode, relativeMinute, insulinDoseRule, insulinDoseUnit ));
                 } else {
                     int glucoseNumber = generationState.nextGlucoseNumber();
                     String gdCode = "GD" + glucoseNumber;
-                    activities.add(buildActivity(session, actor, actorId, activityClockTime, gdCode, buildGlucoseSampleDescription(glucoseNumber), generationState, "BLOOD_DRAW", phaseName, phaseCode, scheduleCode, relativeMinute, insulinDoseRule, insulinDoseUnit));
+                    activities.add(buildActivity(session, actor, actorId, activityClockTime, buildGlucoseSampleDescription(glucoseNumber), generationState, "BLOOD_DRAW", phaseName, phaseCode, phaseType, scheduleCode, relativeMinute, insulinDoseRule, insulinDoseUnit));
                 }
             }
 
             if (Boolean.TRUE.equals(detail.getPkSampleCollection())) {
                 int pkcNumber = generationState.nextInsulinCheckNumber();
                 String pkcCode = "PKC-" + pkcNumber;
-                activities.add(buildActivity(session, actor, actorId, activityClockTime, pkcCode, buildInsulinCheckDescription(pkcNumber), generationState, "INSULIN_CHECK", phaseName, phaseCode, scheduleCode, relativeMinute, insulinDoseRule, insulinDoseUnit));
+                activities.add(buildActivity(session, actor, actorId, activityClockTime, buildInsulinCheckDescription(pkcNumber), generationState, "INSULIN_CHECK", phaseName, phaseCode, phaseType, scheduleCode, relativeMinute, insulinDoseRule, insulinDoseUnit));
             }
         }
 
@@ -626,12 +627,12 @@ public class ActivityService {
             User actor, 
             Integer actorId, 
             LocalDateTime clockTime, 
-            String codePart, 
             String activityDesc, 
             ActivityGenerationState generationState, 
             String type,
             String phaseName,
             String phaseCode,
+            String phaseType,
             String scheduleCode,
             Integer relativeMinute,
             String insulinDoseRule,
@@ -652,6 +653,7 @@ public class ActivityService {
         activity.setStatus(EntityStatus.ACTIVE);
         activity.setPhaseCode(phaseCode);
         activity.setPhaseName(phaseName);
+        activity.setPhaseType(phaseType);
         activity.setScheduleCode(scheduleCode);
         activity.setCreatedBy(actorId);
         activity.setUpdatedBy(actorId);

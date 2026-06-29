@@ -23,5 +23,6 @@ public class SessionActivityItemResponse {
     private ActivityStatus activityStatus;
     private Integer minute;
     private String scheduleCode;
+    private String phaseType;
     private List<LabResultItemResultResponse> labResults;
 }

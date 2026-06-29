@@ -348,7 +348,7 @@ public class SeedDataRunner implements CommandLineRunner {
                 
                 // PREPARATION (PREP1 & PREP2)
                 row("PREP1", 1, "PREP1", "Pemeriksaan Awal", "preparation", 0, 30, false, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-                row("PREP2", 1, "PREP2", "Pra - Tindakan", "preparation", 30, 30, false, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+                row("PREP2", 1, "PREP2", "Pra - Tindakan", "stabilization", 30, 30, false, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
             
                 // BASELINE (Langkah interval masing-masing 10m dimulai dari menit ke-60, berujung di T-00 saat injeksi insulin)
                 row("T-30", 1, "BASE", "Baseline", "pre-insulin", 60, 10, true, false, true, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),

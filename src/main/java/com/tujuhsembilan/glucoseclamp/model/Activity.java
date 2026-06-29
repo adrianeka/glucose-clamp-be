@@ -50,6 +50,9 @@ public class Activity extends BaseEntity {
     @Column(name = "phase_code")
     private String phaseCode;
 
+    @Column(name = "phase_type")
+    private String phaseType;
+
     @Column(name = "schedule_code")
     private String scheduleCode;
 

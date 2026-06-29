@@ -1,17 +1,20 @@
 package com.tujuhsembilan.glucoseclamp.service;
 
 import com.tujuhsembilan.glucoseclamp.dto.response.ApiDataResponseBuilder;
+import com.tujuhsembilan.glucoseclamp.dto.response.InfusionMonitoringResponse;
 import com.tujuhsembilan.glucoseclamp.dto.response.LabResultItemResultResponse;
 import com.tujuhsembilan.glucoseclamp.dto.response.SessionActivityItemResponse;
 import com.tujuhsembilan.glucoseclamp.dto.response.SessionTimelineResponse;
 import com.tujuhsembilan.glucoseclamp.exception.classes.DataNotFoundException;
 import com.tujuhsembilan.glucoseclamp.model.Activity;
+import com.tujuhsembilan.glucoseclamp.model.InfusionMonitoring;
 import com.tujuhsembilan.glucoseclamp.model.LabResult;
 import com.tujuhsembilan.glucoseclamp.model.Session;
 import com.tujuhsembilan.glucoseclamp.model.base.ActivityStatus;
 import com.tujuhsembilan.glucoseclamp.model.base.SessionStatus;
 import com.tujuhsembilan.glucoseclamp.repository.ActivityRepository;
 import com.tujuhsembilan.glucoseclamp.repository.SessionRepository;
+import com.tujuhsembilan.glucoseclamp.repository.InfusionMonitoringRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -33,6 +36,7 @@ public class SessionTrackingService {
 
     private final SessionRepository sessionRepository;
     private final ActivityRepository activityRepository;
+    private final InfusionMonitoringRepository infusionMonitoringRepository;
     private static final long TIME_TOLERANCE_SECONDS = 1;
 
     @Transactional(readOnly = true)
@@ -77,6 +81,12 @@ public class SessionTrackingService {
         if (totalActivities > 0 && completedActivities == totalActivities) {
             sessionStatus = SessionStatus.COMPLETED;
         }
+        List<InfusionMonitoringResponse> infusionResponses =
+        infusionMonitoringRepository
+                .findBySessionSessionIdAndDeletedAtIsNullOrderByTimeAsc(sessionId)
+                .stream()
+                .map(this::toInfusionResponse)
+                .toList();
 
         SessionTimelineResponse response = new SessionTimelineResponse();
         response.setSessionId(session.getSessionId());
@@ -93,6 +103,7 @@ public class SessionTrackingService {
         response.setProgressPercentage(progressPercentage);
         response.setNextActivities(nextActivityResponses);
         response.setActivities(activityResponses);
+        response.setInfusion(infusionResponses);
 
         return ApiDataResponseBuilder.builder()
                 .data(response)
@@ -112,6 +123,19 @@ public class SessionTrackingService {
                             .stream())
                     .map(this::toLabResultResponse)
                     .toList();
+        // return new SessionActivityItemResponse(
+        //         activity.getActivityId(),
+        //         activity.getTime(),
+        //         activity.getActivityType(),
+        //         activity.getActivityDesc(),
+        //         activity.getPhaseCode(),
+        //         activity.getPhaseName(),
+        //         activity.getActivityStatus(),
+        //         activity.getMinute(),
+        //         activity.getScheduleCode(),
+        //         activity.getPhaseType(),
+        //         labResults
+        // );
         return SessionActivityItemResponse.builder()
                 .activityId(activity.getActivityId())
                 .time(activity.getTime())
@@ -141,6 +165,21 @@ public class SessionTrackingService {
                 .referenceRangeMax(labResult.getReferenceRangeMax())
                 .unit(labResult.getUnit())
                 .abnormalFlag(labResult.getAbnormalFlag())
+                .build();
+    }
+
+    private InfusionMonitoringResponse toInfusionResponse(
+            InfusionMonitoring infusion
+    ) {
+        return InfusionMonitoringResponse.builder()
+                .infusionId(infusion.getInfusionId())
+                .time(infusion.getTime())
+                .glucoseValue(infusion.getGlucoseValue())
+                .actualGir(infusion.getActualGir())
+                .recommendedGir(infusion.getRecommendedGir())
+                .flowRateMlHr(infusion.getFlowRateMlHr())
+                .adjustmentNote(infusion.getAdjustmentNote())
+                .monitoredBy(infusion.getMonitoredBy())
                 .build();
     }
 

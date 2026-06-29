@@ -31,4 +31,5 @@ public class SessionTimelineResponse {
     private int progressPercentage;
     private List<SessionActivityItemResponse> nextActivities;
     private List<SessionActivityItemResponse> activities;
+    private List<InfusionMonitoringResponse> infusion;
 }

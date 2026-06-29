@@ -42,6 +42,16 @@ public class InfusionMonitoringsController {
         return ResponseEntity.status(result.getStatus()).body(result);
     }
 
+    @GetMapping(path = "/session/{sessionId}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Object> getBySessionId(
+            @PathVariable Long sessionId,
+            @RequestParam(defaultValue = "1") int pageNumber,
+            @RequestParam(defaultValue = "10") int pageSize
+    ) {
+        ApiDataResponseBuilder result = infusionMonitoringService.getInfusionMonitoringsBySessionId(sessionId, pageNumber, pageSize);
+        return ResponseEntity.status(result.getStatus()).body(result);
+    }
+
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Object> add(@Valid @RequestBody InfusionMonitoringRequest request) {
         ApiDataResponseBuilder result = infusionMonitoringService.addInfusionMonitoring(request);

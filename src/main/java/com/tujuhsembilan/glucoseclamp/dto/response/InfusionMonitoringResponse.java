@@ -14,14 +14,14 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 @AllArgsConstructor
 @Builder
 public class InfusionMonitoringResponse {
-    private String infusionId;
+    private Long infusionId;
     private Long sessionId;
     private String protocolCode;
     private String protocolName;
     private LocalDateTime time;
     private BigDecimal glucoseValue;
-    private BigDecimal confirmationRateMinKg;
-    private BigDecimal rateMinKg;
+    private BigDecimal actualGir;
+    private BigDecimal recommendedGir;
     private BigDecimal flowRateMlHr;
     private String adjustmentNote;
     private Integer monitoredBy;

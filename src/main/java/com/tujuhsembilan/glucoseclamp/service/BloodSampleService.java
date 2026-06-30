@@ -66,7 +66,8 @@ public class BloodSampleService {
         String trimmed = sampleType.trim();
         return "C-Peptide".equalsIgnoreCase(trimmed) 
             || "PK-C".equalsIgnoreCase(trimmed) 
-            || "PK".equalsIgnoreCase(trimmed);
+            || "PK".equalsIgnoreCase(trimmed)
+            || "INSULIN".equalsIgnoreCase(trimmed);
     }
     
     private boolean isBaselineActivity(Activity activity) {

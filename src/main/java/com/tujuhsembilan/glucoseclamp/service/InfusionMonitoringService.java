@@ -305,30 +305,44 @@ public class InfusionMonitoringService {
                     .build();
         }
 
-        Optional<InfusionMonitoring> lastActiveOpt = infusionMonitoringRepository
-                .findTopBySessionAndStatusAndDeletedAtIsNullOrderByTimeDesc(session, EntityStatus.ACTIVE);
+        // 1. Ambil seluruh riwayat monitoring aktif untuk sesi ini, urut descending
+        List<InfusionMonitoring> activeMonitorings = infusionMonitoringRepository
+                .findBySessionAndStatusAndDeletedAtIsNull(session, EntityStatus.ACTIVE)
+                .stream()
+                .sorted((im1, im2) -> im2.getInfusionId().compareTo(im1.getInfusionId()))
+                .toList();
 
-        if (lastActiveOpt.isEmpty()) {
+        if (activeMonitorings.isEmpty()) {
             return ApiDataResponseBuilder.builder()
-                    .message("Belum ada data glukosa darah terekam untuk sesi ini.")
+                    .message("Belum ada data monitoring terekam untuk sesi ini.")
                     .statusCode(HttpStatus.BAD_REQUEST.value())
                     .status(HttpStatus.BAD_REQUEST)
                     .build();
         }
 
-        InfusionMonitoring draft = lastActiveOpt.get();
-        BigDecimal latestGlucose = draft.getGlucoseValue();
-        
+        // 2. Ambil data PALING BARU (indeks 0), yaitu ID 10 dengan glukosa = 95
+        InfusionMonitoring absoluteLatestRecord = activeMonitorings.get(0);
+        BigDecimal latestGlucose = absoluteLatestRecord.getGlucoseValue();
+
+        // 3. Hitung rekomendasi GIR baru menggunakan fungsi calculateGir yang sudah ada
+        // Fungsi ini akan otomatis mencari actual GIR sebelumnya (dari ID 9) sebagai basis perkalian
         BigDecimal recommendedGir = calculateGir(session, latestGlucose);
+
+        BigDecimal latestConfirmedGir = activeMonitorings.stream()
+            .map(InfusionMonitoring::getActualGir)
+            .filter(rate -> rate != null && rate.compareTo(BigDecimal.ZERO) > 0)
+            .findFirst()
+            .orElse(BigDecimal.ZERO);
 
         return ApiDataResponseBuilder.builder()
                 .data(Map.of(
-                    "infusionId", draft.getInfusionId(),
+                    "infusionId", absoluteLatestRecord.getInfusionId(), // Akan mengembalikan 10
                     "sessionId", sessionId,
-                    "latestGlucoseValue", latestGlucose,
-                    "recommendedGir", recommendedGir
+                    "latestGlucoseValue", latestGlucose != null ? latestGlucose : BigDecimal.ZERO, // Akan mengembalikan 95
+                    "recommendedGir", recommendedGir, // Akan mengembalikan hasil kalkulasi (misal: 2.50)
+                    "latestGir", latestConfirmedGir
                 ))
-                .message("Rekomendasi GIR berhasil diambil berdasarkan data aktual terakhir")
+                .message("Rekomendasi GIR berhasil dihitung berdasarkan data glukosa terbaru")
                 .statusCode(HttpStatus.OK.value())
                 .status(HttpStatus.OK)
                 .build();
@@ -403,7 +417,6 @@ public class InfusionMonitoringService {
             BigDecimal dropDecimal = dropPercent.divide(new BigDecimal("100"), 4, RoundingMode.HALF_UP); 
             // Kurangi dari 1 untuk mendapatkan faktor sisa (1 - 0.10 = 0.90)
             BigDecimal initialDrop = BigDecimal.ONE.subtract(dropDecimal);
-            log.info("Initial Drop Threshold Factor: " + initialDrop);
             BigDecimal threshold = gb.multiply(initialDrop);
             // // Cek apakah glukosa turun >= threshold dari Gb
             if (currentGlucose.compareTo(threshold) <= 0) {

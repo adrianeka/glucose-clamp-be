@@ -11,9 +11,12 @@ import com.tujuhsembilan.glucoseclamp.model.Protocol;
 import com.tujuhsembilan.glucoseclamp.model.SamplingSchedule;
 import com.tujuhsembilan.glucoseclamp.model.base.EntityStatus;
 import com.tujuhsembilan.glucoseclamp.repository.SamplingScheduleRepository;
+import com.tujuhsembilan.glucoseclamp.repository.UserRepository;
 import com.tujuhsembilan.glucoseclamp.repository.ProtocolRepository;
 import com.tujuhsembilan.glucoseclamp.security.service.UserDetailsImplement;
+
 import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -33,6 +36,8 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.Objects;
 
+import org.springframework.context.annotation.Lazy;
+
 @Slf4j
 @Service
 public class ProtocolsService {
@@ -41,12 +46,16 @@ public class ProtocolsService {
     private ProtocolRepository protocolRepository;
 
     @Autowired
+    @Lazy
+    private UserRepository userRepository;
+
+    @Autowired
     private SamplingScheduleRepository samplingScheduleRepository;
 
     private Integer getCurrentUserId() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !(authentication.getPrincipal() instanceof UserDetailsImplement)) {
-            return 1; // Default fallback to system admin ID
+            return 1;
         }
         UserDetailsImplement userDetails = (UserDetailsImplement) authentication.getPrincipal();
         return userDetails.getId();
@@ -56,9 +65,17 @@ public class ProtocolsService {
         Pageable pageable = PageRequest.of(Math.max(0, pageNumber - 1), pageSize);
         Page<Protocol> result = protocolRepository.findAllActive(pageable);
 
-        List<ProtocolResponse> content = result.getContent().stream()
+        List<Protocol> protocolList = result.getContent();
+        Map<Integer, String> userNames = getUserNamesMap(protocolList);
+
+        List<ProtocolResponse> content = protocolList.stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
+
+        content.forEach(response -> {
+            response.setCreatedByName(response.getCreatedBy() != null ? userNames.getOrDefault(response.getCreatedBy(), "System") : "System");
+            response.setUpdatedByName(response.getUpdatedBy() != null ? userNames.getOrDefault(response.getUpdatedBy(), "System") : "System");
+        });
 
         Map<String, Object> pageData = new HashMap<>();
         pageData.put("content", content);
@@ -363,15 +380,18 @@ public class ProtocolsService {
             log.error("Failed to parse search dates: {} - {}", startDateStr, endDateStr, ex);
         }
 
-        List<Protocol> results = protocolRepository.searchProtocols(
-                search != null ? search.trim() : null,
-                startDate,
-                endDate
-        );
+        List<Protocol> results = protocolRepository.searchProtocols(search, startDate, endDate);
+
+        Map<Integer, String> userNames = getUserNamesMap(results);
 
         List<ProtocolResponse> responseList = results.stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
+
+        responseList.forEach(response -> {
+            response.setCreatedByName(response.getCreatedBy() != null ? userNames.getOrDefault(response.getCreatedBy(), "System") : "System");
+            response.setUpdatedByName(response.getUpdatedBy() != null ? userNames.getOrDefault(response.getUpdatedBy(), "System") : "System");
+        });
 
         return ApiDataResponseBuilder.builder()
                 .data(responseList)
@@ -505,5 +525,23 @@ public class ProtocolsService {
         }
 
         return phaseCount + " phase (" + durationText + ")";
+    }
+
+    private Map<Integer, String> getUserNamesMap(List<Protocol> protocols) {
+        java.util.Set<Integer> userIds = protocols.stream()
+                .flatMap(p -> java.util.stream.Stream.of(p.getCreatedBy(), p.getUpdatedBy()))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+
+        if (userIds.isEmpty()) {
+            return new HashMap<>();
+        }
+
+        return userRepository.findAllById(userIds).stream()
+                .collect(Collectors.toMap(
+                        user -> Integer.valueOf(user.getUserId().toString()),
+                        user -> user.getName() != null ? user.getName() : "System",
+                        (existing, replacement) -> existing
+                ));
     }
 }

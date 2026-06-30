@@ -86,4 +86,10 @@ public class ProtocolResponse {
     @JsonProperty("sampling_schedules")
     // private List<SamplingScheduleResponse> samplingSchedules;
     private String samplingScheduleSummary;
+
+    @JsonProperty("created_by_name")
+    private String createdByName;
+
+    @JsonProperty("updated_by_name")
+    private String updatedByName;
 }

@@ -8,6 +8,7 @@ import com.tujuhsembilan.glucoseclamp.dto.request.ParticipantStatusUpdateRequest
 import com.tujuhsembilan.glucoseclamp.model.Participant;
 import com.tujuhsembilan.glucoseclamp.model.base.EntityStatus;
 import com.tujuhsembilan.glucoseclamp.repository.ParticipantRepository;
+import com.tujuhsembilan.glucoseclamp.repository.UserRepository;
 import com.tujuhsembilan.glucoseclamp.security.service.UserDetailsImplement;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -32,6 +33,9 @@ public class ParticipantsService {
 
     @Autowired
     private ParticipantRepository participantRepository;
+
+    @Autowired
+    private UserRepository userRepository;
 
     @Autowired
     private ModelMapper modelMapper;
@@ -68,8 +72,8 @@ public class ParticipantsService {
         }
         Period period = Period.between(dob, LocalDate.now());
         return period.getYears() + "y " + period.getMonths() + "m";
-    };
-
+    }
+    
     public ApiDataResponseBuilder getAllParticipants(int pageNumber, int pageSize) {
         Pageable pageable = PageRequest.of(pageNumber - 1, pageSize);
         Page<ParticipantResponse> result = participantRepository.findAllActive(pageable).map(this::mapToResponse);
@@ -94,7 +98,7 @@ public class ParticipantsService {
         }
 
         return ApiDataResponseBuilder.builder()
-            .data(mapToResponse(participant))
+                .data(mapToResponse(participant))
                 .message("Berhasil mendapatkan data partisipan")
                 .statusCode(HttpStatus.OK.value())
                 .status(HttpStatus.OK)
@@ -104,24 +108,23 @@ public class ParticipantsService {
     public ApiDataResponseBuilder searchParticipantsByKeyword(String keyword, int pageNumber, int pageSize) {
         if (keyword == null || keyword.trim().isEmpty()) {
             return ApiDataResponseBuilder.builder()
-                .message("Keyword pencarian tidak boleh kosong")
-                .statusCode(HttpStatus.BAD_REQUEST.value())
-                .status(HttpStatus.BAD_REQUEST)
-                .build();
+                    .message("Keyword pencarian tidak boleh kosong")
+                    .statusCode(HttpStatus.BAD_REQUEST.value())
+                    .status(HttpStatus.BAD_REQUEST)
+                    .build();
         }
 
         Pageable pageable = PageRequest.of(pageNumber - 1, pageSize);
         Page<ParticipantResponse> result = participantRepository.searchByKeyword(keyword.trim(), pageable)
-            .map(this::mapToResponse);
+                .map(this::mapToResponse);
 
         return ApiDataResponseBuilder.builder()
-        .data(result)
-        .message("Berhasil mendapatkan data partisipan")
-        .statusCode(HttpStatus.OK.value())
-        .status(HttpStatus.OK)
-        .build();
+                .data(result)
+                .message("Berhasil mendapatkan data partisipan")
+                .statusCode(HttpStatus.OK.value())
+                .status(HttpStatus.OK)
+                .build();
     }
-            
 
     @Transactional
     public ApiDataResponseBuilder addParticipant(ParticipantRequest request) {
@@ -157,7 +160,7 @@ public class ParticipantsService {
         log.info("Participant berhasil ditambahkan: {} oleh user {}", participant.getParticipantId(), currentUserId);
 
         return ApiDataResponseBuilder.builder()
-        .data(mapToResponse(participant))
+                .data(mapToResponse(participant))
                 .message("Partisipan berhasil ditambahkan")
                 .statusCode(HttpStatus.OK.value())
                 .status(HttpStatus.OK)
@@ -178,17 +181,27 @@ public class ParticipantsService {
 
         Integer currentUserId = getCurrentUserId();
 
-        if (request.getMedicalRecordNo() != null) participant.setMedicalRecordNo(request.getMedicalRecordNo());
-        if (request.getName() != null) participant.setName(request.getName());
-        if (request.getGender() != null) participant.setGender(request.getGender());
-        if (request.getDob() != null) participant.setDob(LocalDate.parse(request.getDob()));
-        if (request.getNumberPhone() != null) participant.setNumberPhone(request.getNumberPhone());
+        if (request.getMedicalRecordNo() != null) {
+            participant.setMedicalRecordNo(request.getMedicalRecordNo());
+        }
+        if (request.getName() != null) {
+            participant.setName(request.getName());
+        }
+        if (request.getGender() != null) {
+            participant.setGender(request.getGender());
+        }
+        if (request.getDob() != null) {
+            participant.setDob(LocalDate.parse(request.getDob()));
+        }
+        if (request.getNumberPhone() != null) {
+            participant.setNumberPhone(request.getNumberPhone());
+        }
         participant.setUpdatedBy(currentUserId);
 
         participantRepository.save(participant);
 
         return ApiDataResponseBuilder.builder()
-        .data(mapToResponse(participant))
+                .data(mapToResponse(participant))
                 .message("Data partisipan berhasil diupdate")
                 .statusCode(HttpStatus.OK.value())
                 .status(HttpStatus.OK)
@@ -224,7 +237,7 @@ public class ParticipantsService {
         participantRepository.save(participant);
 
         return ApiDataResponseBuilder.builder()
-            .data(mapToResponse(participant))
+                .data(mapToResponse(participant))
                 .message("Status partisipan berhasil diupdate")
                 .statusCode(HttpStatus.OK.value())
                 .status(HttpStatus.OK)
@@ -262,12 +275,27 @@ public class ParticipantsService {
 
     private ParticipantResponse mapToResponse(Participant participant) {
         ParticipantResponse response = modelMapper.map(participant, ParticipantResponse.class);
+
         response.setStatus(participant.getStatus() == null ? null : participant.getStatus().name());
         response.setAge(calculateAge(participant.getDob()));
         response.setCreatedAt(participant.getCreatedAt() == null ? null : participant.getCreatedAt().toString());
         response.setUpdatedAt(participant.getUpdatedAt() == null ? null : participant.getUpdatedAt().toString());
+
+        if (participant.getCreatedBy() != null) {
+            userRepository.findById(participant.getCreatedBy())
+                    .ifPresent(user -> response.setCreatedByName(user.getName()));
+        } else {
+            response.setCreatedByName("System");
+        }
+
+        if (participant.getUpdatedBy() != null) {
+            userRepository.findById(participant.getUpdatedBy())
+                    .ifPresent(user -> response.setUpdatedByName(user.getName()));
+        } else {
+            response.setUpdatedByName("System");
+        }
+
         return response;
     }
 
 }
-

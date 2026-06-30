@@ -24,4 +24,7 @@ public class ParticipantResponse {
     private Integer createdBy;
     private String updatedAt;
     private Integer updatedBy;
+    
+    private String createdByName;
+    private String updatedByName;
 }

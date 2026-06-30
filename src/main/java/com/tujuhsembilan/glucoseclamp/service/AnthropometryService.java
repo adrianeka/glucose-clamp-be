@@ -5,6 +5,7 @@ import com.tujuhsembilan.glucoseclamp.dto.request.AnthropometryStatusUpdateReque
 import com.tujuhsembilan.glucoseclamp.dto.request.AnthropometryUpdateRequest;
 import com.tujuhsembilan.glucoseclamp.dto.response.ApiDataResponseBuilder;
 import com.tujuhsembilan.glucoseclamp.dto.response.AnthropometryResponse;
+import com.tujuhsembilan.glucoseclamp.model.Anamnesis;
 import com.tujuhsembilan.glucoseclamp.model.Anthropometry;
 import com.tujuhsembilan.glucoseclamp.model.base.EntityStatus;
 import com.tujuhsembilan.glucoseclamp.repository.AnthropometryRepository;
@@ -117,6 +118,44 @@ public class AnthropometryService {
                 .statusCode(HttpStatus.CREATED.value())
                 .status(HttpStatus.CREATED)
                 .build();
+    }
+
+    @Transactional
+    public Anthropometry save(AnthropometryRequest request) {
+        Anthropometry anthro = anthropometryRepository
+            .findBySessionIdAndDeletedAtIsNull(request.getSessionId())
+            .orElseGet(Anthropometry::new);
+
+        sessionRepository.findByIdAndDeletedAtIsNull(request.getSessionId()).ifPresent(anthro::setSession);
+
+        try {
+            if (request.getMeasuredAt() != null) {
+                String s = request.getMeasuredAt();
+                LocalDateTime dt = s.contains("T") ? LocalDateTime.parse(s) : LocalDateTime.parse(s, DateTimeFormatter.ofPattern("yyyy-MM-dd H:mm:ss"));
+                anthro.setMeasuredAt(dt);
+            }
+        } catch (DateTimeParseException ignored) {
+        }
+
+        anthro.setWeightKg(request.getWeightKg());
+        anthro.setHeightCm(request.getHeightCm());
+        anthro.setBmi(request.getBmi());
+        anthro.setWaistCircumferenceCm(request.getWaistCircumferenceCm());
+        if (request.getAssignedBy() != null) userRepository.findByIdAndDeletedAtIsNull(request.getAssignedBy()).ifPresent(anthro::setAssignedByUser);
+
+        LocalDateTime now = LocalDateTime.now();
+        Integer currentUser = getCurrentUserId();
+
+        if (anthro.getAnthroId() == null) {
+            anthro.setCreatedAt(now);
+            anthro.setCreatedBy(currentUser);
+            anthro.setStatus(EntityStatus.ACTIVE);
+        }
+
+        anthro.setUpdatedAt(now);
+        anthro.setUpdatedBy(currentUser);
+
+        return anthropometryRepository.save(anthro);
     }
 
     @Transactional
@@ -240,7 +279,7 @@ public class AnthropometryService {
                 .build();
     }
 
-    private AnthropometryResponse mapToResponse(Anthropometry anthro) {
+    public AnthropometryResponse mapToResponse(Anthropometry anthro) {
         var isiStrategyLama = modelMapper.getConfiguration().getMatchingStrategy();
         modelMapper.getConfiguration().setMatchingStrategy(org.modelmapper.convention.MatchingStrategies.STRICT);
 

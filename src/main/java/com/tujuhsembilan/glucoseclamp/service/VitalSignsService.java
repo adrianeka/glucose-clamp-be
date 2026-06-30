@@ -127,6 +127,50 @@ public class VitalSignsService {
     }
 
     @Transactional
+    public VitalSign save(VitalSignRequest request) {
+        VitalSign vital = vitalSignRepository
+            .findBySessionSessionIdAndDeletedAtIsNull(request.getSessionId())
+            .orElseGet(VitalSign::new);
+
+        // session
+        sessionRepository.findByIdAndDeletedAtIsNull(request.getSessionId()).ifPresent(vital::setSession);
+
+        // measuredAt parsing
+        try {
+            if (request.getMeasuredAt() != null) {
+                String s = request.getMeasuredAt();
+                LocalDateTime dt;
+                if (s.contains("T")) dt = LocalDateTime.parse(s);
+                else dt = LocalDateTime.parse(s, DateTimeFormatter.ofPattern("yyyy-MM-dd H:mm:ss"));
+                vital.setMeasuredAt(dt);
+            }
+        } catch (DateTimeParseException ignored) {
+        }
+
+        vital.setSystolic(request.getSystolic());
+        vital.setDiastolic(request.getDiastolic());
+        vital.setPulse(request.getPulse());
+        vital.setRespiratoryRate(request.getRespiratoryRate());
+        if (request.getTemperatureC() != null) vital.setTemperatureC(request.getTemperatureC());
+        if (request.getSpo2() != null) vital.setSpo2(request.getSpo2());
+        if (request.getAssignedBy() != null) userRepository.findByIdAndDeletedAtIsNull(request.getAssignedBy()).ifPresent(vital::setAssignedByUser);
+
+        LocalDateTime now = LocalDateTime.now();
+        Integer currentUser = getCurrentUserId();
+
+        if (vital.getVitalId() == null) {
+            vital.setCreatedAt(now);
+            vital.setCreatedBy(currentUser);
+            vital.setStatus(EntityStatus.ACTIVE);
+        }
+
+        vital.setUpdatedAt(now);
+        vital.setUpdatedBy(currentUser);
+
+        return vitalSignRepository.save(vital);
+    }
+
+    @Transactional
     public ApiDataResponseBuilder updateVitalSign(Integer id, VitalSignUpdateRequest request) {
         Optional<VitalSign> opt = vitalSignRepository.findById(id);
         if (opt.isEmpty() || EntityStatus.DELETED.equals(opt.get().getStatus())) {
@@ -249,7 +293,7 @@ public class VitalSignsService {
                 .build();
     }
 
-    private VitalSignResponse mapToResponse(VitalSign vital) {
+    public VitalSignResponse mapToResponse(VitalSign vital) {
         // 1. Simpan konfigurasi matching strategy bawaan aplikasi Anda dulu
         var isiStrategyLama = modelMapper.getConfiguration().getMatchingStrategy();
         

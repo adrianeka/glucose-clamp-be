@@ -120,6 +120,43 @@ public class AnamnesisService {
     }
 
     @Transactional
+    public Anamnesis save(AnamnesisRequest request) {
+        Anamnesis ana = anamnesisRepository
+            .findBySessionIdAndDeletedAtIsNull(request.getSessionId())
+            .orElseGet(Anamnesis::new);
+
+        // session
+        sessionRepository.findByIdAndDeletedAtIsNull(request.getSessionId()).ifPresent(ana::setSession);
+
+        // date parsing
+        try {
+            if (request.getDate() != null) {
+                LocalDate d = LocalDate.parse(request.getDate());
+                ana.setDate(d);
+            }
+        } catch (DateTimeParseException ignored) {
+        }
+
+        ana.setChiefComplaint(request.getChiefComplaint());
+        ana.setMedicalHistory(request.getMedicalHistory());
+        if (request.getAssignedBy() != null) userRepository.findByIdAndDeletedAtIsNull(request.getAssignedBy()).ifPresent(ana::setAssignedByUser);
+
+        LocalDateTime now = LocalDateTime.now();
+        Integer currentUser = getCurrentUserId();
+
+        if (ana.getAnamnesisId() == null) {
+            ana.setCreatedAt(now);
+            ana.setCreatedBy(currentUser);
+            ana.setStatus(EntityStatus.ACTIVE);
+        }
+
+        ana.setUpdatedAt(now);
+        ana.setUpdatedBy(currentUser);
+
+        return anamnesisRepository.save(ana);
+    }
+
+    @Transactional
     public ApiDataResponseBuilder updateAnamnesis(Integer id, AnamnesisUpdateRequest request) {
         Optional<Anamnesis> opt = anamnesisRepository.findById(id);
         if (opt.isEmpty() || EntityStatus.DELETED.equals(opt.get().getStatus())) {
@@ -229,17 +266,29 @@ public class AnamnesisService {
                 .build();
     }
 
-    private AnamnesisResponse mapToResponse(Anamnesis ana) {
-        var isiStrategyLama = modelMapper.getConfiguration().getMatchingStrategy();
-        modelMapper.getConfiguration().setMatchingStrategy(org.modelmapper.convention.MatchingStrategies.STRICT);
-
-        try {
-            AnamnesisResponse response = modelMapper.map(ana, AnamnesisResponse.class);
-            response.setSessionId(ana.getSession() == null ? null : ana.getSession().getSessionId());
-            response.setAssignedBy(ana.getAssignedByUser() == null ? null : ana.getAssignedByUser().getUserId());
-            return response;
-        } finally {
-            modelMapper.getConfiguration().setMatchingStrategy(isiStrategyLama);
-        }
+    public AnamnesisResponse mapToResponse(Anamnesis ana) {
+        return AnamnesisResponse.builder()
+                .anamnesisId(ana.getAnamnesisId())
+                .sessionId(
+                        ana.getSession() != null
+                                ? ana.getSession().getSessionId()
+                                : null
+                )
+                .date(ana.getDate())
+                .chiefComplaint(ana.getChiefComplaint())
+                .medicalHistory(ana.getMedicalHistory())
+                .assignedBy(
+                        ana.getAssignedByUser() != null
+                                ? ana.getAssignedByUser().getUserId()
+                                : null
+                )
+                .createdAt(ana.getCreatedAt())
+                .createdBy(ana.getCreatedBy())
+                .updatedAt(ana.getUpdatedAt())
+                .updatedBy(ana.getUpdatedBy())
+                .deletedAt(ana.getDeletedAt())
+                .deletedBy(ana.getDeletedBy())
+                .status(ana.getStatus())
+                .build();
     }
 }

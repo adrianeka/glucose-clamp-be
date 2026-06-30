@@ -306,33 +306,6 @@ public class SessionTrackingService {
 
         /*
         * ==========================================================
-        * SESSION SUDAH SELESAI
-        * ==========================================================
-        */
-
-        boolean allCompleted =
-                activities.stream()
-                        .allMatch(a ->
-                                a.getActivityStatus()
-                                        == ActivityStatus.COMPLETED);
-
-        if (allCompleted) {
-
-            session.setSessionStatus(
-                    SessionStatus.COMPLETED);
-
-            sessionRepository.save(session);
-
-            return ApiDataResponseBuilder.builder()
-                    .message("Session selesai")
-                    .status(HttpStatus.OK)
-                    .statusCode(HttpStatus.OK.value())
-                    .build();
-
-        }
-
-        /*
-        * ==========================================================
         * MASIH ADA YANG IN_PROGRESS
         * ==========================================================
         */

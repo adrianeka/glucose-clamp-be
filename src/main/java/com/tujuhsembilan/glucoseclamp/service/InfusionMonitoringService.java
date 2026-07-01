@@ -313,10 +313,18 @@ public class InfusionMonitoringService {
                 .toList();
 
         if (activeMonitorings.isEmpty()) {
+            Map<String, Object> responseData = new java.util.HashMap<>();
+            responseData.put("infusionId", null); // Sekarang aman, tidak akan melempar NullPointerException
+            responseData.put("sessionId", sessionId);
+            responseData.put("latestGlucoseValue", BigDecimal.ZERO);
+            responseData.put("recommendedGir", BigDecimal.ZERO);
+            responseData.put("latestGir", BigDecimal.ZERO);
+
             return ApiDataResponseBuilder.builder()
+                    .data(responseData)
                     .message("Belum ada data monitoring terekam untuk sesi ini.")
-                    .statusCode(HttpStatus.BAD_REQUEST.value())
-                    .status(HttpStatus.BAD_REQUEST)
+                    .statusCode(HttpStatus.OK.value())
+                    .status(HttpStatus.OK)
                     .build();
         }
 

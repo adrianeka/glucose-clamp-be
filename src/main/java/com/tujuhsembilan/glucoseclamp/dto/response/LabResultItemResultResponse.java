@@ -38,4 +38,7 @@ public class LabResultItemResultResponse {
 
     @JsonProperty("abnormal_flag")
     private String abnormalFlag;
+
+    @JsonProperty("updated_at")
+    private LocalDateTime time;
 }

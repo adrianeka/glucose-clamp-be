@@ -78,9 +78,9 @@ public class SessionTrackingService {
                 if (sessionStatus == SessionStatus.PREP && completedActivities > 0) {
             sessionStatus = SessionStatus.RUNNING;
         }
-        if (totalActivities > 0 && completedActivities == totalActivities) {
-            sessionStatus = SessionStatus.COMPLETED;
-        }
+        // if (totalActivities > 0 && completedActivities == totalActivities) {
+        //     sessionStatus = SessionStatus.COMPLETED;
+        // }
         List<InfusionMonitoringResponse> infusionResponses =
         infusionMonitoringRepository
                 .findBySessionSessionIdAndDeletedAtIsNullOrderByTimeAsc(sessionId)
@@ -97,7 +97,7 @@ public class SessionTrackingService {
         response.setVisitDate(session.getVisitDate());
         response.setStartTime(session.getStartTime());
         response.setEndTime(session.getEndTime());
-        response.setSessionStatus(sessionStatus);
+        response.setSessionStatus(session.getSessionStatus());
         response.setTotalActivities(totalActivities);
         response.setCompletedActivities(completedActivities);
         response.setProgressPercentage(progressPercentage);
@@ -165,6 +165,7 @@ public class SessionTrackingService {
                 .referenceRangeMax(labResult.getReferenceRangeMax())
                 .unit(labResult.getUnit())
                 .abnormalFlag(labResult.getAbnormalFlag())
+                .time(labResult.getUpdatedAt())
                 .build();
     }
 

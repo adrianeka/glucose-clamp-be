@@ -69,7 +69,10 @@ public interface InfusionMonitoringRepository extends JpaRepository<InfusionMoni
         " AND im.createdBy != 0")
     Page<InfusionMonitoring> findBySessionId(@Param("sessionId") Long sessionId, Pageable pageable);
 
-    
+    @Query("SELECT im FROM InfusionMonitoring im " +
+       "WHERE im.session.sessionId = :sessionId " +
+       "AND im.deletedAt IS NULL" +
+        " AND im.createdBy != 0")
     List<InfusionMonitoring>
     findBySessionSessionIdAndDeletedAtIsNullOrderByTimeAsc(
             Long sessionId

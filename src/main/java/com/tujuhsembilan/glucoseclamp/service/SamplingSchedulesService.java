@@ -38,8 +38,9 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 public class SamplingSchedulesService {
+
     @PersistenceContext
-    private EntityManager entityManager; 
+    private EntityManager entityManager;
 
     @Autowired
     private SamplingScheduleRepository samplingScheduleRepository;
@@ -98,15 +99,15 @@ public class SamplingSchedulesService {
     }
 
     public ApiDataResponseBuilder getSamplingSchedulesByProtocolId(
-        Long protocolId
+            Long protocolId
     ) {
 
-        List<SamplingSchedule> schedules =
-                samplingScheduleRepository
+        List<SamplingSchedule> schedules
+                = samplingScheduleRepository
                         .findByProtocolProtocolIdAndDeletedAtIsNullOrderByRelativeMinuteAsc(protocolId);
 
-        List<SamplingScheduleResponse> responses =
-                schedules.stream()
+        List<SamplingScheduleResponse> responses
+                = schedules.stream()
                         .map(this::mapToResponse)
                         .toList();
 
@@ -120,10 +121,8 @@ public class SamplingSchedulesService {
 
     // @Transactional
     // public ApiDataResponseBuilder addSamplingSchedule(SamplingScheduleRequest request) {
-
     //     Optional<Protocol> protocolOpt =
     //             protocolRepository.findById(request.getProtocolId());
-
     //     if (protocolOpt.isEmpty()
     //             || EntityStatus.DELETED.equals(protocolOpt.get().getStatus())) {
     //         return ApiDataResponseBuilder.builder()
@@ -132,7 +131,6 @@ public class SamplingSchedulesService {
     //                 .status(HttpStatus.BAD_REQUEST)
     //                 .build();
     //     }
-
     //     if (request.getPhaseDuration() < request.getTimeInterval()) {
     //         return ApiDataResponseBuilder.builder()
     //                 .message("Phase duration tidak boleh lebih kecil dari interval")
@@ -140,7 +138,6 @@ public class SamplingSchedulesService {
     //                 .status(HttpStatus.BAD_REQUEST)
     //                 .build();
     //     }
-
     //     if (request.getPhaseDuration() % request.getTimeInterval() != 0) {
     //         return ApiDataResponseBuilder.builder()
     //                 .message("Phase duration harus habis dibagi interval")
@@ -148,14 +145,10 @@ public class SamplingSchedulesService {
     //                 .status(HttpStatus.BAD_REQUEST)
     //                 .build();
     //     }
-
     //     int totalSchedule =
     //             request.getPhaseDuration() / request.getTimeInterval();
-
     //     String prefix = request.getLabelPrefix();
-
     //     int nextSequence = 1;
-
     //     Optional<SamplingSchedule> lastCode =
     //             samplingScheduleRepository
     //                     .findTopByProtocolProtocolIdAndScheduleCodeStartingWithAndStatusOrderBySamplingScheduleIdDesc(
@@ -163,14 +156,11 @@ public class SamplingSchedulesService {
     //                             prefix,
     //                             EntityStatus.ACTIVE
     //                     );
-
     //     if (lastCode.isPresent()) {
     //         String code = lastCode.get().getScheduleCode();
-
     //         nextSequence =
     //                 Integer.parseInt(code.replace(prefix + "-", "")) + 1;
     //     }
-
     //     SamplingSchedule lastSchedule =
     //             samplingScheduleRepository
     //                     .findTopByProtocolProtocolIdAndStatusOrderByRelativeMinuteDesc(
@@ -178,21 +168,15 @@ public class SamplingSchedulesService {
     //                             EntityStatus.ACTIVE
     //                     )
     //                     .orElse(null);
-
     //     int currentMinute =
     //             lastSchedule == null
     //                     ? 0
     //                     : lastSchedule.getRelativeMinute();
-
     //     Integer currentUserId = getCurrentUserId();
     //     LocalDateTime now = LocalDateTime.now();
-
     //     List<SamplingSchedule> createdSchedules = new ArrayList<>();
-
     //     for (int i = 0; i < totalSchedule; i++) {
-
     //         currentMinute += request.getTimeInterval();
-
     //         SamplingSchedule detail =
     //                 SamplingSchedule.builder()
     //                         .protocol(protocolOpt.get())
@@ -204,18 +188,14 @@ public class SamplingSchedulesService {
     //                         .insulinInject(request.getInsulinInject())
     //                         .pkSampleCollection(request.getPkSampleCollection())
     //                         .build();
-
     //         detail.setCreatedAt(now);
     //         detail.setUpdatedAt(now);
     //         detail.setCreatedBy(currentUserId);
     //         detail.setUpdatedBy(currentUserId);
     //         detail.setStatus(EntityStatus.ACTIVE);
-
     //         createdSchedules.add(detail);
     //     }
-
     //     samplingScheduleRepository.saveAll(createdSchedules);
-
     //     return ApiDataResponseBuilder.builder()
     //             .data(createdSchedules.stream()
     //                     .map(this::mapToResponse)
@@ -225,19 +205,18 @@ public class SamplingSchedulesService {
     //             .status(HttpStatus.CREATED)
     //             .build();
     // }
-
     @Transactional
     public ApiDataResponseBuilder addSamplingSchedule(SamplingScheduleRequest request) {
         // 1. Validasi Protocol
         Protocol protocol = protocolRepository
-            .findByIdAndDeletedAtIsNull(request.getProtocolId())
-            .orElseThrow(() -> new RuntimeException("Protocol tidak ditemukan"));
+                .findByIdAndDeletedAtIsNull(request.getProtocolId())
+                .orElseThrow(() -> new RuntimeException("Protocol tidak ditemukan"));
 
         validateRequest(request);
 
         // 2. Tentukan Phase Type & Name
         String phaseCode = request.getPhaseCode();
-        String phaseType = request.getPhaseType(); 
+        String phaseType = request.getPhaseType();
         String phaseName = request.getPhaseName();
 
         // 3. Ambil data lama
@@ -249,7 +228,7 @@ public class SamplingSchedulesService {
         if (!existingSchedules.isEmpty()) {
             SamplingSchedule lastItem = existingSchedules.get(existingSchedules.size() - 1);
             lastType = lastItem.getPhaseType();
-            
+
             if ("Preparation".equals(lastType) || "Finalization".equals(lastType) || "Stabilization".equals(lastType)) {
                 previousEndBoundary = lastItem.getRelativeMinute() + lastItem.getPhaseDuration();
             } else {
@@ -291,16 +270,14 @@ public class SamplingSchedulesService {
         List<SamplingSchedule> fullList = new ArrayList<>();
         fullList.addAll(existingSchedules);
         fullList.addAll(newSchedules);
-
-        // Wajib Sort agar urutan label T0, T-10, GD1, GD2 benar sesuai menit
         fullList.sort(Comparator.comparingInt(SamplingSchedule::getRelativeMinute));
 
         // 8. Isi Schedule Code (Recalculate) - Sekarang newSchedules sudah punya code
-        recalculateAllCodes(fullList, request.getLabelPrefix());
+        generateCodesForNewSchedulesOnly(existingSchedules, newSchedules, request.getLabelPrefix());
 
         // 9. SIMPAN SEKALIGUS
         // Ini akan melakukan INSERT untuk yang baru dan UPDATE untuk yang lama (jika labelnya berubah)
-        samplingScheduleRepository.saveAll(fullList);
+        samplingScheduleRepository.saveAll(newSchedules);
 
         return ApiDataResponseBuilder.builder()
                 .data(fullList.stream().map(this::mapToResponse).toList())
@@ -310,7 +287,66 @@ public class SamplingSchedulesService {
                 .build();
     }
 
-    private SamplingSchedule buildScheduleEntity(Protocol protocol,String phaseCode, String phaseName, String phaseType, int minute, int duration, int interval, boolean bloodDraw, boolean insulinInject, Integer userId, LocalDateTime now) {
+    private void generateCodesForNewSchedulesOnly(List<SamplingSchedule> existingSchedules, List<SamplingSchedule> newSchedules, String labelPrefix) {
+        String prefix = (labelPrefix == null || labelPrefix.isEmpty()) ? "GD" : labelPrefix;
+
+        // 1. Cari maxPreInsulinMinute dari database (data lama)
+        int maxPreInsulinMinute = existingSchedules.stream()
+                .filter(s -> "Pre-Insulin".equalsIgnoreCase(s.getPhaseType()))
+                .mapToInt(SamplingSchedule::getRelativeMinute)
+                .max()
+                .orElse(0);
+
+        // Jika data lama kosong, baru cari dari data baru
+        if (maxPreInsulinMinute == 0) {
+            maxPreInsulinMinute = newSchedules.stream()
+                    .filter(s -> "Pre-Insulin".equalsIgnoreCase(s.getPhaseType()))
+                    .mapToInt(SamplingSchedule::getRelativeMinute)
+                    .max()
+                    .orElse(0);
+        }
+
+        // 2. Ambil counter GD terakhir dari database agar tidak bentrok atau mengulang dari 1
+        int lastGdCounter = existingSchedules.stream()
+                .filter(s -> s.getScheduleCode() != null && s.getScheduleCode().startsWith(prefix))
+                .mapToInt(s -> {
+                    try {
+                        return Integer.parseInt(s.getScheduleCode().substring(prefix.length()));
+                    } catch (Exception e) {
+                        return 0;
+                    }
+                })
+                .max()
+                .orElse(0);
+
+        int gdCounter = lastGdCounter + 1;
+
+        // 3. Hanya set kodenya untuk record yang benar-benar baru
+        newSchedules.sort(Comparator.comparingInt(SamplingSchedule::getRelativeMinute));
+        for (SamplingSchedule s : newSchedules) {
+            String code = "-";
+            String phaseType = s.getPhaseType();
+
+            if ("Finalization".equalsIgnoreCase(phaseType)) {
+                code = "FINAL";
+            } else if ("Preparation".equalsIgnoreCase(phaseType)) {
+                code = "PREP";
+            } else if ("Stabilization".equalsIgnoreCase(phaseType)) {
+                code = "PREP2";
+            } else if (Boolean.TRUE.equals(s.getBloodRaw())) {
+                if ("Pre-Insulin".equalsIgnoreCase(phaseType)) {
+                    int offset = s.getRelativeMinute() - maxPreInsulinMinute;
+                    code = "T" + (offset == 0 ? "0" : offset);
+                } else {
+                    code = prefix + gdCounter;
+                    gdCounter++;
+                }
+            }
+            s.setScheduleCode(code);
+        }
+    }
+
+    private SamplingSchedule buildScheduleEntity(Protocol protocol, String phaseCode, String phaseName, String phaseType, int minute, int duration, int interval, boolean bloodDraw, boolean insulinInject, Integer userId, LocalDateTime now) {
         SamplingSchedule s = SamplingSchedule.builder()
                 .protocol(protocol)
                 .phaseCode(phaseCode)
@@ -328,16 +364,16 @@ public class SamplingSchedulesService {
         s.setUpdatedBy(userId);
         s.setCreatedAt(now);
         s.setUpdatedAt(now);
-        s.setScheduleCode("-"); 
+        s.setScheduleCode("-");
         return s;
     }
 
     private void recalculateAllCodes(List<SamplingSchedule> schedules, String labelPrefix) {
         String prefix = (labelPrefix == null || labelPrefix.isEmpty()) ? "GD" : labelPrefix;
-        
-        // Cari max minute untuk tipe pre-insulin
+
+        // 1. Cari max minute untuk tipe pre-insulin secara dinamis
         int maxPreInsulinMinute = schedules.stream()
-                .filter(s -> "Pre-Insulin".equals(s.getPhaseType()))
+                .filter(s -> "Pre-Insulin".equalsIgnoreCase(s.getPhaseType()))
                 .mapToInt(SamplingSchedule::getRelativeMinute)
                 .max()
                 .orElse(0);
@@ -345,15 +381,16 @@ public class SamplingSchedulesService {
         int gdCounter = 1;
         for (SamplingSchedule s : schedules) {
             String code = "-";
-            if ("Finalization".equals(s.getPhaseType())) {
+            String phaseType = s.getPhaseType();
+
+            if ("Finalization".equalsIgnoreCase(phaseType)) {
                 code = "FINAL";
-            } else if ("Preparation".equals(s.getPhaseType())) {
+            } else if ("Preparation".equalsIgnoreCase(phaseType)) {
                 code = "PREP";
-            } else if ("Stabilization".equals(s.getPhaseType())) {
+            } else if ("Stabilization".equalsIgnoreCase(phaseType)) {
                 code = "PREP2";
-            }
-            else if (Boolean.TRUE.equals(s.getBloodRaw())) {
-                if ("Pre-Insulin".equals(s.getPhaseType())) {
+            } else if (Boolean.TRUE.equals(s.getBloodRaw())) {
+                if ("Pre-Insulin".equalsIgnoreCase(phaseType)) {
                     int offset = s.getRelativeMinute() - maxPreInsulinMinute;
                     code = "T" + (offset == 0 ? "0" : offset);
                 } else {
@@ -396,8 +433,8 @@ public class SamplingSchedulesService {
         boolean intervalChanged = false;
 
         if (request.getProtocolId() != null) {
-            Optional<Protocol> protocolOpt =
-                    protocolRepository.findById(request.getProtocolId());
+            Optional<Protocol> protocolOpt
+                    = protocolRepository.findById(request.getProtocolId());
 
             if (protocolOpt.isEmpty()
                     || EntityStatus.DELETED.equals(protocolOpt.get().getStatus())) {
@@ -512,7 +549,7 @@ public class SamplingSchedulesService {
 
         List<Long> ids = request.getItems().stream().map(UpdateItem::getId).toList();
         List<SamplingSchedule> schedules = samplingScheduleRepository.findAllById(ids);
-        
+
         if (schedules.isEmpty()) {
             throw new DataNotFoundException("Data tidak ditemukan");
         }
@@ -523,15 +560,21 @@ public class SamplingSchedulesService {
 
         // Mapping untuk update cepat
         Map<Long, UpdateItem> updateMap = request.getItems().stream()
-            .collect(Collectors.toMap(UpdateItem::getId, item -> item));
+                .collect(Collectors.toMap(UpdateItem::getId, item -> item));
 
         for (SamplingSchedule s : schedules) {
             UpdateItem ui = updateMap.get(s.getSamplingScheduleId());
             if (ui != null) {
-                if (ui.getBloodRaw() != null) s.setBloodRaw(ui.getBloodRaw());
-                if (ui.getInsulinInject() != null) s.setInsulinInject(ui.getInsulinInject());
-                if (ui.getPkSampleCollection() != null) s.setPkSampleCollection(ui.getPkSampleCollection());
-                
+                if (ui.getBloodRaw() != null) {
+                    s.setBloodRaw(ui.getBloodRaw());
+                }
+                if (ui.getInsulinInject() != null) {
+                    s.setInsulinInject(ui.getInsulinInject());
+                }
+                if (ui.getPkSampleCollection() != null) {
+                    s.setPkSampleCollection(ui.getPkSampleCollection());
+                }
+
                 s.setUpdatedBy(userId);
                 s.setUpdatedAt(now);
             }
@@ -544,7 +587,7 @@ public class SamplingSchedulesService {
         // Tarik semua data protocol tersebut untuk menjamin urutan label GD1, GD2 tetap konsisten
         List<SamplingSchedule> fullProtocolSchedules = samplingScheduleRepository
                 .findByProtocolProtocolIdAndStatusOrderByRelativeMinuteAsc(protocolId, EntityStatus.ACTIVE);
-        
+
         // Asumsi: Kita ambil prefix dari data yang sudah ada atau default "GD"
         String labelPrefix = fullProtocolSchedules.stream()
                 .map(s -> extractPrefix(s.getScheduleCode()))
@@ -569,11 +612,11 @@ public class SamplingSchedulesService {
         // Kirim EntityStatus.DELETED sebagai status baru, 
         // dan EntityStatus.ACTIVE sebagai filter target.
         int affectedRows = samplingScheduleRepository.bulkSoftDeleteByProtocolAndPhase(
-                protocolId, 
-                phaseCode, 
-                EntityStatus.DELETED, 
+                protocolId,
+                phaseCode,
+                EntityStatus.DELETED,
                 EntityStatus.ACTIVE, // Pastikan ini dikirim
-                now, 
+                now,
                 currentUserId
         );
 
@@ -600,7 +643,9 @@ public class SamplingSchedulesService {
         List<SamplingSchedule> schedules = samplingScheduleRepository
                 .findByProtocolProtocolIdAndStatusOrderByRelativeMinuteAsc(protocolId, EntityStatus.ACTIVE);
 
-        if (schedules.isEmpty()) return;
+        if (schedules.isEmpty()) {
+            return;
+        }
 
         // --- LANGKAH A: Hindari Tabrakan Index Unik (Temporary Shift) ---
         // Geser semua menit ke angka yang sangat besar sementara (misal +100.000)
@@ -664,13 +709,17 @@ public class SamplingSchedulesService {
 
     private boolean isLastRecordInPhase(List<SamplingSchedule> all, SamplingSchedule current) {
         int currentIndex = all.indexOf(current);
-        if (currentIndex == all.size() - 1) return true;
+        if (currentIndex == all.size() - 1) {
+            return true;
+        }
         SamplingSchedule next = all.get(currentIndex + 1);
         return !next.getPhaseName().equals(current.getPhaseName());
     }
 
     private String extractPrefix(String code) {
-        if (code == null || code.isEmpty() || code.equals("-")) return "GD";
+        if (code == null || code.isEmpty() || code.equals("-")) {
+            return "GD";
+        }
         // Ambil karakter alfabet saja dari awal string
         return code.split("[0-9]")[0].replace("-", "");
     }

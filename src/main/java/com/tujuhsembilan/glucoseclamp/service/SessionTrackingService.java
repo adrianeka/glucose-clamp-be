@@ -22,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZoneId;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -244,7 +245,7 @@ public class SessionTrackingService {
 
         }
 
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Jakarta"));
 
         /*
         * ==========================================================
@@ -292,7 +293,6 @@ public class SessionTrackingService {
                     .status(HttpStatus.OK)
                     .statusCode(HttpStatus.OK.value())
                     .build();
-
         }
 
         /*

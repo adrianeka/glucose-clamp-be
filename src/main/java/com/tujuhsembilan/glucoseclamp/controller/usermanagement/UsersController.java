@@ -23,6 +23,7 @@ import com.tujuhsembilan.glucoseclamp.dto.request.UpdateStatusRequest;
 import com.tujuhsembilan.glucoseclamp.dto.response.ApiDataResponseBuilder;
 import com.tujuhsembilan.glucoseclamp.dto.response.MessageResponse;
 import com.tujuhsembilan.glucoseclamp.service.UsersService;
+import com.tujuhsembilan.glucoseclamp.service.RoleAccessService;
 import com.tujuhsembilan.glucoseclamp.service.UserManagementService;
 
 @Tag(name = "User", description = "User Management APIs")
@@ -36,6 +37,9 @@ public class UsersController {
     @Autowired
     private UserManagementService userManagementService;
 
+    @Autowired
+    private RoleAccessService roleAccessService;
+
     @PostMapping(path = "/users/sign-up", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<MessageResponse> register(@RequestBody RegisterRequest request) {
         MessageResponse response = usersService.register(request);
@@ -47,6 +51,13 @@ public class UsersController {
     public ResponseEntity<Object> signIn(@Valid @RequestBody LoginRequest loginRequest) {
         ApiDataResponseBuilder result = usersService.signIn(loginRequest);
 
+        return ResponseEntity.status(result.getStatus()).body(result);
+    }
+
+    @SecurityRequirement(name = "bearerAuth")
+    @GetMapping(path = "/users/my-permissions", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Object> getMyPermissions() {
+        ApiDataResponseBuilder result = roleAccessService.getMyPermissions();
         return ResponseEntity.status(result.getStatus()).body(result);
     }
 

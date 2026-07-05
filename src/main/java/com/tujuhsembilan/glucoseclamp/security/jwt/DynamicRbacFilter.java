@@ -31,14 +31,15 @@ public class DynamicRbacFilter extends OncePerRequestFilter {
         URL_TO_MENU_MAP.put("/infusion-monitoring", "INFUSIONMONITORING");
         URL_TO_MENU_MAP.put("/lab-results", "LABRESULT");
         URL_TO_MENU_MAP.put("/blood-samples", "BLOODSAMPLE");
-        URL_TO_MENU_MAP.put("/vital-signs", "VITALSIGN");
-        URL_TO_MENU_MAP.put("/anthropometries", "ANTHROPOMETRY");
-        URL_TO_MENU_MAP.put("/anamneses", "ANAMNESIS");
+        // URL_TO_MENU_MAP.put("/vital-signs", "VITALSIGN");
+        // URL_TO_MENU_MAP.put("/anthropometries", "ANTHROPOMETRY");
+        // URL_TO_MENU_MAP.put("/anamneses", "ANAMNESIS");
         URL_TO_MENU_MAP.put("/devices", "DEVICE");
         URL_TO_MENU_MAP.put("/activities", "ACTIVITY");
         URL_TO_MENU_MAP.put("/access-menus", "ACCESSMENU");
-        URL_TO_MENU_MAP.put("/global-configurations", "GLOBALCONFIGURATION");
-        URL_TO_MENU_MAP.put("/phase-configurations", "PHASECONFIGURATION");
+        URL_TO_MENU_MAP.put("/global-configuration", "GLOBALCONFIGURATION");
+        URL_TO_MENU_MAP.put("/phase-configuration", "PHASECONFIGURATION");
+        URL_TO_MENU_MAP.put("/preparation-check", "PREPARATIONCHECK");
     }
 
     @Override
@@ -48,7 +49,7 @@ public class DynamicRbacFilter extends OncePerRequestFilter {
         String path = request.getRequestURI();
         
         // Skip endpoints that do not require RBAC checks
-        if (path.contains("/sign-in") || path.contains("/sign-up") || path.contains("/swagger-ui") || path.contains("/api-docs") || path.contains("/actuator")) {
+        if (path.contains("/sign-in") || path.contains("/sign-up") || path.contains("/swagger-ui") || path.contains("/api-docs") || path.contains("/actuator") || path.contains("/my-permissions")) {
             filterChain.doFilter(request, response);
             return;
         }

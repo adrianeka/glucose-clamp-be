@@ -1,4 +1,4 @@
-package com.tujuhsembilan.glucoseclamp.dto.response;
+package com.tujuhsembilan.glucoseclamp.dto.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,12 +9,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class RoleAccessResponse {
-    private Integer roleAccessId;
+public class RoleAccessRequest {
     private Integer roleId;
-    private String roleName;
     private Integer menuId;
-    private String menuName;
     private Boolean canView;
     private Boolean canAdd;
     private Boolean canEdit;

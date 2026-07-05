@@ -12,9 +12,9 @@ import java.util.List;
 @Service
 public class SseService {
 
-    private final Map<Integer, List<SseEmitter>> emitters = new ConcurrentHashMap<>();
+    private final Map<Long, List<SseEmitter>> emitters = new ConcurrentHashMap<>();
 
-    public SseEmitter registerClient(Integer sessionId) {
+    public SseEmitter registerClient(Long sessionId) {
         SseEmitter emitter = new SseEmitter(24 * 60 * 60 * 1000L);
         
         this.emitters.computeIfAbsent(sessionId, k -> new CopyOnWriteArrayList<>()).add(emitter);
@@ -26,7 +26,7 @@ public class SseService {
         return emitter;
     }
 
-    private void removeEmitter(Integer sessionId, SseEmitter emitter) {
+    private void removeEmitter(Long sessionId, SseEmitter emitter) {
         List<SseEmitter> sessionEmitters = this.emitters.get(sessionId);
         if (sessionEmitters != null) {
             sessionEmitters.remove(emitter);

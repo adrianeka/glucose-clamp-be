@@ -19,7 +19,7 @@ public class SessionStreamController {
     private SseService sseService;
 
     @GetMapping(path = "/{sessionId}")
-    public ResponseEntity<SseEmitter> streamSession(@PathVariable Integer sessionId) {
+    public ResponseEntity<SseEmitter> streamSession(@PathVariable Long sessionId) {
         SseEmitter emitter = sseService.registerClient(sessionId);
         
         // Membungkus SseEmitter dengan ResponseEntity agar Spring tahu ini adalah Event Stream

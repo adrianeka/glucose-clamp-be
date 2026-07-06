@@ -40,6 +40,7 @@ public class DynamicRbacFilter extends OncePerRequestFilter {
         URL_TO_MENU_MAP.put("/global-configuration", "GLOBALCONFIGURATION");
         URL_TO_MENU_MAP.put("/phase-configuration", "PHASECONFIGURATION");
         URL_TO_MENU_MAP.put("/preparation-check", "PREPARATIONCHECK");
+        URL_TO_MENU_MAP.put("/role-access", "ROLEACCESS");
     }
 
     @Override

@@ -58,24 +58,16 @@ public class SeedDataRunner implements CommandLineRunner {
         batch(
             "INSERT INTO access_menus (menu_id, menu_name, created_at, created_by, updated_at, updated_by, deleted_at, deleted_by, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT (menu_id) DO UPDATE SET menu_name = EXCLUDED.menu_name, updated_at = EXCLUDED.updated_at, updated_by = EXCLUDED.updated_by, status = EXCLUDED.status",
             row(1,  "USER", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-            row(2,  "ROLE", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-            row(3,  "PARTICIPANT", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-            row(4,  "PROTOCOL", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-            row(5,  "PHASECONFIGURATION", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-            row(6,  "SAMPLINGSCHEDULE", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-            row(7,  "SESSION", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-            row(8,  "SESSIONDEVICE", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-            row(9,  "INFUSIONMONITORING", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-            row(10, "LABRESULT", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-            row(11, "BLOODSAMPLE", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-            row(12, "VITALSIGN", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-            row(13, "ANTHROPOMETRY", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-            row(14, "ANAMNESIS", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-            row(15, "DEVICE", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-            row(16, "GLOBALCONFIGURATION", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-            row(17, "ACTIVITY", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-            row(18, "ACCESSMENU", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
-            row(19, "ROLEACCESS", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE")
+            row(2,  "PARTICIPANT", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+            row(3,  "PROTOCOLSAMPLINGSCHEDULE", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+            row(4,  "SESSION", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+            row(5,  "INFUSIONMONITORING", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+            row(6,  "LABRESULT", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+            row(7,  "BLOODSAMPLE", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+            row(8,  "PREPARATIONCHECK", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+            row(9,  "GLOBALCONFIGURATION", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+            row(10, "PHASECONFIGURATION", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"),
+            row(11, "ROLEACCESS", ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE")
         );
     }
 
@@ -89,112 +81,75 @@ public class SeedDataRunner implements CommandLineRunner {
             // 1. SUPERADMIN / SUPERUSER (ROLE ID = 1)
             // ==========================================
             row(1,  1, 1,  true, true, true, true, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // USER
-            row(2,  1, 2,  true, true, true, true, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // ROLE
-            row(3,  1, 3,  true, true, true, true, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // PARTICIPANT
-            row(4,  1, 4,  true, true, true, true, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // PROTOCOL
-            row(5,  1, 5,  true, true, true, true, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // PHASECONFIGURATION
-            row(6,  1, 6,  true, true, true, true, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // SAMPLINGSCHEDULE
-            row(7,  1, 7,  true, true, true, true, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // SESSION
-            row(8,  1, 8,  true, true, true, true, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // SESSIONDEVICE
-            row(9,  1, 9,  true, true, true, true, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // INFUSIONMONITORING
-            row(10, 1, 10, true, true, true, true, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // LABRESULT
-            row(11, 1, 11, true, true, true, true, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // BLOODSAMPLE
-            row(12, 1, 12, true, true, true, true, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // VITALSIGN
-            row(13, 1, 13, true, true, true, true, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // ANTHROPOMETRY
-            row(14, 1, 14, true, true, true, true, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // ANAMNESIS
-            row(15, 1, 15, true, true, true, true, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // DEVICE
-            row(16, 1, 16, true, true, true, true, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // GLOBALCONFIGURATION
-            row(17, 1, 17, true, true, true, true, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // ACTIVITY
-            row(18, 1, 18, true, true, true, true, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // ACCESSMENU
-            row(19, 1, 19, true, true, true, true, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // ROLEACCESS
+            row(2,  1, 2,  true, true, true, true, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // PARTICIPANT
+            row(3,  1, 3,  true, true, true, true, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // PROTOCOLSAMPLINGSCHEDULE
+            row(4,  1, 4,  true, true, true, true, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // SESSION
+            row(5,  1, 5,  true, true, true, true, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // INFUSIONMONITORING
+            row(6,  1, 6,  true, true, true, true, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // LABRESULT
+            row(7,  1, 7,  true, true, true, true, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // BLOODSAMPLE
+            row(8,  1, 8,  true, true, true, true, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // PREPARATIONCHECK
+            row(9,  1, 9,  true, true, true, true, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // GLOBALCONFIGURATION
+            row(10, 1, 10, true, true, true, true, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // PHASECONFIGURATION
+            row(11, 1, 11, true, true, true, true, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // ROLEACCESS
 
             // ==========================================
             // 2. ADMIN (ROLE ID = 2)
             // ==========================================
-            row(20, 2, 1,  true, true, true, true, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // USER
-            row(21, 2, 2,  true, true, true, true, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // ROLE
-            row(22, 2, 3,  true, true, true, true, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // PARTICIPANT
-            row(23, 2, 4,  true, true, true, true, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // PROTOCOL
-            row(24, 2, 5,  true, true, true, true, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // PHASECONFIGURATION
-            row(25, 2, 6,  true, true, true, true, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // SAMPLINGSCHEDULE
-            row(26, 2, 7,  true, true, true, true, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // SESSION
-            row(27, 2, 8,  true, true, true, true, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // SESSIONDEVICE
-            row(28, 2, 9,  true, true, true, true, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // INFUSIONMONITORING
-            row(29, 2, 10, true, true, true, true, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // LABRESULT
-            row(30, 2, 11, true, true, true, true, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // BLOODSAMPLE
-            row(31, 2, 12, true, true, true, true, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // VITALSIGN
-            row(32, 2, 13, true, true, true, true, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // ANTHROPOMETRY
-            row(33, 2, 14, true, true, true, true, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // ANAMNESIS
-            row(34, 2, 15, true, true, true, true, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // DEVICE
-            row(35, 2, 16, true, true, true, true, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // GLOBALCONFIGURATION
-            row(36, 2, 17, true, true, true, true, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // ACTIVITY
-            row(37, 2, 18, true, true, true, true, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // ACCESSMENU
+            row(12, 2, 1,  true, true, true, true, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // USER
+            row(13, 2, 2,  true, true, true, true, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // PARTICIPANT
+            row(14, 2, 3,  true, true, true, true, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // PROTOCOLSAMPLINGSCHEDULE
+            row(15, 2, 4,  true, true, true, true, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // SESSION
+            row(16, 2, 5,  true, true, true, true, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // INFUSIONMONITORING
+            row(17, 2, 6,  true, true, true, true, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // LABRESULT
+            row(18, 2, 7,  true, true, true, true, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // BLOODSAMPLE
+            row(19, 2, 8,  true, true, true, true, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // PREPARATIONCHECK
+            row(20, 2, 9,  true, true, true, true, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // GLOBALCONFIGURATION
+            row(21, 2, 10, true, true, true, true, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // PHASECONFIGURATION
 
             // ==========================================
             // 3. SUPERVISOR (ROLE ID = 3)
             // ==========================================
-            row(38, 3, 1,  false, false, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // USER
-            row(39, 3, 2,  false, false, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // ROLE
-            row(40, 3, 3,  true,  false, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // PARTICIPANT (View Only)
-            row(41, 3, 4,  true,  true,  true,  true,  ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // PROTOCOL (Full)
-            row(42, 3, 5,  true,  false, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // PHASECONFIGURATION (View Only)
-            row(43, 3, 6,  true,  true,  true,  true,  ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // SAMPLINGSCHEDULE (Full)
-            row(44, 3, 7,  true,  false, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // SESSION (View Only)
-            row(45, 3, 8,  false, false, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // SESSIONDEVICE
-            row(46, 3, 9,  true,  false, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // INFUSIONMONITORING (View Only)
-            row(47, 3, 10, true,  false, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // LABRESULT (View Only)
-            row(48, 3, 11, true,  false, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // BLOODSAMPLE (View Only)
-            row(49, 3, 12, true,  false, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // VITALSIGN (View Only)
-            row(50, 3, 13, true,  false, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // ANTHROPOMETRY (View Only)
-            row(51, 3, 14, true,  false, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // ANAMNESIS (View Only)
-            row(52, 3, 15, false, false, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // DEVICE
-            row(53, 3, 16, false, false, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // GLOBALCONFIGURATION
-            row(54, 3, 17, true,  false, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // ACTIVITY (View Only)
-            row(55, 3, 18, false, false, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // ACCESSMENU
+            row(22, 3, 1,  false, false, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // USER
+            row(23, 3, 2,  true,  false, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // PARTICIPANT (View Only)
+            row(24, 3, 3,  true,  true,  true,  true,  ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // PROTOCOLSAMPLINGSCHEDULE (Full)
+            row(25, 3, 4,  true,  false, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // SESSION (View Only)
+            row(26, 3, 5,  true,  false, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // INFUSIONMONITORING (View Only)
+            row(27, 3, 6,  true,  false, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // LABRESULT (View Only)
+            row(28, 3, 7,  true,  false, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // BLOODSAMPLE (View Only)
+            row(29, 3, 8,  true,  false, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // PREPARATIONCHECK (View Only)
+            row(30, 3, 9,  false, false, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // GLOBALCONFIGURATION
+            row(31, 3, 10, true,  false, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // PHASECONFIGURATION (View Only)
+            row(32, 3, 11, false, false, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // ROLEACCESS
 
             // ==========================================
             // 4. ANALYZER OPERATOR (ROLE ID = 5)
             // ==========================================
-            row(56, 5, 1,  false, false, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // USER
-            row(57, 5, 2,  false, false, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // ROLE
-            row(58, 5, 3,  true,  false, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // PARTICIPANT (View Only)
-            row(59, 5, 4,  true,  false, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // PROTOCOL (View Only)
-            row(60, 5, 5,  true,  false, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // PHASECONFIGURATION (View Only)
-            row(61, 5, 6,  true,  false, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // SAMPLINGSCHEDULE (View Only)
-            row(62, 5, 7,  true,  false, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // SESSION (View Only)
-            row(63, 5, 8,  false, false, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // SESSIONDEVICE
-            row(64, 5, 9,  true,  false, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // INFUSIONMONITORING (View Only)
-            row(65, 5, 10, true,  true,  true,  true,  ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // LABRESULT (Full)
-            row(66, 5, 11, true,  true,  true,  true,  ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // BLOODSAMPLE (Full)
-            row(67, 5, 12, true,  false, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // VITALSIGN (View Only)
-            row(68, 5, 13, true,  false, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // ANTHROPOMETRY (View Only)
-            row(69, 5, 14, true,  false, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // ANAMNESIS (View Only)
-            row(70, 5, 15, false, false, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // DEVICE
-            row(71, 5, 16, false, false, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // GLOBALCONFIGURATION
-            row(72, 5, 17, true,  true,  true,  true,  ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // ACTIVITY (Full)
-            row(73, 5, 18, false, false, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // ACCESSMENU
+            row(33, 5, 1,  false, false, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // USER
+            row(34, 5, 2,  true,  false, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // PARTICIPANT (View Only)
+            row(35, 5, 3,  true,  false, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // PROTOCOLSAMPLINGSCHEDULE (View Only)
+            row(36, 5, 4,  true,  false, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // SESSION (View Only)
+            row(37, 5, 5,  true,  false, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // INFUSIONMONITORING (View Only)
+            row(38, 5, 6,  true,  true,  true,  true,  ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // LABRESULT (Full)
+            row(39, 5, 7,  true,  true,  true,  true,  ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // BLOODSAMPLE (Full)
+            row(40, 5, 8,  true,  false, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // PREPARATIONCHECK (View Only)
+            row(41, 5, 9,  false, false, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // GLOBALCONFIGURATION
+            row(42, 5, 10, true,  false, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // PHASECONFIGURATION (View Only)
+            row(43, 5, 11, false, false, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // ROLEACCESS
 
             // ==========================================
             // 5. PUMP OPERATOR (ROLE ID = 6)
             // ==========================================
-            row(74, 6, 1,  false, false, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // USER
-            row(75, 6, 2,  false, false, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // ROLE
-            row(76, 6, 3,  true,  false, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // PARTICIPANT (View Only)
-            row(77, 6, 4,  true,  false, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // PROTOCOL (View Only)
-            row(78, 6, 5,  true,  false, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // PHASECONFIGURATION (View Only)
-            row(79, 6, 6,  true,  false, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // SAMPLINGSCHEDULE (View Only)
-            row(80, 6, 7,  true,  false, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // SESSION (View Only)
-            row(81, 6, 8,  false, false, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // SESSIONDEVICE
-            row(82, 6, 9,  true,  true,  true,  true,  ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // INFUSIONMONITORING (Full)
-            row(83, 6, 10, true,  false, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // LABRESULT (View Only)
-            row(84, 6, 11, true,  false, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // BLOODSAMPLE (View Only)
-            row(85, 6, 12, true,  false, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // VITALSIGN (View Only)
-            row(86, 6, 13, true,  false, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // ANTHROPOMETRY (View Only)
-            row(87, 6, 14, true,  false, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // ANAMNESIS (View Only)
-            row(88, 6, 15, false, false, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // DEVICE
-            row(89, 6, 16, false, false, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // GLOBALCONFIGURATION
-            row(90, 6, 17, true,  false, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // ACTIVITY (View Only)
-            row(91, 6, 18, false, false, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE")  // ACCESSMENU
+            row(44, 6, 1,  false, false, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // USER
+            row(45, 6, 2,  true,  false, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // PARTICIPANT (View Only)
+            row(46, 6, 3,  true,  false, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // PROTOCOLSAMPLINGSCHEDULE (View Only)
+            row(47, 6, 4,  true,  false, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // SESSION (View Only)
+            row(48, 6, 5,  true,  true,  true,  true,  ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // INFUSIONMONITORING (Full)
+            row(49, 6, 6,  true,  false, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // LABRESULT (View Only)
+            row(50, 6, 7,  true,  false, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // BLOODSAMPLE (View Only)
+            row(51, 6, 8,  true,  false, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // PREPARATIONCHECK (View Only)
+            row(52, 6, 9,  false, false, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // GLOBALCONFIGURATION
+            row(53, 6, 10, true,  false, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE"), // PHASECONFIGURATION (View Only)
+            row(54, 6, 11, false, false, false, false, ts("2026-05-21 07:10:00"), 1, ts("2026-05-21 07:10:00"), 1, null, null, "ACTIVE")  // ROLEACCESS
         );
     }
 

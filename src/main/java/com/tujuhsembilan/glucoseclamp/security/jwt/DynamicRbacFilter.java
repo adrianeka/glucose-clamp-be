@@ -22,24 +22,24 @@ public class DynamicRbacFilter extends OncePerRequestFilter {
 
     static {
         URL_TO_MENU_MAP.put("/user-management/users", "USER");
-        URL_TO_MENU_MAP.put("/roles", "ROLE");
+        URL_TO_MENU_MAP.put("/roles", "USER");
         URL_TO_MENU_MAP.put("/participants", "PARTICIPANT");
-        URL_TO_MENU_MAP.put("/protocol-management/protocols", "PROTOCOL");
-        URL_TO_MENU_MAP.put("/protocol-management/sampling-schedules", "SAMPLINGSCHEDULE");
-        URL_TO_MENU_MAP.put("/session-devices", "SESSIONDEVICE");
+        URL_TO_MENU_MAP.put("/protocol-management/protocols", "PROTOCOLSAMPLINGSCHEDULE");
+        URL_TO_MENU_MAP.put("/protocol-management/sampling-schedules", "PROTOCOLSAMPLINGSCHEDULE");
+        // URL_TO_MENU_MAP.put("/session-devices", "SESSIONDEVICE");
         URL_TO_MENU_MAP.put("/session", "SESSION");
+        URL_TO_MENU_MAP.put("/activities", "SESSION");
         URL_TO_MENU_MAP.put("/infusion-monitoring", "INFUSIONMONITORING");
         URL_TO_MENU_MAP.put("/lab-results", "LABRESULT");
         URL_TO_MENU_MAP.put("/blood-samples", "BLOODSAMPLE");
-        // URL_TO_MENU_MAP.put("/vital-signs", "VITALSIGN");
-        // URL_TO_MENU_MAP.put("/anthropometries", "ANTHROPOMETRY");
-        // URL_TO_MENU_MAP.put("/anamneses", "ANAMNESIS");
-        URL_TO_MENU_MAP.put("/devices", "DEVICE");
-        URL_TO_MENU_MAP.put("/activities", "ACTIVITY");
-        URL_TO_MENU_MAP.put("/access-menus", "ACCESSMENU");
+        URL_TO_MENU_MAP.put("/vital-signs", "PREPARATIONCHECK");
+        URL_TO_MENU_MAP.put("/anthropometries", "PREPARATIONCHECK");
+        URL_TO_MENU_MAP.put("/anamneses", "PREPARATIONCHECK");
+        URL_TO_MENU_MAP.put("/preparation-check", "PREPARATIONCHECK");
+        // URL_TO_MENU_MAP.put("/devices", "DEVICE");
+        // URL_TO_MENU_MAP.put("/access-menus", "ACCESSMENU");
         URL_TO_MENU_MAP.put("/global-configuration", "GLOBALCONFIGURATION");
         URL_TO_MENU_MAP.put("/phase-configuration", "PHASECONFIGURATION");
-        URL_TO_MENU_MAP.put("/preparation-check", "PREPARATIONCHECK");
         URL_TO_MENU_MAP.put("/role-access", "ROLEACCESS");
     }
 

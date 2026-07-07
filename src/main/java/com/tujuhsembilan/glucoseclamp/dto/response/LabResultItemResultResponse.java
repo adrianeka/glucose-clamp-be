@@ -41,4 +41,7 @@ public class LabResultItemResultResponse {
 
     @JsonProperty("updated_at")
     private LocalDateTime time;
+
+    @JsonProperty("updated_by_name")
+    private String updatedByName;
 }

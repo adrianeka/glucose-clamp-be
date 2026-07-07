@@ -30,8 +30,8 @@ public class DynamicRbacFilter extends OncePerRequestFilter {
         URL_TO_MENU_MAP.put("/session", "SESSION");
         URL_TO_MENU_MAP.put("/activities", "SESSION");
         URL_TO_MENU_MAP.put("/infusion-monitoring", "INFUSIONMONITORING");
-        URL_TO_MENU_MAP.put("/lab-results", "LABRESULT");
-        URL_TO_MENU_MAP.put("/blood-samples", "BLOODSAMPLE");
+        URL_TO_MENU_MAP.put("/lab-results", "BLOODDRAW");
+        URL_TO_MENU_MAP.put("/blood-samples", "BLOODDRAW");
         URL_TO_MENU_MAP.put("/vital-signs", "PREPARATIONCHECK");
         URL_TO_MENU_MAP.put("/anthropometries", "PREPARATIONCHECK");
         URL_TO_MENU_MAP.put("/anamneses", "PREPARATIONCHECK");
@@ -48,9 +48,22 @@ public class DynamicRbacFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
 
         String path = request.getRequestURI();
+        String method = request.getMethod();
         
         // Skip endpoints that do not require RBAC checks
-        if (path.contains("/sign-in") || path.contains("/sign-up") || path.contains("/swagger-ui") || path.contains("/api-docs") || path.contains("/actuator") || path.contains("/my-permissions")) {
+        if (path.contains("/sign-in") || path.contains("/sign-up") || path.contains("/swagger-ui") || path.contains("/api-docs") || path.contains("/actuator") || path.contains("/my-permissions") || path.contains("/next-progress-activity")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        // Bypass RBAC checks for GET requests to /global-configuration and /phase-configuration
+        if ("GET".equalsIgnoreCase(method) && (path.contains("/global-configuration") || path.contains("/phase-configuration"))) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        // Bypass RBAC checks for POST requests to /activities/start and /activities/complete
+        if (path.contains("/activities") && (path.endsWith("/start") || path.endsWith("/complete"))) {
             filterChain.doFilter(request, response);
             return;
         }
@@ -70,7 +83,6 @@ public class DynamicRbacFilter extends OncePerRequestFilter {
         }
 
         if (menuName != null) {
-            String method = request.getMethod();
             String requiredAction = "VIEW";
 
             if ("POST".equalsIgnoreCase(method)) {

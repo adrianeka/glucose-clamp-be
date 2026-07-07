@@ -3,6 +3,7 @@ package com.tujuhsembilan.glucoseclamp.service;
 import com.tujuhsembilan.glucoseclamp.dto.response.ApiDataResponseBuilder;
 import com.tujuhsembilan.glucoseclamp.dto.response.InfusionMonitoringResponse;
 import com.tujuhsembilan.glucoseclamp.dto.response.LabResultItemResultResponse;
+import com.tujuhsembilan.glucoseclamp.dto.response.OngoingSessionNotificationResponse;
 import com.tujuhsembilan.glucoseclamp.dto.response.SessionActivityItemResponse;
 import com.tujuhsembilan.glucoseclamp.dto.response.SessionTimelineResponse;
 import com.tujuhsembilan.glucoseclamp.exception.classes.DataNotFoundException;
@@ -245,13 +246,7 @@ public class SessionTrackingService {
 
                 }
 
-                LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Jakarta"));
-
-                /*
-                 * ==========================================================
-                 * MASIH ADA YANG IN_PROGRESS
-                 * ==========================================================
-                 */
+        LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Jakarta"));
 
                 boolean hasInProgress = activities.stream()
                                 .anyMatch(a -> a.getActivityStatus() == ActivityStatus.IN_PROGRESS);
@@ -264,13 +259,7 @@ public class SessionTrackingService {
                                         .statusCode(HttpStatus.OK.value())
                                         .build();
 
-                }
-
-                /*
-                 * ==========================================================
-                 * CARI ACTIVITY INQUEUE PERTAMA
-                 * ==========================================================
-                 */
+        }
 
                 Optional<LocalDateTime> nextTime = activities.stream()
                                 .filter(a -> a.getActivityStatus() == ActivityStatus.NEXT_ACTIVITY)
@@ -281,18 +270,12 @@ public class SessionTrackingService {
 
                 if (nextTime.isEmpty()) {
 
-                        return ApiDataResponseBuilder.builder()
-                                        .message("Tidak ada activity berikutnya")
-                                        .status(HttpStatus.OK)
-                                        .statusCode(HttpStatus.OK.value())
-                                        .build();
-                }
-
-                /*
-                 * ==========================================================
-                 * BELUM WAKTUNYA DIMULAI
-                 * ==========================================================
-                 */
+            return ApiDataResponseBuilder.builder()
+                    .message("Tidak ada activity berikutnya")
+                    .status(HttpStatus.OK)
+                    .statusCode(HttpStatus.OK.value())
+                    .build();
+        }
 
                 if (isTooEarly(now, nextTime.get())) {
 
@@ -303,11 +286,6 @@ public class SessionTrackingService {
                                         .build();
                 }
 
-                /*
-                 * ==========================================================
-                 * PROMOTE INQUEUE -> IN_PROGRESS
-                 * ==========================================================
-                 */
 
                 List<Activity> activitiesToStart = activities.stream()
                                 .filter(a -> a.getActivityStatus() == ActivityStatus.NEXT_ACTIVITY)

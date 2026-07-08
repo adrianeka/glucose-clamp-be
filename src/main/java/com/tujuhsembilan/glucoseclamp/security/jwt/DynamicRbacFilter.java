@@ -56,8 +56,8 @@ public class DynamicRbacFilter extends OncePerRequestFilter {
             return;
         }
 
-        // Bypass RBAC checks for GET requests to /global-configuration and /phase-configuration
-        if ("GET".equalsIgnoreCase(method) && (path.contains("/global-configuration") || path.contains("/phase-configuration"))) {
+        // Bypass RBAC checks for GET requests to /global-configuration, /phase-configuration, /participants, dropdown, and
+        if ("GET".equalsIgnoreCase(method) && (path.contains("/global-configuration") || path.contains("/phase-configuration") || path.contains("/participants") || path.contains("/dropdown") || path.contains("/protocol-management/protocols"))) {
             filterChain.doFilter(request, response);
             return;
         }

@@ -35,6 +35,7 @@ import com.tujuhsembilan.glucoseclamp.security.service.CurrentUserService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -99,7 +100,7 @@ public class SessionManagementService {
     }
 
     public ApiDataResponseBuilder getAllSessions(int pageNumber, int pageSize) {
-        Pageable pageable = PageRequest.of(pageNumber - 1, pageSize);
+        Pageable pageable = PageRequest.of(pageNumber - 1, pageSize, Sort.by("visitDate").descending());
         Page<SessionSummaryResponse> result = sessionRepository.findAllSessionSummaries(pageable);
 
         return ApiDataResponseBuilder.builder()

@@ -99,9 +99,9 @@ public class SessionManagementService {
         this.activityRepository = activityRepository;
     }
 
-    public ApiDataResponseBuilder getAllSessions(int pageNumber, int pageSize) {
+    public ApiDataResponseBuilder getAllSessions(int pageNumber, int pageSize, String keyword) {
         Pageable pageable = PageRequest.of(pageNumber - 1, pageSize, Sort.by("visitDate").descending());
-        Page<SessionSummaryResponse> result = sessionRepository.findAllSessionSummaries(pageable);
+         Page<SessionSummaryResponse> result = sessionRepository.findAllSessionSummaries(keyword, pageable);
 
         return ApiDataResponseBuilder.builder()
                 .data(result)

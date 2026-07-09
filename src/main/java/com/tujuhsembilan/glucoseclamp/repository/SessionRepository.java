@@ -13,6 +13,7 @@ import jakarta.persistence.LockModeType;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.repository.query.Param;
 
 @Repository
 public interface SessionRepository extends JpaRepository<Session, Long> {
@@ -38,8 +39,14 @@ public interface SessionRepository extends JpaRepository<Session, Long> {
             JOIN s.participant p
             JOIN s.protocol pr
             WHERE s.deletedAt IS NULL
+              AND (:keyword IS NULL OR :keyword = '' 
+                   OR LOWER(p.name) LIKE LOWER(CONCAT('%', :keyword, '%')) 
+                   OR LOWER(pr.protocolName) LIKE LOWER(CONCAT('%', :keyword, '%')))
             """)
-    Page<SessionSummaryResponse> findAllSessionSummaries(Pageable pageable);
+    Page<SessionSummaryResponse> findAllSessionSummaries(
+            @Param("keyword") String keyword, 
+            Pageable pageable
+    );
 
     @Query("SELECT s FROM Session s WHERE s.sessionId = ?1 AND s.deletedAt IS NULL")
     Optional<Session> findByIdAndDeletedAtIsNull(Long sessionId);

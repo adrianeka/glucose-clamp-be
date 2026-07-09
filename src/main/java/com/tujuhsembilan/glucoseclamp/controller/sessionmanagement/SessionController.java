@@ -69,9 +69,10 @@ public class SessionController {
 
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Object> getAllSessions(
+            @RequestParam(required = false) String keyword, 
             @RequestParam(defaultValue = "1") int pageNumber,
             @RequestParam(defaultValue = "10") int pageSize) {
-        ApiDataResponseBuilder result = sessionManagementService.getAllSessions(pageNumber, pageSize);
+        ApiDataResponseBuilder result = sessionManagementService.getAllSessions(pageNumber, pageSize, keyword);
         return ResponseEntity.status(result.getStatus()).body(result);
     }
 

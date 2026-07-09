@@ -48,9 +48,17 @@ public class UserManagementService {
         }
     }
 
-    public ApiDataResponseBuilder getAllUsers(int pageNumber, int pageSize) {
+public ApiDataResponseBuilder getAllUsers(int pageNumber, int pageSize) {
         Pageable pageable = PageRequest.of(Math.max(0, pageNumber - 1), pageSize);
-        Page<UserManagementResponse> result = userRepository.findAllActive(pageable).map(this::mapToResponse);
+        Page<User> userPage;
+
+        if (isCurrentSuperAdmin()) {
+            userPage = userRepository.findAllActive(pageable);
+        } else {
+            userPage = userRepository.findAllActiveExceptSuperAdmin(pageable);
+        }
+
+        Page<UserManagementResponse> result = userPage.map(this::mapToResponse);
 
         return ApiDataResponseBuilder.builder()
                 .data(result)
@@ -180,6 +188,11 @@ public class UserManagementService {
         user.setName(request.getName().trim());
         user.setUsername(normalizedUsername);
         user.setEmail(normalizedEmail);
+        user.setStatus(request.getStatus());
+        if (EntityStatus.DELETED.equals(request.getStatus())) {
+            user.setDeletedAt(LocalDateTime.now());
+            user.setDeletedBy(getCurrentUserId());
+        }
         
         if (request.getPassword() != null && !request.getPassword().isBlank()) {
             String encryptedPassword = passwordEncoder.encode(request.getPassword());
@@ -199,7 +212,7 @@ public class UserManagementService {
 
     @Transactional
     public ApiDataResponseBuilder deleteUser(Integer id) {
-        Optional<User> existingUser = userRepository.findByIdAndDeletedAtIsNull(id);
+        Optional<User> existingUser = userRepository.findById(id);
         if (existingUser.isEmpty()) {
             return ApiDataResponseBuilder.builder()
                     .message("Data user tidak ditemukan")
@@ -210,6 +223,11 @@ public class UserManagementService {
 
         User user = existingUser.get();
         Integer currentUserId = getCurrentUserId();
+        
+        String suffix = "_deleted_" + System.currentTimeMillis();
+        user.setUsername(user.getUsername() + suffix);
+        user.setEmail(user.getEmail() + suffix);
+
         user.setDeletedAt(LocalDateTime.now());
         user.setDeletedBy(currentUserId);
         user.setStatus(EntityStatus.DELETED);
@@ -224,44 +242,20 @@ public class UserManagementService {
                 .build();
     }
 
-    @Transactional
-    public ApiDataResponseBuilder updateUserStatus(Integer id, UpdateStatusRequest request) {
-        Optional<User> existingUser = userRepository.findByIdAndDeletedAtIsNull(id);
-        if (existingUser.isEmpty()) {
-            return ApiDataResponseBuilder.builder()
-                    .message("Data user tidak ditemukan")
-                    .statusCode(HttpStatus.NOT_FOUND.value())
-                    .status(HttpStatus.NOT_FOUND)
-                    .build();
-        }
-
-        User user = existingUser.get();
-        Integer currentUserId = getCurrentUserId();
-        user.setStatus(request.getStatus());
-        user.setUpdatedBy(currentUserId);
-        user.setUpdatedAt(LocalDateTime.now());
-        if (EntityStatus.DELETED.equals(request.getStatus())) {
-            user.setDeletedAt(LocalDateTime.now());
-            user.setDeletedBy(currentUserId);
-        }
-        userRepository.save(user);
-
-        return ApiDataResponseBuilder.builder()
-                .data(mapToResponse(user))
-                .message("Status user berhasil diupdate")
-                .statusCode(HttpStatus.OK.value())
-                .status(HttpStatus.OK)
-                .build();
-    }
-
     public ApiDataResponseBuilder searchUsers(String keyword, int pageNumber, int pageSize) {
         Pageable pageable = PageRequest.of(Math.max(0, pageNumber - 1), pageSize);
-        Page<UserManagementResponse> result;
+        Page<User> userPage;
+        boolean isSuperAdmin = isCurrentSuperAdmin();
+
         if (keyword == null || keyword.isBlank()) {
-            result = userRepository.findAllActive(pageable).map(this::mapToResponse);
+            userPage = isSuperAdmin ? userRepository.findAllActive(pageable) 
+                                    : userRepository.findAllActiveExceptSuperAdmin(pageable);
         } else {
-            result = userRepository.searchByKeyword(keyword.trim(), pageable).map(this::mapToResponse);
+            userPage = isSuperAdmin ? userRepository.searchByKeyword(keyword.trim(), pageable) 
+                                    : userRepository.searchByKeywordExceptSuperAdmin(keyword.trim(), pageable);
         }
+
+        Page<UserManagementResponse> result = userPage.map(this::mapToResponse);
 
         return ApiDataResponseBuilder.builder()
                 .data(result)
@@ -270,7 +264,6 @@ public class UserManagementService {
                 .status(HttpStatus.OK)
                 .build();
     }
-
     private UserManagementResponse mapToResponse(User user) {
         UserManagementResponse response = modelMapper.map(user, UserManagementResponse.class);
         response.setStatus(user.getStatus() == null ? null : user.getStatus().name());
@@ -283,5 +276,14 @@ public class UserManagementService {
 
     private String normalize(String value) {
         return value == null ? null : value.trim();
+    }
+
+    private boolean isCurrentSuperAdmin() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null) {
+            return false;
+        }
+        return authentication.getAuthorities().stream()
+                .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("Superadmin"));
     }
 }

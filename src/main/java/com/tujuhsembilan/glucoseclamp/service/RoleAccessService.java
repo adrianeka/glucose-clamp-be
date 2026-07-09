@@ -75,6 +75,7 @@ public class RoleAccessService {
         List<RoleAccess> list = roleAccessRepository.findAllActive();
         
         List<RoleAccessResponse> responses = list.stream()
+                .filter(ra -> ra.getRole() != null && !"Superadmin".equals(ra.getRole().getRoleName()))
                 .map(this::convertToResponse)
                 .collect(Collectors.toList());
 

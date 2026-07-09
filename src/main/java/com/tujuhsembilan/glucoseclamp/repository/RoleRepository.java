@@ -11,8 +11,10 @@ import java.util.Optional;
 
 @Repository
 public interface RoleRepository extends JpaRepository<Role, Integer> {
-    @Query("SELECT r FROM Role r WHERE r.deletedAt IS NULL")
+    @Query("SELECT r FROM Role r WHERE r.deletedAt IS NULL AND r.status <> 'INACTIVE'")
     Page<Role> findAllActive(Pageable pageable);
+    @Query("SELECT r FROM Role r WHERE r.deletedAt IS NULL")
+    Page<Role> findAll(Pageable pageable);
     @Query("SELECT r FROM Role r WHERE r.roleId = ?1 AND r.deletedAt IS NULL")
     Optional<Role> findByIdAndDeletedAtIsNull(Integer roleId);
     @Query("SELECT r FROM Role r WHERE r.roleName = ?1 AND r.deletedAt IS NULL")

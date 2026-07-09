@@ -1,5 +1,7 @@
 package com.tujuhsembilan.glucoseclamp.dto.request;
 
+import com.tujuhsembilan.glucoseclamp.model.base.EntityStatus;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -43,4 +45,7 @@ public class UserManagementRequest {
 
     @Schema(description = "User password (at least 6 characters)", example = "password123")
     private String password;
+
+    @Schema(description = "Status of user", example = "ACTIVE")
+    private EntityStatus status;
 }

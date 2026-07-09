@@ -113,16 +113,31 @@ public class UsersService {
     }
 
     public ApiDataResponseBuilder signIn(LoginRequest loginRequest) {
-        if (Boolean.FALSE.equals(userRepository.existsByUsername(loginRequest.getUsername()))) {
+        String identifier = normalize(loginRequest.getUsername());
+        
+        Optional<User> userOptional = userRepository.findByUsernameOrEmailAndDeletedAtIsNull(identifier);
+
+        if (userOptional.isEmpty()) {
             return ApiDataResponseBuilder.builder()
                     .message(messageUtil.get("application.error.auth.user.not-found"))
                     .statusCode(HttpStatus.UNAUTHORIZED.value())
                     .status(HttpStatus.UNAUTHORIZED)
                     .build();
         }
+
+        User user = userOptional.get();
+
+        if (user.getStatus() != EntityStatus.ACTIVE) {
+            return ApiDataResponseBuilder.builder()
+                    .message("Akun Anda dinonaktifkan. Silakan hubungi administrator.") 
+                    .statusCode(HttpStatus.UNAUTHORIZED.value())
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .build();
+        }
+
         try {
             Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
+                    new UsernamePasswordAuthenticationToken(user.getUsername(), loginRequest.getPassword()));
 
             SecurityContextHolder.getContext().setAuthentication(authentication);
             String jwt = jwtUtils.generateJwtToken(authentication);
@@ -133,7 +148,7 @@ public class UsersService {
                     .findFirst();
 
             return ApiDataResponseBuilder.builder()
-                    .data(new JwtResponse(jwt, userDetails.getId(), userDetails.getUsername(),userDetails.getName(), roles.get()))
+                    .data(new JwtResponse(jwt, userDetails.getId(), userDetails.getUsername(), userDetails.getName(), roles.get()))
                     .message(messageUtil.get("application.success.auth.user"))
                     .statusCode(statusOK.value())
                     .status(statusOK)

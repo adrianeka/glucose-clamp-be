@@ -100,13 +100,6 @@ public class UsersController {
     }
 
     @SecurityRequirement(name = "bearerAuth")
-    @PutMapping(path = "/users/{id}/status", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<Object> updateUserStatus(@PathVariable Integer id, @Valid @RequestBody UpdateStatusRequest request) {
-        ApiDataResponseBuilder result = userManagementService.updateUserStatus(id, request);
-        return ResponseEntity.status(result.getStatus()).body(result);
-    }
-
-    @SecurityRequirement(name = "bearerAuth")
     @GetMapping(path = "/users/search", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Object> searchUsers(
             @RequestParam(required = false) String keyword,

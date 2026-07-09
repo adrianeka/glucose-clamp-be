@@ -3,7 +3,6 @@ package com.tujuhsembilan.glucoseclamp.service;
 import com.tujuhsembilan.glucoseclamp.dto.response.ApiDataResponseBuilder;
 import com.tujuhsembilan.glucoseclamp.dto.response.InfusionMonitoringResponse;
 import com.tujuhsembilan.glucoseclamp.dto.response.LabResultItemResultResponse;
-import com.tujuhsembilan.glucoseclamp.dto.response.OngoingSessionNotificationResponse;
 import com.tujuhsembilan.glucoseclamp.dto.response.SessionActivityItemResponse;
 import com.tujuhsembilan.glucoseclamp.dto.response.SessionTimelineResponse;
 import com.tujuhsembilan.glucoseclamp.exception.classes.DataNotFoundException;

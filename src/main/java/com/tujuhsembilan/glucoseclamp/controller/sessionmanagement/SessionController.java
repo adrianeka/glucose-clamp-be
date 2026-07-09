@@ -96,4 +96,10 @@ public class SessionController {
 
         return ResponseEntity.status(result.getStatus()).body(result);
     }
+
+    @GetMapping(path = "/ongoing-notification", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Object> getOngoingNotification() {
+        ApiDataResponseBuilder result = sessionTrackingService.getOngoingSessionNotification();
+        return ResponseEntity.status(result.getStatus()).body(result);
+    }
 }

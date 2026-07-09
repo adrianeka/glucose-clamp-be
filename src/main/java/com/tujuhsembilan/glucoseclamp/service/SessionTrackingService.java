@@ -3,7 +3,9 @@ package com.tujuhsembilan.glucoseclamp.service;
 import com.tujuhsembilan.glucoseclamp.dto.response.ApiDataResponseBuilder;
 import com.tujuhsembilan.glucoseclamp.dto.response.InfusionMonitoringResponse;
 import com.tujuhsembilan.glucoseclamp.dto.response.LabResultItemResultResponse;
+import com.tujuhsembilan.glucoseclamp.dto.response.OngoingSessionNotificationResponse;
 import com.tujuhsembilan.glucoseclamp.dto.response.SessionActivityItemResponse;
+import com.tujuhsembilan.glucoseclamp.dto.response.SessionNotificationItemResponse;
 import com.tujuhsembilan.glucoseclamp.dto.response.SessionTimelineResponse;
 import com.tujuhsembilan.glucoseclamp.exception.classes.DataNotFoundException;
 import com.tujuhsembilan.glucoseclamp.model.Activity;
@@ -29,7 +31,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Objects;
 import java.util.stream.Collectors;
-import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.Collections;
 
 @Service
@@ -187,21 +189,6 @@ public class SessionTrackingService {
         private boolean isCompletedActivity(Activity activity) {
                 return activity != null && activity.getActivityStatus() == ActivityStatus.COMPLETED;
         }
-        // private List<Activity> findNextPendingActivities(List<Activity> activities) {
-        // Optional<Activity> firstPending = activities.stream()
-        // .filter(activity -> !isCompletedActivity(activity))
-        // .findFirst();
-
-        // if (firstPending.isEmpty()) {
-        // return List.of();
-        // }
-
-        // var nextTime = firstPending.get().getTime();
-        // return activities.stream()
-        // .filter(activity -> !isCompletedActivity(activity))
-        // .filter(activity -> Objects.equals(activity.getTime(), nextTime))
-        // .collect(Collectors.toList());
-        // }
 
         private List<Activity> findNextActivities(List<Activity> activities) {
                 return activities.stream()
@@ -333,6 +320,53 @@ public class SessionTrackingService {
                                 .build();
 
         }
+
+        public ApiDataResponseBuilder getOngoingSessionNotification() {
+                List<Session> runningSessions = sessionRepository.findRunningSessions();
+                List<OngoingSessionNotificationResponse> responses = new ArrayList<>();
+
+                for (Session session : runningSessions) {
+                        List<Activity> unfinishedActivities = activityRepository.findNextUnfinishedActivities(session.getSessionId());
+
+                        if (!unfinishedActivities.isEmpty()) {
+                                Activity nextActivity = unfinishedActivities.get(0);
+
+                                LocalDateTime targetTime = null;
+                                if (session.getStartTime() != null) {
+                                        targetTime = session.getStartTime().plusMinutes(nextActivity.getMinute());
+                                }
+
+                                SessionNotificationItemResponse activityResponse = SessionNotificationItemResponse.builder()
+                                        .activityId(nextActivity.getActivityId())
+                                        .time(targetTime)
+                                        .activityType(nextActivity.getActivityType())
+                                        .activityDesc(nextActivity.getActivityDesc())
+                                        .phaseCode(nextActivity.getPhaseCode() != null ? nextActivity.getPhaseCode() : "")
+                                        .phaseName(nextActivity.getPhaseName() != null ? nextActivity.getPhaseName() : "")
+                                        .activityStatus(nextActivity.getActivityStatus() != null ? nextActivity.getActivityStatus().name() : "PENDING")
+                                        .minute(nextActivity.getMinute())
+                                        .build();
+
+                                OngoingSessionNotificationResponse sessionResponse = OngoingSessionNotificationResponse.builder()
+                                        .hasActiveSession(true)
+                                        .sessionId(session.getSessionId())
+                                        .participantName(session.getParticipant() != null ? session.getParticipant().getName() : "")
+                                        .protocolName(session.getProtocol() != null ? session.getProtocol().getProtocolName() : "")
+                                        .nextActivity(activityResponse)
+                                        .build();
+
+                                responses.add(sessionResponse);
+                        }
+                }
+
+                return ApiDataResponseBuilder.builder()
+                        .data(responses)
+                        .message("Berhasil mendapatkan data sesi yang sedang berjalan")
+                        .statusCode(HttpStatus.OK.value())
+                        .status(HttpStatus.OK)
+                        .build();
+        }
+
 
         private boolean isTooEarly(LocalDateTime now, LocalDateTime targetTime) {
                 return now.isBefore(targetTime.minusSeconds(TIME_TOLERANCE_SECONDS));

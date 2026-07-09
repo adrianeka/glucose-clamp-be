@@ -52,4 +52,6 @@ public interface SessionRepository extends JpaRepository<Session, Long> {
     List<Session> findByProtocolIdAndDeletedAtIsNull(Long protocolId);
     @Query("SELECT s FROM Session s WHERE s.visitDate = ?1 AND s.deletedAt IS NULL")
     List<Session> findByVisitDateAndDeletedAtIsNull(LocalDate visitDate);
+    @Query("SELECT s FROM Session s WHERE s.sessionStatus = com.tujuhsembilan.glucoseclamp.model.base.SessionStatus.RUNNING AND s.deletedAt IS NULL")
+    List<Session> findRunningSessions();
 }

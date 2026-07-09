@@ -15,7 +15,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.lang.Long;
-import java.time.LocalDateTime;
 
 @Repository
 public interface ActivityRepository extends JpaRepository<Activity, Long> {
@@ -83,4 +82,13 @@ public interface ActivityRepository extends JpaRepository<Activity, Long> {
         Long sessionId,
         LocalDateTime time
     );
+
+    @Query("""
+        SELECT a FROM Activity a 
+        WHERE a.session.sessionId = ?1 
+          AND a.activityStatus <> com.tujuhsembilan.glucoseclamp.model.base.ActivityStatus.COMPLETED 
+          AND a.deletedAt IS NULL 
+        ORDER BY a.minute ASC, a.activityId ASC
+    """)
+    List<Activity> findNextUnfinishedActivities(Long sessionId);
 }

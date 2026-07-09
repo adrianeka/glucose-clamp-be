@@ -129,7 +129,7 @@ public class UsersService {
 
         if (user.getStatus() != EntityStatus.ACTIVE) {
             return ApiDataResponseBuilder.builder()
-                    .message("Akun Anda dinonaktifkan. Silakan hubungi administrator.") 
+                    .message("Saat ini status akun Anda nonaktif. Silakan hubungi Administrator.") 
                     .statusCode(HttpStatus.UNAUTHORIZED.value())
                     .status(HttpStatus.UNAUTHORIZED)
                     .build();

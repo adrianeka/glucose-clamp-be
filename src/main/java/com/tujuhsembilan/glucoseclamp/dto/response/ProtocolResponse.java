@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -57,6 +58,7 @@ public class ProtocolResponse {
     @JsonProperty("initial_glucose_infusion_rate_unit")
     private String initialGlucoseInfusionRateUnit;
 
+
     @JsonProperty("version")
     private Float version;
 
@@ -82,6 +84,7 @@ public class ProtocolResponse {
     private String status;
 
     @JsonProperty("sampling_schedules")
+    // private List<SamplingScheduleResponse> samplingSchedules;
     private String samplingScheduleSummary;
 
     @JsonProperty("created_by_name")
@@ -89,7 +92,4 @@ public class ProtocolResponse {
 
     @JsonProperty("updated_by_name")
     private String updatedByName;
-
-    @JsonProperty("is_used")
-    private Boolean isUsed;
 }

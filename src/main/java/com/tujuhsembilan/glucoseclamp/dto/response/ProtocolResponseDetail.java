@@ -84,4 +84,7 @@ public class ProtocolResponseDetail {
 
     @JsonProperty("sampling_schedules")
     private List<SamplingScheduleResponse> samplingSchedules;
+
+    @JsonProperty("is_used")
+    private Boolean isUsed;
 }

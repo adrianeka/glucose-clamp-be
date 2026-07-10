@@ -9,8 +9,10 @@ import com.tujuhsembilan.glucoseclamp.dto.response.ProtocolResponse;
 import com.tujuhsembilan.glucoseclamp.dto.response.ProtocolResponseDetail;
 import com.tujuhsembilan.glucoseclamp.model.Protocol;
 import com.tujuhsembilan.glucoseclamp.model.SamplingSchedule;
+import com.tujuhsembilan.glucoseclamp.model.Session;
 import com.tujuhsembilan.glucoseclamp.model.base.EntityStatus;
 import com.tujuhsembilan.glucoseclamp.repository.SamplingScheduleRepository;
+import com.tujuhsembilan.glucoseclamp.repository.SessionRepository;
 import com.tujuhsembilan.glucoseclamp.repository.UserRepository;
 import com.tujuhsembilan.glucoseclamp.repository.ProtocolRepository;
 import com.tujuhsembilan.glucoseclamp.security.service.UserDetailsImplement;
@@ -51,6 +53,9 @@ public class ProtocolsService {
 
     @Autowired
     private SamplingScheduleRepository samplingScheduleRepository;
+
+    @Autowired
+    private SessionRepository sessionRepository;
 
     private Integer getCurrentUserId() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -138,7 +143,6 @@ public class ProtocolsService {
         Integer currentUserId = getCurrentUserId();
         LocalDateTime now = LocalDateTime.now();
 
-        // Ditambahkan mapping untuk 3 field baru
         Protocol protocol = Protocol.builder()
                 .protocolCode(request.getProtocolCode())
                 .protocolName(request.getProtocolName())
@@ -206,6 +210,14 @@ public class ProtocolsService {
                     .build();
         }
 
+        if (isProtocolUsedInSession(id)) {
+            return ApiDataResponseBuilder.builder()
+                    .message("Protocol tidak dapat diubah karena sudah digunakan dalam sesi")
+                    .statusCode(HttpStatus.BAD_REQUEST.value())
+                    .status(HttpStatus.BAD_REQUEST)
+                    .build();
+        }
+
         Protocol protocol = opt.get();
         Integer currentUserId = getCurrentUserId();
         LocalDateTime now = LocalDateTime.now();
@@ -231,7 +243,6 @@ public class ProtocolsService {
         if (request.getGlucoseTargetMaxExtreme() != null) protocol.setGlucoseTargetMaxExtreme(request.getGlucoseTargetMaxExtreme());
         if (request.getDurationHours() != null) protocol.setDurationHours(request.getDurationHours());
         
-        // Ditambahkan pengecekan & pembaruan nilai untuk 3 field baru
         if (request.getGlucoseDropTriggerPercentage() != null) protocol.setGlucoseDropTriggerPercentage(request.getGlucoseDropTriggerPercentage());
         if (request.getInitialGlucoseInfusionRate() != null) protocol.setInitialGlucoseInfusionRate(request.getInitialGlucoseInfusionRate());
         if (request.getInitialGlucoseInfusionRateUnit() != null) protocol.setInitialGlucoseInfusionRateUnit(request.getInitialGlucoseInfusionRateUnit());
@@ -341,6 +352,14 @@ public class ProtocolsService {
                     .build();
         }
 
+        if (isProtocolUsedInSession(id)) {
+            return ApiDataResponseBuilder.builder()
+                    .message("Protocol tidak dapat dihapus karena sudah digunakan dalam sesi")
+                    .statusCode(HttpStatus.BAD_REQUEST.value())
+                    .status(HttpStatus.BAD_REQUEST)
+                    .build();
+        }
+
         Protocol protocol = opt.get();
         Integer currentUserId = getCurrentUserId();
         LocalDateTime now = LocalDateTime.now();
@@ -402,7 +421,8 @@ public class ProtocolsService {
     }
 
     public ProtocolResponse mapToResponse(Protocol protocol) {
-        // Ditambahkan pemetaan untuk 3 field baru ke DTO ProtocolResponse
+        boolean isUsed = isProtocolUsedInSession(protocol.getProtocolId());
+
         return ProtocolResponse.builder()
                 .protocolId(protocol.getProtocolId())
                 .protocolCode(protocol.getProtocolCode())
@@ -427,6 +447,7 @@ public class ProtocolsService {
                 .deletedBy(protocol.getDeletedBy())
                 .status(protocol.getStatus() != null ? protocol.getStatus().name() : null)
                 .samplingScheduleSummary(buildSamplingScheduleSummary(protocol))
+                .isUsed(isUsed) // Mapping field is_used ke DTO
                 .build();
     }
 
@@ -439,7 +460,9 @@ public class ProtocolsService {
                     .collect(Collectors.toList());
         }
 
-        // Ditambahkan pemetaan untuk 3 field baru ke DTO ProtocolResponseDetail
+        // --- TAMBAHAN: Cek relasi ke sesi untuk memetakan isUsed ---
+        boolean isUsed = isProtocolUsedInSession(protocol.getProtocolId());
+
         return ProtocolResponseDetail.builder()
                 .protocolId(protocol.getProtocolId())
                 .protocolCode(protocol.getProtocolCode())
@@ -464,6 +487,7 @@ public class ProtocolsService {
                 .deletedBy(protocol.getDeletedBy())
                 .status(protocol.getStatus() != null ? protocol.getStatus().name() : null)
                 .samplingSchedules(details)
+                .isUsed(isUsed) // Mapping field is_used ke DTO Detail
                 .build();
     }
 
@@ -543,5 +567,10 @@ public class ProtocolsService {
                         user -> user.getName() != null ? user.getName() : "System",
                         (existing, replacement) -> existing
                 ));
+    }
+
+    private boolean isProtocolUsedInSession(Long protocolId) {
+        List<Session> activeSessions = sessionRepository.findByProtocolIdAndDeletedAtIsNull(protocolId);
+        return activeSessions != null && !activeSessions.isEmpty();
     }
 }
